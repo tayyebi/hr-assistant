@@ -1,139 +1,175 @@
 
 
-import { Employee, Team, ChatMessage, Feeling, ServiceType, UnassignedMessage, AppConfig } from '../types';
+import { Employee, Team, ChatMessage, UnassignedMessage, AppConfig, User, Tenant, UserRole, SystemJob } from '../types';
 
-// Local Fallback / Cache
-const STORAGE_KEY = 'hr_assistant_db_cache';
+const STORAGE_KEY = 'hr_assistant_multitenant_db';
 
 const DEFAULT_CONFIG: AppConfig = {
     telegramBotToken: '',
-    telegramMode: 'webhook', // New: Default to webhook
-    webhookUrl: '', // This will now also serve as the backend API for data storage
+    telegramMode: 'webhook',
+    webhookUrl: '',
     mailcow: { url: 'https://mail.example.com', apiKey: '' },
     gitlab: { url: 'https://gitlab.example.com', token: '' },
-    keycloak: { url: 'https://auth.example.com', realm: 'hr-assistant-realm', clientId: 'hr-assistant-client', clientSecret: '' },
-    emailService: { imapHost: 'imap.example.com', imapUser: 'hr-assistant@example.com', imapPass: '', smtpHost: 'smtp.example.com' }
+    keycloak: { url: 'https://auth.example.com', realm: 'hr-assistant', clientId: 'hr-assistant-client', clientSecret: '' },
+    emailService: {
+        imap: { host: 'imap.example.com', port: 993, tls: true, user: 'hr@example.com', pass: '' },
+        smtp: { host: 'smtp.example.com', port: 465, tls: true, user: 'hr@example.com', pass: '' }
+    }
 };
 
-interface StorageData {
+interface TenantData {
     employees: Employee[];
     teams: Team[];
     messages: ChatMessage[];
     unassignedMessages: UnassignedMessage[];
+    jobs: SystemJob[];
     config: AppConfig;
 }
 
-// In-memory cache
-let memCache: StorageData = {
-    employees: [],
-    teams: [],
-    messages: [],
-    unassignedMessages: [],
-    config: DEFAULT_CONFIG
-};
+interface SystemData {
+    users: User[];
+    tenants: Tenant[];
+}
 
-// Initialize: Load from LocalStorage first, then try Backend API if configured
-export const initializeStorage = async (): Promise<StorageData> => {
-    const local = localStorage.getItem(STORAGE_KEY);
-    if (local) {
-        memCache = JSON.parse(local);
-        // Merge defaults in case of new config fields
-        memCache.config = { ...DEFAULT_CONFIG, ...memCache.config };
-    }
+interface FullStorage {
+    system: SystemData;
+    tenants: Record<string, TenantData>;
+}
 
-    // If we have a webhook URL, try to sync from the conceptual backend
-    if (memCache.config.webhookUrl) {
-        try {
-            console.log("Syncing from Backend API...");
-            const response = await fetch(`${memCache.config.webhookUrl}/data`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const backendData: StorageData = await response.json();
-
-            // Update cache if backend has data
-            if (backendData.employees || backendData.teams || backendData.messages || backendData.unassignedMessages) {
-                memCache.employees = backendData.employees || [];
-                memCache.teams = backendData.teams || [];
-                memCache.messages = backendData.messages || [];
-                memCache.unassignedMessages = backendData.unassignedMessages || [];
-                // config should not be overwritten from backend, it's client-managed
-                persistLocal();
-            }
-            console.log("Synced from Backend API.");
-        } catch (e) {
-            console.error("Backend Sync Failed:", e);
-            console.warn("Falling back to local storage data.");
-        }
-    }
-    
-    return memCache;
-};
-
-// Sync Accessor
-export const getStoredData = (): StorageData => {
-    return memCache;
-};
-
-// Save: Updates Local + Async Push to Backend API
-export const saveData = async (data: StorageData) => {
-    memCache = data;
-    persistLocal();
-
-    // Async Backend API Push
-    if (memCache.config.webhookUrl) {
-        try {
-            const response = await fetch(`${memCache.config.webhookUrl}/data`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    employees: memCache.employees,
-                    teams: memCache.teams,
-                    messages: memCache.messages,
-                    unassignedMessages: memCache.unassignedMessages,
-                }), // Only send relevant data, not the whole config
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            console.log("Synced to Backend API.");
-        } catch (e) {
-            console.error("Failed to sync to Backend API", e);
-        }
-    }
-};
+let memCache: FullStorage;
 
 const persistLocal = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(memCache));
 };
 
-export const saveMessage = (msg: ChatMessage) => {
-    memCache.messages.push(msg);
-    saveData(memCache); // Triggers cloud sync
-    return memCache.messages;
+export const initializeStorage = (): void => {
+    const local = localStorage.getItem(STORAGE_KEY);
+    if (local) {
+        memCache = JSON.parse(local);
+        // Migration: Ensure jobs array exists for existing data
+        Object.values(memCache.tenants).forEach(tenant => {
+            if (!tenant.jobs) tenant.jobs = [];
+        });
+        return;
+    }
+
+    // Seed with initial data if no local storage is found
+    const defaultTenantId = 'tenant_default_corp';
+    memCache = {
+        system: {
+            users: [
+                { id: 'user_sys_admin', email: 'sysadmin@corp.com', passwordHash: 'password', role: UserRole.SYSTEM_ADMIN },
+                { id: 'user_tenant_admin_1', email: 'admin@defaultcorp.com', passwordHash: 'password', role: UserRole.TENANT_ADMIN, tenantId: defaultTenantId }
+            ],
+            tenants: [
+                { id: defaultTenantId, name: 'Default Corp' }
+            ]
+        },
+        tenants: {
+            [defaultTenantId]: {
+                employees: [],
+                teams: [],
+                messages: [],
+                unassignedMessages: [],
+                jobs: [],
+                config: DEFAULT_CONFIG
+            }
+        }
+    };
+    persistLocal();
 };
 
-// Modified to handle both Telegram IDs and Emails
-export const assignSourceId = (unassignedMsgId: string, employeeId: string) => {
-    const msgIndex = memCache.unassignedMessages.findIndex(m => m.id === unassignedMsgId);
-    if (msgIndex === -1) return;
+// --- Authentication & System Admin ---
+export const authenticate = (email: string, pass: string): User | null => {
+    const user = memCache.system.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // In a real app, compare hashed passwords
+    if (user && user.passwordHash === pass) {
+        return user;
+    }
+    return null;
+};
 
-    const msg = memCache.unassignedMessages[msgIndex];
-    const employee = memCache.employees.find(e => e.id === employeeId);
+export const getTenants = (): Tenant[] => memCache.system.tenants;
+
+export const createTenant = (name: string): Tenant => {
+    const newTenantId = `tenant_${Date.now()}`;
+    const newTenant: Tenant = { id: newTenantId, name };
+    memCache.system.tenants.push(newTenant);
+    memCache.tenants[newTenantId] = {
+        employees: [],
+        teams: [],
+        messages: [],
+        unassignedMessages: [],
+        jobs: [],
+        config: DEFAULT_CONFIG
+    };
+    persistLocal();
+    return newTenant;
+};
+
+
+// --- Tenant-Specific Data Access ---
+export const getTenantData = (tenantId: string): TenantData => {
+    if (!memCache.tenants[tenantId]) {
+        throw new Error(`Tenant with ID ${tenantId} not found.`);
+    }
+    return memCache.tenants[tenantId];
+};
+
+export const saveTenantData = (tenantId: string, data: Partial<TenantData>): void => {
+    if (!memCache.tenants[tenantId]) {
+        throw new Error(`Tenant with ID ${tenantId} not found.`);
+    }
+    memCache.tenants[tenantId] = {
+        ...memCache.tenants[tenantId],
+        ...data
+    };
+    persistLocal();
+};
+
+export const saveMessage = (tenantId: string, msg: ChatMessage) => {
+    const tenantData = getTenantData(tenantId);
+    tenantData.messages.push(msg);
+    saveTenantData(tenantId, { messages: tenantData.messages });
+    return tenantData.messages;
+};
+
+// --- Job Management ---
+export const saveJob = (tenantId: string, job: SystemJob) => {
+    const tenantData = getTenantData(tenantId);
+    if (!tenantData.jobs) tenantData.jobs = []; // Safety check
+    tenantData.jobs.unshift(job); // Add to beginning
+    saveTenantData(tenantId, { jobs: tenantData.jobs });
+    return tenantData.jobs;
+};
+
+export const updateJob = (tenantId: string, jobId: string, updates: Partial<SystemJob>) => {
+    const tenantData = getTenantData(tenantId);
+    if (!tenantData.jobs) return;
+    
+    tenantData.jobs = tenantData.jobs.map(job => 
+        job.id === jobId ? { ...job, ...updates } : job
+    );
+    saveTenantData(tenantId, { jobs: tenantData.jobs });
+};
+
+
+export const assignSourceId = (tenantId: string, unassignedMsgId: string, employeeId: string) => {
+    const tenantData = getTenantData(tenantId);
+    const msgIndex = tenantData.unassignedMessages.findIndex(m => m.id === unassignedMsgId);
+    if (msgIndex === -1) return tenantData;
+
+    const msg = tenantData.unassignedMessages[msgIndex];
+    const employee = tenantData.employees.find(e => e.id === employeeId);
     
     if (employee) {
-        // Update contact info based on channel
         if (msg.channel === 'telegram') {
             employee.telegramChatId = msg.sourceId;
-        } else if (msg.channel === 'email') {
-            // Usually we don't overwrite email, but we might verify it here or add to secondary emails
-            // For now, we assume this confirms the employee is the owner of this source
         }
         
-        memCache.messages.push({
+        tenantData.messages.push({
             id: `msg_conv_${Date.now()}`,
+            tenantId: tenantId,
             employeeId: employee.id,
             sender: 'employee',
             channel: msg.channel,
@@ -142,8 +178,11 @@ export const assignSourceId = (unassignedMsgId: string, employeeId: string) => {
             timestamp: msg.timestamp
         });
 
-        memCache.unassignedMessages.splice(msgIndex, 1);
-        saveData(memCache);
+        tenantData.unassignedMessages.splice(msgIndex, 1);
+        saveTenantData(tenantId, tenantData);
     }
-    return memCache;
+    return tenantData;
 };
+
+// Initialize on load
+initializeStorage();

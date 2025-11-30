@@ -3,27 +3,34 @@
 import React, { useState } from 'react';
 import { Employee, ServiceType, AppConfig } from '../types';
 import { getServiceAdapter } from '../services/integrationService';
-import { getStoredData } from '../services/storage';
-import { Server, GitBranch, Mail, Shield, Plus, CheckCircle, AlertCircle, RefreshCw, Ban, Key } from 'lucide-react';
+import { createJob } from '../services/jobQueue';
+import { Server, GitBranch, Mail, Shield, Plus, CheckCircle, AlertCircle, RefreshCw, Ban, Key, Layers } from 'lucide-react';
 
 interface AssetsProps {
     employees: Employee[];
+    config: AppConfig;
+    tenantId: string;
 }
 
-const Assets: React.FC<AssetsProps> = ({ employees }) => {
+const Assets: React.FC<AssetsProps> = ({ employees, config, tenantId }) => {
     const [activeService, setActiveService] = useState<ServiceType>(ServiceType.MAILCOW);
-    const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
-    const config = getStoredData().config;
+    const [status, setStatus] = useState<{msg: string, type: 'success' | 'info'} | null>(null);
+
+    // Job Helper
+    const queueAction = async (service: ServiceType, action: string, targetName: string, payload: any) => {
+        await createJob(tenantId, service, action, targetName, payload, config);
+        setStatus({ msg: `Task "${action}" for ${targetName} queued successfully. Check "System Jobs" for progress.`, type: 'info' });
+        setTimeout(() => setStatus(null), 5000);
+    };
 
     const renderServiceContent = () => {
         switch (activeService) {
             case ServiceType.MAILCOW:
-                return <MailcowPanel employees={employees} config={config} setLoading={setLoading} setStatus={setStatus} />;
+                return <MailcowPanel employees={employees} queueAction={queueAction} config={config} />;
             case ServiceType.GITLAB:
-                return <GitlabPanel employees={employees} config={config} setLoading={setLoading} setStatus={setStatus} />;
+                return <GitlabPanel employees={employees} queueAction={queueAction} config={config} />;
             case ServiceType.KEYCLOAK:
-                return <KeycloakPanel employees={employees} config={config} setLoading={setLoading} setStatus={setStatus} />;
+                return <KeycloakPanel employees={employees} queueAction={queueAction} config={config} />;
             default:
                 return <div className="p-10 text-center text-gray-400">Service integration coming soon.</div>;
         }
@@ -33,7 +40,7 @@ const Assets: React.FC<AssetsProps> = ({ employees }) => {
         <div className="space-y-6">
             <header>
                 <h2 className="text-2xl font-bold text-gray-800">Digital Assets & Services</h2>
-                <p className="text-gray-500">Provision accounts and manage access across organizational software.</p>
+                <p className="text-gray-500">Provision accounts and manage access via background tasks.</p>
             </header>
 
             {/* Service Tabs */}
@@ -66,20 +73,10 @@ const Assets: React.FC<AssetsProps> = ({ employees }) => {
 
             {/* Status Feedback */}
             {status && (
-                <div className={`p-4 rounded-lg flex items-center gap-2 ${status.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-                    {status.type === 'success' ? <CheckCircle size={20}/> : <AlertCircle size={20}/>}
+                <div className={`p-4 rounded-lg flex items-center gap-2 ${status.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800'}`}>
+                    {status.type === 'success' ? <CheckCircle size={20}/> : <Layers size={20}/>}
                     <span>{status.msg}</span>
                     <button onClick={() => setStatus(null)} className="ml-auto text-sm underline opacity-70">Dismiss</button>
-                </div>
-            )}
-
-            {/* Loading Overlay */}
-            {loading && (
-                <div className="fixed inset-0 bg-white/50 z-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded shadow-lg flex items-center gap-3">
-                        <RefreshCw className="animate-spin text-blue-600" />
-                        <span>Processing Request...</span>
-                    </div>
                 </div>
             )}
 
@@ -107,35 +104,7 @@ const ServiceTab = ({ isActive, onClick, icon, label }: any) => (
 
 // --- Sub-Panels ---
 
-const MailcowPanel = ({ employees, config, setLoading, setStatus }: any) => {
-    const adapter = getServiceAdapter(ServiceType.MAILCOW);
-
-    const handleCreate = async (emp: Employee) => {
-        setLoading(true);
-        const res = await adapter.provisionUser(emp, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
-    const handleReset = async (accountId: string) => {
-        setLoading(true);
-        const res = await adapter.resetCredential(accountId, config);
-        setStatus({ 
-            msg: res.success ? `${res.message} (Secret: ||${res.newSecret}||)` : res.message, 
-            type: res.success ? 'success' : 'error' 
-        });
-        setLoading(false);
-    };
-
-    const handleDeactivate = async (accountId: string) => {
-        if(!adapter.deactivateUser) return;
-        if(!window.confirm("Are you sure? This will suspend the mailbox, not delete it.")) return;
-        setLoading(true);
-        const res = await adapter.deactivateUser(accountId, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
+const MailcowPanel = ({ employees, queueAction, config }: any) => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
@@ -170,13 +139,13 @@ const MailcowPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                     {account ? (
                                         <>
                                             <button 
-                                                onClick={() => handleReset(account.accountId)}
+                                                onClick={() => queueAction(ServiceType.MAILCOW, 'RESET_CREDENTIAL', emp.fullName, account.accountId)}
                                                 className="text-xs border border-gray-300 px-2 py-1 rounded hover:bg-gray-100"
                                             >
                                                 Reset PW
                                             </button>
                                             <button 
-                                                onClick={() => handleDeactivate(account.accountId)}
+                                                onClick={() => queueAction(ServiceType.MAILCOW, 'DEACTIVATE', emp.fullName, account.accountId)}
                                                 className="text-xs text-red-600 hover:bg-red-50 px-2 py-1 rounded flex items-center gap-1 float-right ml-2"
                                                 title="Suspend Account"
                                             >
@@ -185,7 +154,7 @@ const MailcowPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                         </>
                                     ) : (
                                         <button 
-                                            onClick={() => handleCreate(emp)}
+                                            onClick={() => queueAction(ServiceType.MAILCOW, 'PROVISION', emp.fullName, emp)}
                                             className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                                         >
                                             Create Mailbox
@@ -201,7 +170,7 @@ const MailcowPanel = ({ employees, config, setLoading, setStatus }: any) => {
     );
 };
 
-const GitlabPanel = ({ employees, config, setLoading, setStatus }: any) => {
+const GitlabPanel = ({ employees, queueAction, config }: any) => {
     const adapter = getServiceAdapter(ServiceType.GITLAB);
     const [projects, setProjects] = useState<string[]>([]);
     const [selectedProject, setSelectedProject] = useState('');
@@ -213,26 +182,15 @@ const GitlabPanel = ({ employees, config, setLoading, setStatus }: any) => {
         }
     }, []);
 
-    const handleCreate = async (emp: Employee) => {
-        setLoading(true);
-        const res = await adapter.provisionUser(emp, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
-    const handleAssign = async () => {
-        if (!targetEmp || !selectedProject || !adapter.assignToProject) return;
-        setLoading(true);
-        // Find account ID
+    const handleAssign = () => {
+        if (!targetEmp || !selectedProject) return;
         const emp = employees.find((e: Employee) => e.id === targetEmp);
         const account = emp?.accounts?.find(a => a.service === ServiceType.GITLAB);
         
         if (account) {
-            await adapter.assignToProject(account.accountId, selectedProject, config);
-            setStatus({ msg: `Assigned ${account.accountId} to ${selectedProject}`, type: 'success' });
+            queueAction(ServiceType.GITLAB, 'ASSIGN_PROJECT', emp.fullName, { accountId: account.accountId, projectId: selectedProject });
             setTargetEmp(null);
         }
-        setLoading(false);
     };
 
     return (
@@ -277,7 +235,7 @@ const GitlabPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                                 </button>
                                             ) : (
                                                 <button 
-                                                    onClick={() => handleCreate(emp)}
+                                                    onClick={() => queueAction(ServiceType.GITLAB, 'PROVISION', emp.fullName, emp)}
                                                     className="text-xs bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700"
                                                 >
                                                     Create User
@@ -321,7 +279,7 @@ const GitlabPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                     disabled={!selectedProject}
                                     className="flex-1 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                                 >
-                                    Assign
+                                    Queue Job
                                 </button>
                             </div>
                         </div>
@@ -332,31 +290,7 @@ const GitlabPanel = ({ employees, config, setLoading, setStatus }: any) => {
     );
 };
 
-const KeycloakPanel = ({ employees, config, setLoading, setStatus }: any) => {
-    const adapter = getServiceAdapter(ServiceType.KEYCLOAK);
-
-    const handleCreate = async (emp: Employee) => {
-        setLoading(true);
-        const res = await adapter.provisionUser(emp, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
-    const handleReset = async (accountId: string) => {
-        setLoading(true);
-        const res = await adapter.resetCredential(accountId, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
-    const handleDeactivate = async (accountId: string) => {
-        if(!adapter.deactivateUser) return;
-        setLoading(true);
-        const res = await adapter.deactivateUser(accountId, config);
-        setStatus({ msg: res.message, type: res.success ? 'success' : 'error' });
-        setLoading(false);
-    };
-
+const KeycloakPanel = ({ employees, queueAction, config }: any) => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
@@ -392,13 +326,13 @@ const KeycloakPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                     {account ? (
                                         <>
                                             <button 
-                                                onClick={() => handleReset(account.accountId)}
+                                                onClick={() => queueAction(ServiceType.KEYCLOAK, 'RESET_CREDENTIAL', emp.fullName, account.accountId)}
                                                 className="text-xs border border-gray-300 px-2 py-1 rounded hover:bg-gray-100"
                                             >
                                                 Send Reset Email
                                             </button>
                                             <button 
-                                                onClick={() => handleDeactivate(account.accountId)}
+                                                onClick={() => queueAction(ServiceType.KEYCLOAK, 'DEACTIVATE', emp.fullName, account.accountId)}
                                                 className="text-xs text-red-600 hover:bg-red-50 px-2 py-1 rounded flex items-center gap-1 float-right ml-2"
                                             >
                                                 Disable
@@ -406,7 +340,7 @@ const KeycloakPanel = ({ employees, config, setLoading, setStatus }: any) => {
                                         </>
                                     ) : (
                                         <button 
-                                            onClick={() => handleCreate(emp)}
+                                            onClick={() => queueAction(ServiceType.KEYCLOAK, 'PROVISION', emp.fullName, emp)}
                                             className="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
                                         >
                                             Federate User

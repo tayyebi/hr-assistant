@@ -1,10 +1,12 @@
 
 
+
 import React from 'react';
 import { Employee, Feeling } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Bell, Calendar, TrendingUp, MessageCircle, Wand2, X } from 'lucide-react';
+import { Bell, Calendar, TrendingUp, MessageCircle, X } from 'lucide-react';
 import { sendTelegramMessage } from '../services/telegramService';
+
 
 interface DashboardProps {
   employees: Employee[];
@@ -13,7 +15,6 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
   const [draft, setDraft] = React.useState<string | null>(null);
   const [targetEmp, setTargetEmp] = React.useState<Employee | null>(null);
-  const [loadingMsg, setLoadingMsg] = React.useState(false);
 
   // Calculate Sentiment Stats
   const feelingCounts = employees.reduce((acc, emp) => {
@@ -38,23 +39,12 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
     return diffDays >= 0 && diffDays <= 30;
   });
 
-  const handleOpenDraft = async (emp: Employee) => {
+  const handleOpenDraft = (emp: Employee) => {
     setTargetEmp(emp);
-    setLoadingMsg(true);
     // Auto-generate initial draft based on context (Birthday in this case)
     const msg = `Happy Birthday ${emp.fullName}! We hope you have a wonderful day! 🎂`;
     setDraft(msg);
-    setLoadingMsg(false);
   };
-
-  // Removed handleEnrich function as Gemini is no longer used
-  // const handleEnrich = async () => {
-  //     if(!draft) return;
-  //     setLoadingMsg(true);
-  //     const polished = await enrichDraftMessage(draft, 'friendly');
-  //     setDraft(polished);
-  //     setLoadingMsg(false);
-  // };
 
   const handleSend = async () => {
       if(targetEmp?.telegramChatId && draft) {
@@ -164,16 +154,6 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
                 />
 
                 <div className="flex space-x-3 justify-end items-center">
-                    {/* Removed Magic Polish button */}
-                    {/* <button 
-                        onClick={handleEnrich}
-                        disabled={loadingMsg}
-                        className="mr-auto text-purple-600 hover:bg-purple-50 px-3 py-2 rounded flex items-center gap-2 text-sm font-medium"
-                    >
-                        {loadingMsg ? <Wand2 className="animate-spin" size={16}/> : <Wand2 size={16}/>}
-                        Magic Polish
-                    </button> */}
-
                     <button 
                         onClick={() => setDraft(null)}
                         className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"

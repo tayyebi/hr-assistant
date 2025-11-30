@@ -1,4 +1,5 @@
 
+
 import { ChatMessage, TelegramUpdate, UnassignedMessage } from "../types";
 
 // Mock Service for Telegram API interactions
@@ -36,7 +37,7 @@ export const sendTelegramMessage = async (chatId: string, text: string): Promise
  * Simulates polling for new Telegram updates.
  * In a real scenario, this would involve a GET request to `https://api.telegram.org/bot<token>/getUpdates?offset=<offset>`.
  */
-export const pollTelegramUpdates = async (botToken: string): Promise<UnassignedMessage[]> => {
+export const pollTelegramUpdates = async (botToken: string, tenantId: string): Promise<UnassignedMessage[]> => {
     console.log(`[Telegram API] Polling for updates with offset ${lastUpdateId + 1}...`);
     await new Promise(r => setTimeout(r, 2000)); // Simulate latency
 
@@ -68,8 +69,10 @@ export const pollTelegramUpdates = async (botToken: string): Promise<UnassignedM
 
         lastUpdateId = mockUpdate.update_id; // Update last processed ID
         
+        // FIX: Add tenantId to the UnassignedMessage object to conform to the type.
         newMessages.push({
             id: `telegram_${mockUpdate.update_id}`,
+            tenantId,
             channel: 'telegram',
             sourceId: mockUpdate.message.chat.id.toString(),
             senderName: mockUpdate.message.from.first_name + (mockUpdate.message.from.last_name ? ` ${mockUpdate.message.from.last_name}` : ''),

@@ -1,20 +1,21 @@
 
 import React, { useState } from 'react';
-import { Employee, Feeling } from '../types';
+import { Employee } from '../types';
 import { Plus, Search, Edit2, Trash2, Mail, Hash } from 'lucide-react';
 
 interface EmployeesProps {
   employees: Employee[];
   setEmployees: (employees: Employee[]) => void;
+  tenantId: string;
 }
 
-const Employees: React.FC<EmployeesProps> = ({ employees, setEmployees }) => {
+const Employees: React.FC<EmployeesProps> = ({ employees, setEmployees, tenantId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmp, setEditingEmp] = useState<Employee | null>(null);
 
-  const initialFormState: Employee = {
-    id: '',
+  const initialFormState: Omit<Employee, 'id'> = {
+    tenantId: tenantId,
     fullName: '',
     email: '',
     telegramChatId: '',
@@ -26,12 +27,12 @@ const Employees: React.FC<EmployeesProps> = ({ employees, setEmployees }) => {
     accounts: []
   };
 
-  const [formData, setFormData] = useState<Employee>(initialFormState);
+  const [formData, setFormData] = useState<Omit<Employee, 'id'>>(initialFormState);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingEmp) {
-      setEmployees(employees.map(emp => emp.id === editingEmp.id ? { ...formData, id: editingEmp.id } : emp));
+      setEmployees(employees.map(emp => emp.id === editingEmp.id ? { ...formData, id: editingEmp.id, tenantId: editingEmp.tenantId } : emp));
     } else {
       setEmployees([...employees, { ...formData, id: `emp_${Date.now()}`, accounts: [] }]);
     }
@@ -51,6 +52,7 @@ const Employees: React.FC<EmployeesProps> = ({ employees, setEmployees }) => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setEditingEmp(null);
     setFormData(initialFormState);
   };
 
