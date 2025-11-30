@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+# Minimum permissions required for the workflow
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: PHP Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +38,8 @@ jobs:
     name: PHP Tests
     runs-on: ubuntu-latest
     needs: lint
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -60,6 +68,8 @@ jobs:
     name: Build Application
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -110,6 +120,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/develop'
     environment: staging
+    permissions: {}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -142,6 +153,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     environment: production
+    permissions: {}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
