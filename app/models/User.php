@@ -12,12 +12,34 @@ class User
         $users = ExcelStorage::readSheet('system.xlsx', 'users');
         
         foreach ($users as $user) {
-            if (strtolower($user['email']) === strtolower($email) && $user['password_hash'] === $password) {
-                return $user;
+            if (strtolower($user['email']) === strtolower($email)) {
+                // Support both legacy plain text (for demo) and hashed passwords
+                $storedPassword = $user['password_hash'];
+                
+                // Check if it's a bcrypt hash (starts with $2)
+                if (strpos($storedPassword, '$2') === 0) {
+                    if (password_verify($password, $storedPassword)) {
+                        return $user;
+                    }
+                } else {
+                    // Legacy plain text comparison (only for demo/migration)
+                    // In production, this should be removed after migration
+                    if ($storedPassword === $password) {
+                        return $user;
+                    }
+                }
             }
         }
         
         return null;
+    }
+
+    /**
+     * Hash a password for storage
+     */
+    public static function hashPassword(string $password): string
+    {
+        return password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     }
 
     public static function find(string $id): ?array
@@ -40,6 +62,12 @@ class User
 
     public static function create(array $data): void
     {
+        // Ensure password is hashed
+        if (isset($data['password']) && strpos($data['password'], '$2') !== 0) {
+            $data['password_hash'] = self::hashPassword($data['password']);
+            unset($data['password']);
+        }
+        
         $headers = ['id', 'email', 'password_hash', 'role', 'tenant_id'];
         ExcelStorage::appendRow('system.xlsx', 'users', $data, $headers);
     }

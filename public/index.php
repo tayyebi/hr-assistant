@@ -59,6 +59,7 @@ $router->add('POST', '/teams/remove-alias', 'TeamController', 'removeAlias');
 
 $router->add('GET', '/messages', 'MessageController', 'index');
 $router->add('POST', '/messages/send', 'MessageController', 'send');
+$router->add('POST', '/messages/assign', 'MessageController', 'assign');
 
 $router->add('GET', '/assets', 'AssetController', 'index');
 $router->add('POST', '/assets/provision', 'AssetController', 'provision');

@@ -134,8 +134,11 @@ class ExcelStorage
 
     /**
      * Acquire an exclusive lock on a file for consistency
+     * @param string $filePath Path to the file to lock
+     * @param int $timeout Maximum time in seconds to wait for lock (default: 10)
+     * @throws Exception if lock cannot be acquired within timeout
      */
-    private static function acquireLock(string $filePath): void
+    private static function acquireLock(string $filePath, int $timeout = 10): void
     {
         $lockFile = $filePath . '.lock';
         $handle = fopen($lockFile, 'c+');
@@ -144,9 +147,23 @@ class ExcelStorage
             throw new Exception("Could not create lock file: {$lockFile}");
         }
         
-        // Wait for exclusive lock
-        if (!flock($handle, LOCK_EX)) {
-            throw new Exception("Could not acquire lock: {$lockFile}");
+        // Try to acquire lock with timeout
+        $startTime = time();
+        $acquired = false;
+        
+        while (!$acquired && (time() - $startTime) < $timeout) {
+            // Try non-blocking lock first
+            if (flock($handle, LOCK_EX | LOCK_NB)) {
+                $acquired = true;
+            } else {
+                // Wait a short time before retrying
+                usleep(100000); // 100ms
+            }
+        }
+        
+        if (!$acquired) {
+            fclose($handle);
+            throw new Exception("Could not acquire lock within {$timeout} seconds: {$lockFile}");
         }
         
         self::$lockHandles[$filePath] = $handle;

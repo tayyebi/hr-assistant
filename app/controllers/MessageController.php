@@ -64,4 +64,23 @@ class MessageController
         
         View::redirect('/messages?employee=' . urlencode($employeeId));
     }
+
+    public function assign(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        $tenantId = User::getTenantId();
+        $messageId = $_POST['message_id'] ?? '';
+        $employeeId = $_POST['employee_id'] ?? '';
+        
+        if ($messageId && $employeeId) {
+            if (Message::assignToEmployee($tenantId, $messageId, $employeeId)) {
+                $_SESSION['flash_message'] = 'Message assigned successfully.';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to assign message.';
+            }
+        }
+        
+        View::redirect('/messages?view=inbox');
+    }
 }

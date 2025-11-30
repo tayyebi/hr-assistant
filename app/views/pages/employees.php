@@ -72,7 +72,15 @@
                         </td>
                         <td><?php echo htmlspecialchars($emp['hired_date']); ?></td>
                         <td style="text-align: right;">
-                            <button data-variant="ghost" data-size="icon" onclick="editEmployee('<?php echo htmlspecialchars(json_encode($emp), ENT_QUOTES); ?>')">
+                            <button data-variant="ghost" data-size="icon" 
+                                    data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
+                                    data-full-name="<?php echo htmlspecialchars($emp['full_name']); ?>"
+                                    data-position="<?php echo htmlspecialchars($emp['position']); ?>"
+                                    data-email="<?php echo htmlspecialchars($emp['email']); ?>"
+                                    data-telegram="<?php echo htmlspecialchars($emp['telegram_chat_id'] ?? ''); ?>"
+                                    data-birthday="<?php echo htmlspecialchars($emp['birthday']); ?>"
+                                    data-hired="<?php echo htmlspecialchars($emp['hired_date']); ?>"
+                                    onclick="editEmployee(this)">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -147,19 +155,18 @@
 </dialog>
 
 <script>
-function editEmployee(jsonStr) {
-    const emp = JSON.parse(jsonStr);
+function editEmployee(button) {
     const form = document.querySelector('[data-employee-form]');
     const dialog = document.querySelector('dialog');
     
     form.action = '/employees/update';
-    form.querySelector('[name="id"]').value = emp.id;
-    form.querySelector('[name="full_name"]').value = emp.full_name;
-    form.querySelector('[name="position"]').value = emp.position;
-    form.querySelector('[name="email"]').value = emp.email;
-    form.querySelector('[name="telegram_chat_id"]').value = emp.telegram_chat_id || '';
-    form.querySelector('[name="birthday"]').value = emp.birthday;
-    form.querySelector('[name="hired_date"]').value = emp.hired_date;
+    form.querySelector('[name="id"]').value = button.dataset.employeeId;
+    form.querySelector('[name="full_name"]').value = button.dataset.fullName;
+    form.querySelector('[name="position"]').value = button.dataset.position;
+    form.querySelector('[name="email"]').value = button.dataset.email;
+    form.querySelector('[name="telegram_chat_id"]').value = button.dataset.telegram || '';
+    form.querySelector('[name="birthday"]').value = button.dataset.birthday;
+    form.querySelector('[name="hired_date"]').value = button.dataset.hired;
     
     dialog.showModal();
 }
