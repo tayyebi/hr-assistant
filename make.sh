@@ -48,7 +48,8 @@ log_error() {
 
 # Check if container is running
 check_container() {
-    if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    # Use docker inspect for reliable container status checking
+    if ! docker inspect --format='{{.State.Running}}' "${CONTAINER_NAME}" 2>/dev/null | grep -q "true"; then
         log_error "Container '${CONTAINER_NAME}' is not running."
         log_info "Start it with: docker compose up -d"
         exit 1

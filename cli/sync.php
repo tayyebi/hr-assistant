@@ -203,8 +203,15 @@ class GitLabSyncService implements SyncService
                 // Extract gitlab account if stored
                 $gitlabUsername = null;
                 if (!empty($emp['accounts'])) {
-                    $accounts = is_string($emp['accounts']) ? json_decode($emp['accounts'], true) : $emp['accounts'];
-                    $gitlabUsername = $accounts['gitlab'] ?? null;
+                    try {
+                        $accounts = is_string($emp['accounts']) 
+                            ? json_decode($emp['accounts'], true, 512, JSON_THROW_ON_ERROR) 
+                            : $emp['accounts'];
+                        $gitlabUsername = $accounts['gitlab'] ?? null;
+                    } catch (JsonException $e) {
+                        // Log error and continue with null username
+                        error_log("Failed to decode accounts JSON for employee {$emp['id']}: " . $e->getMessage());
+                    }
                 }
                 
                 $entities[$emp['email']] = [

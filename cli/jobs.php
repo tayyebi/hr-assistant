@@ -11,6 +11,9 @@
  *   php jobs.php retry [tenant]    - Retry failed jobs
  *   php jobs.php list [tenant]     - List all jobs
  *   php jobs.php stats [tenant]    - Show job statistics
+ * 
+ * Environment Variables:
+ *   SIMULATE_MODE=1  - Enable simulation mode with random failures (for testing)
  */
 
 // Bootstrap application
@@ -27,6 +30,9 @@ require_once __DIR__ . '/../app/models/Message.php';
 if (php_sapi_name() !== 'cli') {
     die("This script must be run from the command line.\n");
 }
+
+// Check if simulation mode is enabled (for testing)
+define('SIMULATE_MODE', getenv('SIMULATE_MODE') === '1');
 
 /**
  * Job Processor - Handles actual job execution
@@ -128,12 +134,13 @@ class JobProcessor
         }
         
         // In production, this would use PHPMailer or similar
-        // For now, we simulate the send
-        
-        // Simulated send with random failure (for testing retry)
-        if (mt_rand(1, 10) > 8) { // 20% failure rate for demo
+        // Simulation mode for testing retry functionality
+        if (SIMULATE_MODE && mt_rand(1, 10) > 8) { // 20% failure rate in simulation mode
             throw new Exception("SMTP connection timeout (simulated)");
         }
+        
+        // TODO: Implement actual email sending with PHPMailer
+        // For now, mark as sent (assumes SMTP config is valid)
         
         return [
             'sent' => true,
@@ -165,10 +172,13 @@ class JobProcessor
         // In production, this would call the Telegram Bot API
         // POST https://api.telegram.org/bot{token}/sendMessage
         
-        // Simulated send with random failure
-        if (mt_rand(1, 10) > 9) { // 10% failure rate for demo
+        // Simulation mode for testing retry functionality
+        if (SIMULATE_MODE && mt_rand(1, 10) > 9) { // 10% failure rate in simulation mode
             throw new Exception("Telegram API error (simulated)");
         }
+        
+        // TODO: Implement actual Telegram API call
+        // For now, mark as sent (assumes bot token is valid)
         
         return [
             'sent' => true,

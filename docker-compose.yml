@@ -16,7 +16,7 @@ services:
       - PHP_CLI_SERVER_WORKERS=4
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD-SHELL", "php -r \"exit(@file_get_contents('http://localhost:8080/') !== false ? 0 : 1);\""]
       interval: 30s
       timeout: 10s
       retries: 3
