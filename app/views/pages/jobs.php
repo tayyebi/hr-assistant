@@ -5,11 +5,7 @@
     </div>
     <a href="/jobs" style="text-decoration: none;">
         <button data-variant="secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <polyline points="1 20 1 14 7 14"></polyline>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
+            <?php Icon::render('refresh', 18, 18); ?>
             Refresh
         </button>
     </a>
@@ -45,25 +41,13 @@
                         <td>
                             <mark data-status="<?php echo htmlspecialchars($job['status']); ?>">
                                 <?php if ($job['status'] === 'completed'): ?>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
+                                    <?php Icon::render('check', 14, 14); ?>
                                 <?php elseif ($job['status'] === 'failed'): ?>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="15" y1="9" x2="9" y2="15"></line>
-                                        <line x1="9" y1="9" x2="15" y2="15"></line>
-                                    </svg>
+                                    <?php Icon::render('x-circle', 14, 14); ?>
                                 <?php elseif ($job['status'] === 'processing'): ?>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-spin>
-                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                                    </svg>
+                                    <?php Icon::render('refresh-cw', 14, 14, 'animation: spin 1s linear infinite;'); ?>
                                 <?php else: ?>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
+                                    <?php Icon::render('clock', 14, 14); ?>
                                 <?php endif; ?>
                                 <?php echo ucfirst($job['status']); ?>
                             </mark>
@@ -84,9 +68,7 @@
                                 <form method="POST" action="/jobs/retry" style="display: inline;">
                                     <input type="hidden" name="job_id" value="<?php echo htmlspecialchars($job['id']); ?>">
                                     <button type="submit" data-size="sm">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                        </svg>
+                                        <?php Icon::render('play', 12, 12); ?>
                                         Retry
                                     </button>
                                 </form>

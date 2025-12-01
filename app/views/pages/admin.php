@@ -16,11 +16,7 @@
         <div style="display: flex; align-items: center; gap: var(--spacing-md);">
             <span style="font-size: 0.875rem; color: var(--text-secondary);"><?php echo htmlspecialchars($user['email']); ?></span>
             <a href="/logout" style="display: flex; align-items: center; gap: var(--spacing-sm); color: var(--color-danger);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
+                <img src="/icons/logout.svg" alt="" width="16" height="16" style="filter: invert(33%) sepia(93%) saturate(2467%) hue-rotate(341deg) brightness(91%) contrast(91%);">
                 Logout
             </a>
         </div>
@@ -40,10 +36,7 @@
                 <ul>
                     <?php foreach ($tenants as $tenant): ?>
                         <li>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
+                            <img src="/icons/home.svg" alt="" width="20" height="20" style="filter: invert(37%) sepia(93%) saturate(1352%) hue-rotate(200deg) brightness(97%) contrast(101%);">
                             <div>
                                 <strong><?php echo htmlspecialchars($tenant['name']); ?></strong>
                                 <p style="margin: 0; font-size: 0.75rem; font-family: monospace; color: var(--text-muted);">
@@ -64,10 +57,7 @@
                         <input type="text" name="name" required placeholder="e.g. Innovate Inc.">
                     </div>
                     <button type="submit">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
+                        <img src="/icons/plus.svg" alt="" width="18" height="18">
                         Create Tenant
                     </button>
                 </form>

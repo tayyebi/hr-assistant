@@ -10,10 +10,7 @@
     <article>
         <header>
             <h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary);">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                    <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
+                <?php Icon::render('trending-up', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary);'); ?>
                 Team Sentiment Overview
             </h3>
             <mark>Last 24h</mark>
@@ -45,10 +42,7 @@
     <article>
         <header>
             <h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-warning);">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
+                <?php Icon::render('bell', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-warning);'); ?>
                 Reminders
             </h3>
         </header>

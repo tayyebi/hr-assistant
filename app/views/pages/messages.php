@@ -16,18 +16,13 @@
             <menu role="tablist" style="margin: 0; border: none;">
                 <li>
                     <a href="/messages?view=chats" <?php echo $view === 'chats' ? 'data-active="true"' : ''; ?>>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
+                        <?php Icon::render('messages', 14, 14); ?>
                         Chats
                     </a>
                 </li>
                 <li>
                     <a href="/messages?view=inbox" <?php echo $view === 'inbox' ? 'data-active="true"' : ''; ?>>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                        </svg>
+                        <?php Icon::render('inbox', 14, 14); ?>
                         Inbox (<?php echo count($unassigned); ?>)
                     </a>
                 </li>
@@ -59,17 +54,9 @@
                             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm); padding: 0; border: none;">
                                 <strong style="display: flex; align-items: center; gap: var(--spacing-sm); font-size: 0.875rem;">
                                     <?php if ($msg['channel'] === 'email'): ?>
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                        </svg>
+                                        <?php Icon::render('mail', 12, 12, 'stroke: var(--color-warning);'); ?>
                                     <?php else: ?>
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
-                                            <line x1="4" y1="9" x2="20" y2="9"></line>
-                                            <line x1="4" y1="15" x2="20" y2="15"></line>
-                                            <line x1="10" y1="3" x2="8" y2="21"></line>
-                                            <line x1="16" y1="3" x2="14" y2="21"></line>
-                                        </svg>
+                                        <?php Icon::render('hash', 12, 12, 'stroke: var(--color-primary);'); ?>
                                     <?php endif; ?>
                                     <?php echo htmlspecialchars($msg['sender_name']); ?>
                                 </strong>
@@ -144,19 +131,14 @@
                     <div style="display: flex; gap: var(--spacing-sm);">
                         <textarea name="text" placeholder="Send a <?php echo $channel; ?> message..." rows="2" style="flex: 1; resize: none;" required></textarea>
                         <button type="submit" style="align-self: flex-end;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
+                            <?php Icon::render('send', 18, 18); ?>
                         </button>
                     </div>
                 </form>
             </footer>
         <?php else: ?>
             <section data-empty style="flex: 1;">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
+                <?php Icon::render('messages', 64, 64, 'stroke-width: 1;'); ?>
                 <h3>Select a conversation</h3>
                 <p>Choose an employee from the list to start messaging.</p>
             </section>

@@ -4,10 +4,7 @@
         <p>Organize people and assign functional aliases.</p>
     </div>
     <button onclick="document.querySelector('dialog[data-create-team]').showModal()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
+        <?php Icon::render('plus', 18, 18); ?>
         Create Team
     </button>
 </header>
@@ -18,11 +15,7 @@
 
 <?php if (empty($teams)): ?>
     <section data-empty>
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <circle cx="19" cy="11" r="2"></circle>
-        </svg>
+        <?php Icon::render('teams', 64, 64, 'stroke-width: 1;'); ?>
         <p>No teams yet. Create your first team to get started.</p>
     </section>
 <?php else: ?>
@@ -35,10 +28,7 @@
                         <p style="margin: 0; font-size: 0.875rem;"><?php echo htmlspecialchars($team['description']); ?></p>
                     </div>
                     <button data-variant="ghost" data-size="icon" onclick="openAliasModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars($team['name']); ?>')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg>
+                        <?php Icon::render('mail', 18, 18); ?>
                     </button>
                 </header>
 
@@ -98,10 +88,7 @@
                                         <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
                                         <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($memberId); ?>">
                                         <button type="submit" data-variant="ghost" data-size="icon" style="padding: 0;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
+                                            <?php Icon::render('close', 14, 14); ?>
                                         </button>
                                     </form>
                                 </li>
@@ -124,10 +111,7 @@
         <header>
             <h3>Create New Team</h3>
             <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+                <?php Icon::render('close', 24, 24); ?>
             </button>
         </header>
 
@@ -151,10 +135,7 @@
         <header>
             <h3>Add Email Alias</h3>
             <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+                <?php Icon::render('close', 24, 24); ?>
             </button>
         </header>
 

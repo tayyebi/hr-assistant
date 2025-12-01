@@ -4,10 +4,7 @@
         <p>Manage your organization's workforce.</p>
     </div>
     <button onclick="document.querySelector('dialog').showModal()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
+        <?php Icon::render('plus', 18, 18); ?>
         Add Employee
     </button>
 </header>
@@ -19,10 +16,7 @@
 <!-- Search -->
 <form method="GET" action="/employees" style="margin-bottom: var(--spacing-lg);">
     <search>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
+        <?php Icon::render('search', 20, 20); ?>
         <input type="search" name="search" placeholder="Search by name or email..." value="<?php echo htmlspecialchars($search); ?>">
     </search>
 </form>
@@ -81,18 +75,12 @@
                                     data-birthday="<?php echo htmlspecialchars($emp['birthday']); ?>"
                                     data-hired="<?php echo htmlspecialchars($emp['hired_date']); ?>"
                                     onclick="editEmployee(this)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
+                                <?php Icon::render('edit', 16, 16); ?>
                             </button>
                             <form method="POST" action="/employees/delete" style="display: inline;">
                                 <input type="hidden" name="id" value="<?php echo htmlspecialchars($emp['id']); ?>">
                                 <button type="submit" data-variant="ghost" data-size="icon" onclick="return confirm('Are you sure you want to remove this employee?')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-danger);">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    </svg>
+                                    <?php Icon::render('trash', 16, 16, 'color: var(--color-danger);'); ?>
                                 </button>
                             </form>
                         </td>
@@ -109,10 +97,7 @@
         <header>
             <h3>Employee Profile</h3>
             <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+                <?php Icon::render('close', 24, 24); ?>
             </button>
         </header>
 

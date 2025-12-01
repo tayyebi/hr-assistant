@@ -13,29 +13,19 @@
 <menu role="tablist">
     <li>
         <a href="/assets?service=mailcow" <?php echo $activeService === 'mailcow' ? 'data-active="true"' : ''; ?>>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
+            <?php Icon::render('mail', 18, 18); ?>
             Mail Service
         </a>
     </li>
     <li>
         <a href="/assets?service=gitlab" <?php echo $activeService === 'gitlab' ? 'data-active="true"' : ''; ?>>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="6" y1="3" x2="6" y2="15"></line>
-                <circle cx="18" cy="6" r="3"></circle>
-                <circle cx="6" cy="18" r="3"></circle>
-                <path d="M18 9a9 9 0 0 1-9 9"></path>
-            </svg>
+            <?php Icon::render('git-branch', 18, 18); ?>
             Git Service
         </a>
     </li>
     <li>
         <a href="/assets?service=keycloak" <?php echo $activeService === 'keycloak' ? 'data-active="true"' : ''; ?>>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
-            </svg>
+            <?php Icon::render('key', 18, 18); ?>
             Keycloak IAM
         </a>
     </li>

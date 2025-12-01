@@ -4,11 +4,7 @@
         <p>Manage integrations, keys, and backend communication for this tenant.</p>
     </div>
     <button type="submit" form="settings-form">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
+        <?php Icon::render('save', 18, 18); ?>
         Save All Changes
     </button>
 </header>
@@ -23,9 +19,7 @@
         <article style="grid-column: span 2;">
             <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                 <div style="padding: var(--spacing-sm); background-color: var(--color-primary-light); border-radius: var(--radius-md);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
+                    <?php Icon::render('messages', 24, 24, 'stroke: var(--color-primary);'); ?>
                 </div>
                 <div>
                     <h3 style="margin: 0;">Telegram & Backend</h3>
@@ -63,10 +57,7 @@
         <article style="grid-column: span 2;">
             <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                 <div style="padding: var(--spacing-sm); background-color: var(--color-warning-light); border-radius: var(--radius-md);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                        <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
+                    <?php Icon::render('mail', 24, 24, 'stroke: var(--color-warning);'); ?>
                 </div>
                 <div>
                     <h3 style="margin: 0;">Email Gateway</h3>
@@ -131,12 +122,7 @@
         <article>
             <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                 <div style="padding: var(--spacing-sm); background-color: #fed7aa; border-radius: var(--radius-md);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2">
-                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                    </svg>
+                    <?php Icon::render('server', 24, 24, 'stroke: #ea580c;'); ?>
                 </div>
                 <div>
                     <h3 style="margin: 0;">Mail Service API</h3>
@@ -158,10 +144,7 @@
         <article>
             <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                 <div style="padding: var(--spacing-sm); background-color: #c7d2fe; border-radius: var(--radius-md);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
+                    <?php Icon::render('lock', 24, 24, 'stroke: #4f46e5;'); ?>
                 </div>
                 <div>
                     <h3 style="margin: 0;">Keycloak IAM</h3>
@@ -193,12 +176,7 @@
         <article style="grid-column: span 2;">
             <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                 <div style="padding: var(--spacing-sm); background-color: #fecaca; border-radius: var(--radius-md);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
-                        <line x1="6" y1="3" x2="6" y2="15"></line>
-                        <circle cx="18" cy="6" r="3"></circle>
-                        <circle cx="6" cy="18" r="3"></circle>
-                        <path d="M18 9a9 9 0 0 1-9 9"></path>
-                    </svg>
+                    <?php Icon::render('git-branch', 24, 24, 'stroke: #dc2626;'); ?>
                 </div>
                 <div>
                     <h3 style="margin: 0;">GitLab</h3>
