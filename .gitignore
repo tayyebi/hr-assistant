@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# PHP specific
+vendor/
+composer.lock
+data/*.xlsx
+data/*.lock
+*.cache
+
+# Environment files
+.env
+.env.local
+.env.*.local

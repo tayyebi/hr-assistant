@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  php:
+    build: .
+    container_name: hr-assistant
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount source files
+      - ./:/app:rw
+      # Mount data directory separately for persistence
+      - ./data:/app/data:rw
+    environment:
+      - PHP_CLI_SERVER_WORKERS=4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit(@file_get_contents('http://localhost:8080/') !== false ? 0 : 1);\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
