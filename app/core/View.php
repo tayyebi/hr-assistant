@@ -4,15 +4,15 @@
  */
 class View
 {
-    public static function render(string $view, array $data = []): void
+    public static function render(string $viewName, array $data = []): void
     {
-        extract($data);
-        
-        $viewPath = __DIR__ . '/../views/pages/' . $view . '.php';
+        $viewPath = __DIR__ . '/../views/pages/' . $viewName . '.php';
         
         if (!file_exists($viewPath)) {
-            throw new Exception("View not found: {$view}");
+            throw new Exception("View not found: {$viewName}");
         }
+        
+        extract($data);
         
         ob_start();
         include $viewPath;
@@ -21,15 +21,15 @@ class View
         include __DIR__ . '/../views/layouts/main.php';
     }
 
-    public static function renderWithoutLayout(string $view, array $data = []): void
+    public static function renderWithoutLayout(string $viewName, array $data = []): void
     {
-        extract($data);
-        
-        $viewPath = __DIR__ . '/../views/pages/' . $view . '.php';
+        $viewPath = __DIR__ . '/../views/pages/' . $viewName . '.php';
         
         if (!file_exists($viewPath)) {
-            throw new Exception("View not found: {$view}");
+            throw new Exception("View not found: {$viewName}");
         }
+        
+        extract($data);
         
         include $viewPath;
     }
