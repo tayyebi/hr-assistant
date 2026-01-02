@@ -21,3 +21,15 @@ services:
     ports:
       - "3306:3306"
 
+  ansible:
+    build:
+      context: ./ansible
+      dockerfile: Dockerfile
+    container_name: hr-assistant-ansible
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    depends_on:
+      - app
+    entrypoint: ["tail", "-f", "/dev/null"]
+
