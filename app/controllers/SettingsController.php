@@ -82,10 +82,23 @@ class SettingsController
             return;
         }
 
+        // Validate provider belongs to type
+        $providers = ProviderSettings::getProvidersMetadata();
+        if (!isset($providers[$provider]) || ($providers[$provider]['type'] ?? '') !== $type) {
+            $_SESSION['flash_message'] = 'Provider does not match selected type.';
+            View::redirect('/settings');
+            return;
+        }
+
         $parsedSettings = [];
         if (!empty($settings)) {
             // Expect JSON string in settings
             $decoded = json_decode($settings, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $_SESSION['flash_message'] = 'Settings must be valid JSON.';
+                View::redirect('/settings');
+                return;
+            }
             $parsedSettings = is_array($decoded) ? $decoded : [];
         }
 

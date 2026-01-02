@@ -69,7 +69,7 @@
                             <button data-variant="ghost" data-size="icon"
                                     data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
                                     onclick="manageAssets(this)">
-                                <?php Icon::render('link', 16, 16); ?>
+                                <?php Icon::render('layers', 16, 16); ?>
                             </button>
                             <button data-variant="ghost" data-size="icon" 
                                     data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
@@ -77,8 +77,8 @@
                                     data-position="<?php echo htmlspecialchars($emp['position']); ?>"
                                     data-email="<?php echo htmlspecialchars($emp['email']); ?>"
                                     data-telegram="<?php echo htmlspecialchars($emp['telegram_chat_id'] ?? ''); ?>"
-                                    data-birthday="<?php echo htmlspecialchars($emp['birthday']); ?>"
-                                    data-hired="<?php echo htmlspecialchars($emp['hired_date']); ?>"
+                                    data-birthday="<?php echo htmlspecialchars($emp['birthday'] ?? ''); ?>"
+                                    data-hired="<?php echo htmlspecialchars($emp['hired_date'] ?? ''); ?>"
                                     onclick="editEmployee(this)">
                                 <?php Icon::render('edit', 16, 16); ?>
                             </button>

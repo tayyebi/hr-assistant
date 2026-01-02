@@ -12,3 +12,39 @@
   assert:
     that:
       - settings_page.status == 200
+
+- name: Create a provider instance for E2E tests
+  uri:
+    url: "http://app:8080/settings/providers"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+    body_format: form-urlencoded
+    body:
+      type: "git"
+      provider: "gitlab"
+      name: "E2E GitLab"
+      settings: '{"gitlab_url":"https://gitlab.local","gitlab_token":"token"}'
+    follow_redirects: none
+    status_code: 302
+  register: create_provider
+
+- name: Fetch provider instances via API
+  uri:
+    url: "http://app:8080/api/provider-instances"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: provider_instances
+
+- name: Ensure provider instance exists and set fact
+  assert:
+    that:
+      - provider_instances.status == 200
+      - provider_instances.json.success == true
+      - provider_instances.json.instances | selectattr('name','equalto','E2E GitLab') | list | length > 0
+
+- name: Set provider_instance_id fact for later tests
+  set_fact:
+    provider_instance_id: "{{ (provider_instances.json.instances | selectattr('name','equalto','E2E GitLab') | list)[0].id }}"
