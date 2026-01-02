@@ -3,8 +3,7 @@
 </div>
 
 # HR Assistant
-
-A pure PHP HR management application with MVC architecture. No JavaScript required.
+HR Department All in One Tool!
 
 ## Features
 
@@ -62,6 +61,33 @@ Default credentials:
 ├── docker-compose.yml   # Docker configuration
 ├── Dockerfile           # PHP container image
 └── make.sh              # Management script
+```
+
+## Database Schema
+
+The application uses Excel files for data storage. Below is the Entity-Relationship Diagram showing the data model:
+
+![Entity-Relationship Diagram](docs/ERD.svg)
+
+## Provider Architecture
+
+HR Assistant supports dynamic provider management for digital assets (email, git, messenger, and IAM services). See [Provider Architecture Documentation](docs/PROVIDER_ARCHITECTURE.md) for detailed information about:
+
+- **Supported Providers**: Mailcow, GitLab, Telegram, Keycloak, and more
+- **Asset Types**: Email, Git, Messenger, IAM
+- **Provider Interface**: Extensible interface for adding new providers
+- **Factory Pattern**: Dynamic provider instantiation and management
+
+Quick example:
+```php
+$config = Config::get($tenantId);
+$provider = ProviderFactory::create($tenantId, ProviderType::EMAIL_MAILCOW, $config);
+$asset = $provider->createAsset(['email' => 'user@example.com']);
+Asset::create($tenantId, [
+    'provider' => 'mailcow',
+    'asset_type' => 'email',
+    'identifier' => $asset['identifier']
+]);
 ```
 
 ## Management Commands

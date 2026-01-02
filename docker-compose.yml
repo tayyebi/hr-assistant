@@ -6,7 +6,7 @@ services:
     container_name: hr-assistant
     working_dir: /app
     ports:
-      - "8080:8080"
+      - "8000:8080"
     volumes:
       # Mount source files
       - ./:/app:rw

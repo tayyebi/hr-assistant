@@ -1,11 +1,11 @@
 <header>
     <div>
-        <h2>System Configuration</h2>
-        <p>Manage integrations, keys, and backend communication for this tenant.</p>
+        <h2>Provider Configuration</h2>
+        <p>Manage integrations and configure your preferred providers for email, messaging, git, and identity management.</p>
     </div>
     <button type="submit" form="settings-form">
         <?php Icon::render('save', 18, 18); ?>
-        Save All Changes
+        Save Configuration
     </button>
 </header>
 
@@ -14,186 +14,189 @@
 <?php endif; ?>
 
 <form method="POST" action="/settings" id="settings-form">
-    <section data-grid="2">
-        <!-- Telegram & Backend -->
-        <article style="grid-column: span 2;">
-            <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-sm); background-color: var(--color-primary-light); border-radius: var(--radius-md);">
-                    <?php Icon::render('messages', 24, 24, 'stroke: var(--color-primary);'); ?>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">Telegram & Backend</h3>
-                    <p style="margin: 0; font-size: 0.75rem;">Configure bot tokens and webhook settings.</p>
-                </div>
-            </header>
+    <section data-grid="auto">
+        <!-- Provider Selection Tab -->
+        <menu role="tablist" style="grid-column: 1;">
+            <h3 style="margin: 0 0 var(--spacing-md) 0; padding: 0 var(--spacing-md); font-size: 0.875rem; color: var(--text-muted);">
+                PROVIDERS
+            </h3>
+            
+            <?php 
+            $assetTypes = [
+                ProviderType::TYPE_EMAIL => 'Email',
+                ProviderType::TYPE_GIT => 'Git',
+                ProviderType::TYPE_MESSENGER => 'Messaging',
+                ProviderType::TYPE_IAM => 'Identity'
+            ];
+            
+            foreach ($assetTypes as $typeKey => $typeName): ?>
+                <li>
+                    <a href="#" data-type="<?php echo htmlspecialchars($typeKey); ?>" class="provider-type-tab">
+                        <?php echo htmlspecialchars($typeName); ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </menu>
 
-            <section data-grid="2">
-                <div>
-                    <label>Telegram Bot API Token</label>
-                    <input type="password" name="telegram_bot_token" value="<?php echo htmlspecialchars($config['telegram_bot_token'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Telegram Mode</label>
-                    <div style="display: flex; gap: var(--spacing-lg); padding: var(--spacing-sm) 0;">
-                        <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
-                            <input type="radio" name="telegram_mode" value="webhook" <?php echo ($config['telegram_mode'] ?? 'webhook') === 'webhook' ? 'checked' : ''; ?>>
-                            Webhook
-                        </label>
-                        <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
-                            <input type="radio" name="telegram_mode" value="polling" <?php echo ($config['telegram_mode'] ?? '') === 'polling' ? 'checked' : ''; ?>>
-                            Polling
-                        </label>
-                    </div>
-                </div>
-                <div style="grid-column: span 2;">
-                    <label>Backend API / Webhook URL</label>
-                    <input type="text" name="webhook_url" value="<?php echo htmlspecialchars($config['webhook_url'] ?? ''); ?>" placeholder="https://api.your-backend.com">
-                    <small style="color: var(--text-muted);">Used for Telegram webhook and data sync.</small>
-                </div>
-            </section>
-        </article>
+        <!-- Provider Configuration -->
+        <div style="grid-column: 2 / -1;">
+            <?php 
+            $grouped = [];
+            foreach ($providers as $providerKey => $provider) {
+                $type = $provider['type'];
+                if (!isset($grouped[$type])) {
+                    $grouped[$type] = [];
+                }
+                $grouped[$type][$providerKey] = $provider;
+            }
+            
+            foreach ($assetTypes as $typeKey => $typeName): 
+                $typeProviders = $grouped[$typeKey] ?? [];
+                $providersList = array_keys($typeProviders);
+                ?>
+                <div data-type-content="<?php echo htmlspecialchars($typeKey); ?>" style="display: none;">
+                    <h3><?php echo htmlspecialchars($typeName); ?> Providers</h3>
+                    
+                    <section data-grid="auto" style="gap: var(--spacing-lg);">
+                        <?php foreach ($typeProviders as $providerKey => $providerMeta): 
+                            $isConfigured = isset($providersConfig[$providerKey]);
+                            $fields = ProviderSettings::getFields($providerKey);
+                            $values = $providersConfig[$providerKey]['values'] ?? [];
+                            ?>
+                            <article style="border: 1px solid var(--color-border); padding: var(--spacing-lg); border-radius: var(--radius-md);">
+                                <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md);">
+                                    <div style="padding: var(--spacing-sm); background-color: <?php echo htmlspecialchars($providerMeta['color']); ?>; border-radius: var(--radius-md); opacity: 0.7;">
+                                        <?php Icon::render($providerMeta['icon'], 24, 24); ?>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h4 style="margin: 0; color: var(--text-primary);">
+                                            <?php echo htmlspecialchars($providerMeta['name']); ?>
+                                        </h4>
+                                        <p style="margin: var(--spacing-xs) 0 0 0; font-size: 0.75rem; color: var(--text-muted);">
+                                            <?php echo htmlspecialchars($providerMeta['description']); ?>
+                                        </p>
+                                    </div>
+                                    <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; margin: 0;">
+                                        <input type="checkbox" class="provider-toggle" data-provider="<?php echo htmlspecialchars($providerKey); ?>" <?php echo $isConfigured ? 'checked' : ''; ?>>
+                                        <span style="font-size: 0.875rem;">Enabled</span>
+                                    </label>
+                                </header>
 
-        <!-- Email Gateway -->
-        <article style="grid-column: span 2;">
-            <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-sm); background-color: var(--color-warning-light); border-radius: var(--radius-md);">
-                    <?php Icon::render('mail', 24, 24, 'stroke: var(--color-warning);'); ?>
+                                <div class="provider-fields" data-provider="<?php echo htmlspecialchars($providerKey); ?>" style="display: <?php echo $isConfigured ? 'block' : 'none'; ?>;">
+                                    <section data-grid="2" style="gap: var(--spacing-md);">
+                                        <?php foreach ($fields as $fieldKey => $field): 
+                                            $value = $values[$fieldKey] ?? ($field['value'] ?? '');
+                                            $fieldId = htmlspecialchars("{$providerKey}_{$fieldKey}");
+                                            $name = htmlspecialchars($fieldKey);
+                                            ?>
+                                            <?php if ($field['type'] === 'checkbox'): ?>
+                                                <div style="display: flex; align-items: center; grid-column: span 2;">
+                                                    <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; margin: 0;">
+                                                        <input type="checkbox" id="<?php echo $fieldId; ?>" name="<?php echo $name; ?>" <?php echo $value === '1' ? 'checked' : ''; ?>>
+                                                        <span><?php echo htmlspecialchars($field['label']); ?></span>
+                                                    </label>
+                                                </div>
+                                            <?php elseif ($field['type'] === 'radio'): ?>
+                                                <div style="grid-column: span 2;">
+                                                    <label style="display: block; margin-bottom: var(--spacing-sm);"><?php echo htmlspecialchars($field['label']); ?></label>
+                                                    <div style="display: flex; gap: var(--spacing-lg);">
+                                                        <?php foreach ($field['options'] ?? [] as $optKey => $optLabel): ?>
+                                                            <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
+                                                                <input type="radio" name="<?php echo $name; ?>" value="<?php echo htmlspecialchars($optKey); ?>" <?php echo $value === $optKey ? 'checked' : ''; ?>>
+                                                                <?php echo htmlspecialchars($optLabel); ?>
+                                                            </label>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            <?php else: ?>
+                                                <div>
+                                                    <label for="<?php echo $fieldId; ?>">
+                                                        <?php echo htmlspecialchars($field['label']); ?>
+                                                        <?php if ($field['required'] ?? false): ?>
+                                                            <span style="color: var(--color-danger);">*</span>
+                                                        <?php endif; ?>
+                                                    </label>
+                                                    <input 
+                                                        type="<?php echo htmlspecialchars($field['type']); ?>" 
+                                                        id="<?php echo $fieldId; ?>" 
+                                                        name="<?php echo $name; ?>" 
+                                                        value="<?php echo htmlspecialchars($value); ?>"
+                                                        placeholder="<?php echo htmlspecialchars($field['placeholder'] ?? ''); ?>"
+                                                        <?php echo $field['required'] ?? false ? 'required' : ''; ?>
+                                                    >
+                                                    <?php if (!empty($field['description'])): ?>
+                                                        <small style="color: var(--text-muted);">
+                                                            <?php echo htmlspecialchars($field['description']); ?>
+                                                        </small>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </section>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </section>
                 </div>
-                <div>
-                    <h3 style="margin: 0;">Email Gateway</h3>
-                    <p style="margin: 0; font-size: 0.75rem;">IMAP/SMTP for Inbox & Outbox</p>
-                </div>
-            </header>
-
-            <h4>IMAP (Incoming)</h4>
-            <section data-grid="2" style="margin-bottom: var(--spacing-lg);">
-                <div>
-                    <label>Host</label>
-                    <input type="text" name="imap_host" value="<?php echo htmlspecialchars($config['imap_host'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Port</label>
-                    <input type="number" name="imap_port" value="<?php echo htmlspecialchars($config['imap_port'] ?? '993'); ?>">
-                </div>
-                <div>
-                    <label>Username</label>
-                    <input type="text" name="imap_user" value="<?php echo htmlspecialchars($config['imap_user'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" name="imap_pass" value="<?php echo htmlspecialchars($config['imap_pass'] ?? ''); ?>">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
-                        <input type="checkbox" name="imap_tls" <?php echo ($config['imap_tls'] ?? '1') === '1' ? 'checked' : ''; ?>>
-                        Use TLS/SSL
-                    </label>
-                </div>
-            </section>
-
-            <h4>SMTP (Outgoing)</h4>
-            <section data-grid="2">
-                <div>
-                    <label>Host</label>
-                    <input type="text" name="smtp_host" value="<?php echo htmlspecialchars($config['smtp_host'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Port</label>
-                    <input type="number" name="smtp_port" value="<?php echo htmlspecialchars($config['smtp_port'] ?? '465'); ?>">
-                </div>
-                <div>
-                    <label>Username</label>
-                    <input type="text" name="smtp_user" value="<?php echo htmlspecialchars($config['smtp_user'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" name="smtp_pass" value="<?php echo htmlspecialchars($config['smtp_pass'] ?? ''); ?>">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
-                        <input type="checkbox" name="smtp_tls" <?php echo ($config['smtp_tls'] ?? '1') === '1' ? 'checked' : ''; ?>>
-                        Use TLS/SSL
-                    </label>
-                </div>
-            </section>
-        </article>
-
-        <!-- Mail Service API -->
-        <article>
-            <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-sm); background-color: #fed7aa; border-radius: var(--radius-md);">
-                    <?php Icon::render('server', 24, 24, 'stroke: #ea580c;'); ?>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">Mail Service API</h3>
-                    <p style="margin: 0; font-size: 0.75rem;">Admin Management</p>
-                </div>
-            </header>
-
-            <div style="margin-bottom: var(--spacing-md);">
-                <label>URL</label>
-                <input type="text" name="mailcow_url" value="<?php echo htmlspecialchars($config['mailcow_url'] ?? ''); ?>">
-            </div>
-            <div>
-                <label>API Key</label>
-                <input type="password" name="mailcow_api_key" value="<?php echo htmlspecialchars($config['mailcow_api_key'] ?? ''); ?>">
-            </div>
-        </article>
-
-        <!-- Keycloak IAM -->
-        <article>
-            <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-sm); background-color: #c7d2fe; border-radius: var(--radius-md);">
-                    <?php Icon::render('lock', 24, 24, 'stroke: #4f46e5;'); ?>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">Keycloak IAM</h3>
-                    <p style="margin: 0; font-size: 0.75rem;">Auth Server API</p>
-                </div>
-            </header>
-
-            <div style="margin-bottom: var(--spacing-md);">
-                <label>Base URL</label>
-                <input type="text" name="keycloak_url" value="<?php echo htmlspecialchars($config['keycloak_url'] ?? ''); ?>">
-            </div>
-            <section data-grid="2" style="margin-bottom: var(--spacing-md);">
-                <div>
-                    <label>Realm</label>
-                    <input type="text" name="keycloak_realm" value="<?php echo htmlspecialchars($config['keycloak_realm'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Client ID</label>
-                    <input type="text" name="keycloak_client_id" value="<?php echo htmlspecialchars($config['keycloak_client_id'] ?? ''); ?>">
-                </div>
-            </section>
-            <div>
-                <label>Client Secret</label>
-                <input type="password" name="keycloak_client_secret" value="<?php echo htmlspecialchars($config['keycloak_client_secret'] ?? ''); ?>">
-            </div>
-        </article>
-
-        <!-- GitLab -->
-        <article style="grid-column: span 2;">
-            <header style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-sm); background-color: #fecaca; border-radius: var(--radius-md);">
-                    <?php Icon::render('git-branch', 24, 24, 'stroke: #dc2626;'); ?>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">GitLab</h3>
-                    <p style="margin: 0; font-size: 0.75rem;">Git Service API</p>
-                </div>
-            </header>
-
-            <section data-grid="2">
-                <div>
-                    <label>URL</label>
-                    <input type="text" name="gitlab_url" value="<?php echo htmlspecialchars($config['gitlab_url'] ?? ''); ?>">
-                </div>
-                <div>
-                    <label>Access Token</label>
-                    <input type="password" name="gitlab_token" value="<?php echo htmlspecialchars($config['gitlab_token'] ?? ''); ?>">
-                </div>
-            </section>
-        </article>
+            <?php endforeach; ?>
+        </div>
     </section>
 </form>
+
+<script>
+document.querySelectorAll('.provider-type-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const type = e.target.dataset.type;
+        document.querySelectorAll('[data-type-content]').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelector(`[data-type-content="${type}"]`).style.display = 'block';
+        
+        // Update active tab
+        document.querySelectorAll('.provider-type-tab').forEach(t => {
+            t.dataset.active = t === e.target ? 'true' : '';
+        });
+    });
+});
+
+// Show first tab by default
+document.querySelector('.provider-type-tab')?.click();
+
+// Toggle provider fields visibility
+document.querySelectorAll('.provider-toggle').forEach(toggle => {
+    toggle.addEventListener('change', (e) => {
+        const provider = e.target.dataset.provider;
+        const fields = document.querySelector(`[data-provider="${provider}"].provider-fields`);
+        if (fields) {
+            fields.style.display = e.target.checked ? 'block' : 'none';
+        }
+    });
+});
+</script>
+
+<style>
+[role="tablist"] {
+    position: sticky;
+    top: 0;
+}
+
+.provider-type-tab {
+    display: block;
+    padding: var(--spacing-md);
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.provider-type-tab:hover {
+    background-color: var(--color-background-secondary);
+    border-left-color: var(--color-primary);
+}
+
+.provider-type-tab[data-active="true"] {
+    background-color: var(--color-background-secondary);
+    border-left-color: var(--color-primary);
+    font-weight: 500;
+}
+</style>

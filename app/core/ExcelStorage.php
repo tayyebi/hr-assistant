@@ -99,6 +99,13 @@ class ExcelStorage
                 ['id', 'tenant_id', 'service', 'action', 'target_name', 'status', 'result', 'created_at', 'updated_at', 'metadata']
             ]);
             
+            // Assets sheet
+            $assetsSheet = $spreadsheet->createSheet();
+            $assetsSheet->setTitle('assets');
+            $assetsSheet->fromArray([
+                ['id', 'tenant_id', 'employee_id', 'provider', 'asset_type', 'identifier', 'status', 'metadata', 'created_at', 'updated_at']
+            ]);
+            
             // Config sheet
             $configSheet = $spreadsheet->createSheet();
             $configSheet->setTitle('config');

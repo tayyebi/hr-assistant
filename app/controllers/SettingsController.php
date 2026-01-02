@@ -1,6 +1,7 @@
 <?php
 /**
  * Settings Controller
+ * Manages provider configuration
  */
 class SettingsController
 {
@@ -13,6 +14,8 @@ class SettingsController
         $user = User::getCurrentUser();
         
         $config = Config::get($tenantId);
+        $providers = ProviderSettings::getProvidersMetadata();
+        $providersConfig = $this->getEnabledProvidersConfig($tenantId, $config);
         
         $message = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
@@ -21,6 +24,8 @@ class SettingsController
             'tenant' => $tenant,
             'user' => $user,
             'config' => $config,
+            'providers' => $providers,
+            'providersConfig' => $providersConfig,
             'message' => $message,
             'activeTab' => 'settings'
         ]);
@@ -32,33 +37,73 @@ class SettingsController
         
         $tenantId = User::getTenantId();
         
-        $config = [
-            'telegram_bot_token' => $_POST['telegram_bot_token'] ?? '',
-            'telegram_mode' => $_POST['telegram_mode'] ?? 'webhook',
-            'webhook_url' => $_POST['webhook_url'] ?? '',
-            'mailcow_url' => $_POST['mailcow_url'] ?? '',
-            'mailcow_api_key' => $_POST['mailcow_api_key'] ?? '',
-            'gitlab_url' => $_POST['gitlab_url'] ?? '',
-            'gitlab_token' => $_POST['gitlab_token'] ?? '',
-            'keycloak_url' => $_POST['keycloak_url'] ?? '',
-            'keycloak_realm' => $_POST['keycloak_realm'] ?? '',
-            'keycloak_client_id' => $_POST['keycloak_client_id'] ?? '',
-            'keycloak_client_secret' => $_POST['keycloak_client_secret'] ?? '',
-            'imap_host' => $_POST['imap_host'] ?? '',
-            'imap_port' => $_POST['imap_port'] ?? '',
-            'imap_tls' => isset($_POST['imap_tls']) ? '1' : '0',
-            'imap_user' => $_POST['imap_user'] ?? '',
-            'imap_pass' => $_POST['imap_pass'] ?? '',
-            'smtp_host' => $_POST['smtp_host'] ?? '',
-            'smtp_port' => $_POST['smtp_port'] ?? '',
-            'smtp_tls' => isset($_POST['smtp_tls']) ? '1' : '0',
-            'smtp_user' => $_POST['smtp_user'] ?? '',
-            'smtp_pass' => $_POST['smtp_pass'] ?? ''
-        ];
+        // Get all allowed configuration fields
+        $allFields = ProviderSettings::getAllFields();
+        $config = Config::get($tenantId);
         
+        // Process POST data for all known provider fields
+        foreach ($allFields as $provider => $fields) {
+            foreach ($fields as $fieldKey => $field) {
+                if (isset($_POST[$fieldKey])) {
+                    if ($field['type'] === 'checkbox') {
+                        $config[$fieldKey] = isset($_POST[$fieldKey]) ? '1' : '0';
+                    } else {
+                        $config[$fieldKey] = $_POST[$fieldKey];
+                    }
+                }
+            }
+        }
+        
+        // Save updated configuration
         Config::save($tenantId, $config);
         
-        $_SESSION['flash_message'] = 'Configuration saved successfully.';
-        View::redirect('/settings');
+        // Set success message
+        $_SESSION['flash_message'] = 'Configuration saved successfully!';
+        header('Location: /settings');
+        exit();
+    }
+
+    /**
+     * Get configuration for enabled providers
+     */
+    private function getEnabledProvidersConfig(string $tenantId, array $config): array
+    {
+        $enabled = [];
+        $allFields = ProviderSettings::getAllFields();
+
+        foreach (ProviderSettings::getProvidersMetadata() as $provider => $metadata) {
+            $fields = $allFields[$provider] ?? [];
+            $hasConfig = false;
+
+            // Check if any field for this provider has a value
+            foreach ($fields as $fieldKey => $field) {
+                if (!empty($config[$fieldKey])) {
+                    $hasConfig = true;
+                    break;
+                }
+            }
+
+            if ($hasConfig) {
+                $enabled[$provider] = [
+                    'metadata' => $metadata,
+                    'fields' => $fields,
+                    'values' => $this->getProviderValues($provider, $config, $fields)
+                ];
+            }
+        }
+
+        return $enabled;
+    }
+
+    /**
+     * Get current values for provider fields
+     */
+    private function getProviderValues(string $provider, array $config, array $fields): array
+    {
+        $values = [];
+        foreach ($fields as $fieldKey => $field) {
+            $values[$fieldKey] = $config[$fieldKey] ?? ($field['value'] ?? '');
+        }
+        return $values;
     }
 }

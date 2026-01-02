@@ -44,7 +44,6 @@ class EmployeeController
         Employee::create($tenantId, [
             'full_name' => $_POST['full_name'] ?? '',
             'email' => $_POST['email'] ?? '',
-            'telegram_chat_id' => $_POST['telegram_chat_id'] ?? '',
             'birthday' => $_POST['birthday'] ?? '',
             'hired_date' => $_POST['hired_date'] ?? date('Y-m-d'),
             'position' => $_POST['position'] ?? ''
@@ -64,7 +63,6 @@ class EmployeeController
         Employee::update($tenantId, $id, [
             'full_name' => $_POST['full_name'] ?? '',
             'email' => $_POST['email'] ?? '',
-            'telegram_chat_id' => $_POST['telegram_chat_id'] ?? '',
             'birthday' => $_POST['birthday'] ?? '',
             'hired_date' => $_POST['hired_date'] ?? '',
             'position' => $_POST['position'] ?? ''
@@ -85,5 +83,37 @@ class EmployeeController
         
         $_SESSION['flash_message'] = 'Employee removed successfully.';
         View::redirect('/employees');
+    }
+
+    /**
+     * API endpoint to get assets assigned to an employee
+     */
+    public function getAssets(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        $tenantId = User::getTenantId();
+        $employeeId = $_GET['employee_id'] ?? '';
+        
+        if (empty($employeeId)) {
+            View::json(['error' => 'Missing employee ID', 'success' => false]);
+            return;
+        }
+        
+        // Verify employee exists in tenant
+        $employee = Employee::find($tenantId, $employeeId);
+        if (!$employee) {
+            View::json(['error' => 'Employee not found', 'success' => false]);
+            return;
+        }
+        
+        $assetManager = new AssetManager($tenantId);
+        $assets = $assetManager->getEmployeeAssets($employeeId);
+        
+        View::json([
+            'success' => true,
+            'employee_id' => $employeeId,
+            'assets' => $assets,
+        ]);
     }
 }
