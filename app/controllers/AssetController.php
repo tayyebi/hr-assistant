@@ -19,8 +19,22 @@ class AssetController
         $employees = Employee::getAll($tenantId);
         $assetManager = new AssetManager($tenantId);
         
-        // Get available assets grouped by type
-        $availableAssets = $assetManager->getAvailableAssetsGrouped();
+        // Get available assets grouped by instance
+        $providerInstances = ProviderInstance::getAll($tenantId);
+        $instanceAssets = [];
+        foreach ($providerInstances as $inst) {
+            try {
+                $provider = ProviderFactory::create($tenantId, $inst['provider'], $inst['settings'] ?? []);
+                $assets = $provider->listAssets() ?? [];
+            } catch (\Exception $e) {
+                $assets = [];
+            }
+
+            $instanceAssets[$inst['id']] = [
+                'instance' => $inst,
+                'assets' => $assets,
+            ];
+        }
         
         // Get all assigned assets
         $assignedAssets = [];
@@ -37,7 +51,8 @@ class AssetController
             'tenant' => $tenant,
             'user' => $user,
             'employees' => $employees,
-            'availableAssets' => $availableAssets,
+            'instanceAssets' => $instanceAssets,
+            'providerInstances' => $providerInstances,
             'assignedAssets' => $assignedAssets,
             'message' => $message,
             'messageType' => $messageType,

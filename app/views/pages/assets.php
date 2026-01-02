@@ -11,74 +11,50 @@
     </output>
 <?php endif; ?>
 
-<!-- Asset Type Tabs -->
-<menu role="tablist" style="margin-bottom: var(--spacing-lg);">
-    <li>
-        <a href="#email-assets" data-asset-type="email" data-active="true">
-            <?php Icon::render('mail', 18, 18); ?>
-            Email
-        </a>
-    </li>
-    <li>
-        <a href="#git-assets" data-asset-type="git">
-            <?php Icon::render('git-branch', 18, 18); ?>
-            Git
-        </a>
-    </li>
-    <li>
-        <a href="#messaging-assets" data-asset-type="messenger">
-            <?php Icon::render('message-circle', 18, 18); ?>
-            Messaging
-        </a>
-    </li>
-    <li>
-        <a href="#iam-assets" data-asset-type="iam">
-            <?php Icon::render('key', 18, 18); ?>
-            Identity
-        </a>
-    </li>
+<!-- Provider Instance Tabs -->
+<menu role="tablist" id="instance-tabs" style="margin-bottom: var(--spacing-lg); display:flex; gap: var(--spacing-md); overflow-x:auto;">
+    <?php if (empty($providerInstances)): ?>
+        <div style="color: var(--text-muted);">No provider instances configured. <a href="/settings">Create one</a></div>
+    <?php else: ?>
+        <?php $first = true; foreach ($providerInstances as $inst): ?>
+            <a href="#" data-instance-id="<?php echo htmlspecialchars($inst['id']); ?>" class="instance-tab" data-active="<?php echo $first ? 'true' : 'false'; ?>" style="display:inline-flex; align-items:center; gap:8px; padding: 8px 12px; border-radius:6px; border:1px solid var(--color-border); <?php echo $first ? 'background-color: var(--color-background-secondary);' : ''; ?>">
+                <div style="width:18px; height:18px; background-color:<?php echo htmlspecialchars($inst['name'] ? '#ddd' : '#eee'); ?>; border-radius:3px;"></div>
+                <span><?php echo htmlspecialchars($inst['name']); ?></span>
+            </a>
+        <?php $first = false; endforeach; ?>
+    <?php endif; ?>
 </menu>
 
-<!-- Email Assets Section -->
-<article id="email-assets" class="asset-section" style="display: block;">
-    <header>
-        <h3>Email Accounts</h3>
-        <p>Available email accounts from configured providers</p>
-    </header>
-
-    <?php if (empty($availableAssets['email']['providers']) || empty(array_filter($availableAssets['email']['providers']))): ?>
-        <output data-type="warning">
-            No email providers configured. <a href="/settings">Configure email providers</a> first.
-        </output>
+<!-- Instance-specific assets area -->
+<div id="instance-assets-container">
+    <?php if (empty($providerInstances)): ?>
+        <output data-type="warning">No provider instances configured.</output>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
-            <?php foreach ($availableAssets['email']['providers'] as $providerType => $providerData): ?>
-                <article style="border: 1px solid var(--border-color); border-radius: var(--radius); padding: var(--spacing-md);">
-                    <header style="margin-bottom: var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
-                        <h4><?php echo htmlspecialchars($providerData['name']); ?></h4>
-                        <button class="test-connection-btn" data-provider="<?php echo htmlspecialchars($providerType); ?>" data-size="sm" data-variant="secondary">
-                            Test
-                        </button>
-                    </header>
+        <?php foreach ($instanceAssets as $instId => $data): ?>
+            <article data-instance-panel="<?php echo htmlspecialchars($instId); ?>" class="instance-panel" style="display: none;">
+                <header>
+                    <h3><?php echo htmlspecialchars($data['instance']['name']); ?> — <?php echo htmlspecialchars(ProviderType::getName($data['instance']['provider'])); ?></h3>
+                    <p>Available accounts from this instance</p>
+                </header>
 
-                    <?php if (empty($providerData['assets'])): ?>
-                        <output data-type="info" style="font-size: 0.875rem;">No assets available</output>
-                    <?php else: ?>
-                        <details>
-                            <summary><?php echo count($providerData['assets']); ?> accounts available</summary>
-                            <ul style="list-style: none; padding: var(--spacing-sm) 0; font-size: 0.875rem;">
-                                <?php foreach ($providerData['assets'] as $asset): ?>
-                                    <li style="padding: var(--spacing-xs) 0;">
-                                        <code><?php echo htmlspecialchars($asset['identifier']); ?></code>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </details>
-                    <?php endif; ?>
-                </article>
-            <?php endforeach; ?>
-        </div>
+                <?php if (empty($data['assets'])): ?>
+                    <output data-type="info">No assets available from this instance.</output>
+                <?php else: ?>
+                    <details>
+                        <summary><?php echo count($data['assets']); ?> accounts available</summary>
+                        <ul style="list-style: none; padding: var(--spacing-sm) 0; font-size: 0.875rem;">
+                            <?php foreach ($data['assets'] as $asset): ?>
+                                <li style="padding: var(--spacing-xs) 0;">
+                                    <code><?php echo htmlspecialchars($asset['identifier']); ?></code>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </details>
+                <?php endif; ?>
+            </article>
+        <?php endforeach; ?>
     <?php endif; ?>
+</div>
 
     <!-- Email Asset Assignments -->
     <section style="margin-top: var(--spacing-xl);">
@@ -420,6 +396,24 @@
 </article>
 
 <script>
+// Instance tab switching
+document.querySelectorAll('#instance-tabs .instance-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = tab.dataset.instanceId;
+        document.querySelectorAll('.instance-panel').forEach(p => p.style.display = 'none');
+        const panel = document.querySelector(`[data-instance-panel="${id}"]`);
+        if (panel) panel.style.display = 'block';
+
+        document.querySelectorAll('#instance-tabs .instance-tab').forEach(t => t.dataset.active = 'false');
+        tab.dataset.active = 'true';
+    });
+});
+
+// Show first instance panel by default
+const firstTab = document.querySelector('#instance-tabs .instance-tab[data-active="true"]');
+if (firstTab) firstTab.click();
+
 // Tab navigation
 document.querySelectorAll('menu[role="tablist"] a').forEach(tab => {
     tab.addEventListener('click', function(e) {
