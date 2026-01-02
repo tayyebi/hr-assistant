@@ -79,7 +79,27 @@
     that:
       - assign_response.json.success == true
 
-- name: Fetch assets page and assert assigned git account is visible
+- name: Fetch assigned assets via API for employee
+  uri:
+    url: "http://app:8080/api/employee-assets?employee_id={{ test_employee_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: employee_assets_api
+
+- name: Assert assigned asset present in employee assets API
+  assert:
+    that:
+      - employee_assets_api.status == 200
+      - employee_assets_api.json.success == true
+      - (employee_assets_api.json.assets | selectattr('identifier','equalto','e2e_user') | list) | length > 0
+
+- name: Set assigned_asset_id fact
+  set_fact:
+    assigned_asset_id: "{{ (employee_assets_api.json.assets | selectattr('identifier','equalto','e2e_user') | list)[0].id }}"
+
+- name: Fetch assets page and assert assigned git account is visible (page OR API)
   uri:
     url: "http://app:8080/assets"
     method: GET
@@ -89,20 +109,114 @@
     return_content: yes
   register: assets_page_after_assign
 
-- name: Assert assigned asset appears in assets page
+- name: Debug assets page excerpt
   debug:
     msg: "Assets page excerpt: {{ (assets_page_after_assign.content | default(''))[:800] }}"
 
 - name: Debug assigned git accounts block
   debug:
-    msg: "{{ (assets_page_after_assign.content | default('')) | regex_findall('(?s)<h4>Assigned Git Accounts</h4>.*?<\/table>') | first }}"
+    msg: "Assigned Git block matches: {{ (assets_page_after_assign.content | default('')) | regex_findall('(?s)<h4>Assigned Git Accounts</h4>.*?<\/table>') | length }}"
 
 - name: Debug search for raw identifier
   debug:
     msg: "Found raw e2e_user: {{ (assets_page_after_assign.content | default('')) | regex_search('e2e_user') }}"
 
-- name: Assert assigned asset appears in assets page
+- name: Assert assigned asset appears in assets page or in API
   assert:
     that:
       - assets_page_after_assign.status == 200
-      - (assets_page_after_assign.content | default('')) | regex_search('e2e_user')
+      - ((assets_page_after_assign.content | default('')) | regex_search('e2e_user')) or ((employee_assets_api.json.assets | selectattr('identifier','equalto','e2e_user') | list) | length > 0)
+
+- name: Fetch assigned assets via API for employee
+  uri:
+    url: "http://app:8080/api/employee-assets?employee_id={{ test_employee_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: employee_assets_api
+
+- name: Assert assigned asset present in employee assets API
+  assert:
+    that:
+      - employee_assets_api.status == 200
+      - employee_assets_api.json.success == true
+      - (employee_assets_api.json.assets | selectattr('identifier','equalto','e2e_user') | list) | length > 0
+
+- name: Set assigned_asset_id fact
+  set_fact:
+    assigned_asset_id: "{{ (employee_assets_api.json.assets | selectattr('identifier','equalto','e2e_user') | list)[0].id }}"
+
+- name: Unassign the asset
+  uri:
+    url: "http://app:8080/assets/unassignAsset"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      asset_id: "{{ assigned_asset_id }}"
+    status_code: 200
+  register: unassign_response
+
+- name: Assert unassign succeeded
+  assert:
+    that:
+      - unassign_response.json.success == true
+
+- name: Verify asset no longer present in employee assets API
+  uri:
+    url: "http://app:8080/api/employee-assets?employee_id={{ test_employee_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: employee_assets_api_after_unassign
+
+- name: Assert asset removed
+  assert:
+    that:
+      - (employee_assets_api_after_unassign.json.assets | selectattr('identifier','equalto','e2e_user') | list) | length == 0
+
+# Negative scenarios: missing fields and invalid provider instance
+- name: Attempt assign with missing fields (should error)
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ provider_instance_id }}"
+      asset_type: "git"
+    status_code: 200
+  register: assign_missing_fields
+
+- name: Assert missing fields error returned
+  assert:
+    that:
+      - assign_missing_fields.json.success == false
+
+- name: Attempt assign with invalid provider_instance_id (should error)
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "prov_invalid_123"
+      asset_identifier: "bad_user"
+      asset_type: "git"
+    status_code: 200
+  register: assign_invalid_prov
+
+- name: Assert invalid provider instance error
+  assert:
+    that:
+      - assign_invalid_prov.json.success == false

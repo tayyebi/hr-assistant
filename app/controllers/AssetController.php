@@ -104,6 +104,30 @@ class AssetController
     }
 
     /**
+     * API endpoint to get assigned assets for a given employee
+     */
+    public function getEmployeeAssets(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $employeeId = $_GET['employee_id'] ?? '';
+
+        if (empty($employeeId)) {
+            View::json(['error' => 'Missing employee_id', 'success' => false]);
+            return;
+        }
+
+        $assets = Asset::getByEmployee($tenantId, $employeeId);
+
+        View::json([
+            'success' => true,
+            'employee_id' => $employeeId,
+            'assets' => array_values($assets ?? [])
+        ]);
+    }
+
+    /**
      * API endpoint to get assets by type (email, git, messenger, iam)
      */
     public function getAssetsByType(): void

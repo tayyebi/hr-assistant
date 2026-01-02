@@ -81,7 +81,9 @@ $router->add('POST', '/messages/retry', 'MessageController', 'retryDelivery');
 $router->add('GET', '/assets', 'AssetController', 'index');
 $router->add('POST', '/assets/provision', 'AssetController', 'provision');
 $router->add('POST', '/assets/assign', 'AssetController', 'assignAsset');
+$router->add('POST', '/assets/unassignAsset', 'AssetController', 'unassignAsset');
 $router->add('GET', '/api/provider-instances', 'AssetController', 'getProviderInstances');
+$router->add('GET', '/api/employee-assets', 'AssetController', 'getEmployeeAssets');
 
 $router->add('GET', '/jobs', 'JobController', 'index');
 $router->add('POST', '/jobs/retry', 'JobController', 'retry');
