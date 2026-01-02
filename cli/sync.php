@@ -15,7 +15,6 @@
 
 // Bootstrap application
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/ExcelStorage.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Employee.php';
 require_once __DIR__ . '/../app/models/Tenant.php';
@@ -401,15 +400,15 @@ class SyncOrchestrator
     
     public function diff(string $serviceFilter = 'all'): void
     {
-        $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
-        
+        $tenants = Tenant::getAll();
+
         foreach ($tenants as $tenant) {
             $tenantId = $tenant['id'];
             $tenantName = $tenant['name'];
-            
+
             echo "\n=== Tenant: {$tenantName} ({$tenantId}) ===\n";
-            
-            $config = ExcelStorage::readConfig($tenantId);
+
+            $config = Config::get($tenantId);
             
             foreach ($this->getServices($serviceFilter) as $name => $service) {
                 echo "\n--- {$name} ---\n";
@@ -425,15 +424,15 @@ class SyncOrchestrator
     
     public function push(string $serviceFilter = 'all', bool $dryRun = false): void
     {
-        $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
-        
+        $tenants = Tenant::getAll();
+
         foreach ($tenants as $tenant) {
             $tenantId = $tenant['id'];
             $tenantName = $tenant['name'];
-            
+
             echo "\n=== Tenant: {$tenantName} ({$tenantId}) ===\n";
-            
-            $config = ExcelStorage::readConfig($tenantId);
+
+            $config = Config::get($tenantId);
             
             foreach ($this->getServices($serviceFilter) as $name => $service) {
                 echo "\n--- Pushing to {$name} ---\n";
@@ -451,15 +450,15 @@ class SyncOrchestrator
     
     public function pull(string $serviceFilter = 'all', bool $dryRun = false): void
     {
-        $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
-        
+        $tenants = Tenant::getAll();
+
         foreach ($tenants as $tenant) {
             $tenantId = $tenant['id'];
             $tenantName = $tenant['name'];
-            
+
             echo "\n=== Tenant: {$tenantName} ({$tenantId}) ===\n";
-            
-            $config = ExcelStorage::readConfig($tenantId);
+
+            $config = Config::get($tenantId);
             
             foreach ($this->getServices($serviceFilter) as $name => $service) {
                 echo "\n--- Pulling from {$name} ---\n";

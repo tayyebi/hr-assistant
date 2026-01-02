@@ -15,28 +15,30 @@ class Employee
 
     public static function getAll(string $tenantId): array
     {
-        $employees = ExcelStorage::readSheet("tenant_{$tenantId}.xlsx", 'employees');
-        
-        // Parse JSON fields
-        foreach ($employees as &$emp) {
-            $emp['feelings_log'] = $emp['feelings_log'] ? json_decode($emp['feelings_log'], true) : [];
-            $emp['accounts'] = $emp['accounts'] ? json_decode($emp['accounts'], true) : [];
+        try {
+            $rows = Database::fetchAll('SELECT * FROM employees WHERE tenant_id = ?', [$tenantId]);
+            foreach ($rows as &$emp) {
+                $emp['feelings_log'] = $emp['feelings_log'] ? json_decode($emp['feelings_log'], true) : [];
+                $emp['accounts'] = $emp['accounts'] ? json_decode($emp['accounts'], true) : [];
+            }
+            return $rows;
+        } catch (\Exception $e) {
+            return [];
         }
-        
-        return $employees;
     }
 
     public static function find(string $tenantId, string $id): ?array
     {
-        $employees = self::getAll($tenantId);
-        
-        foreach ($employees as $emp) {
-            if ($emp['id'] === $id) {
-                return $emp;
+        try {
+            $row = Database::fetchOne('SELECT * FROM employees WHERE tenant_id = ? AND id = ? LIMIT 1', [$tenantId, $id]);
+            if ($row) {
+                $row['feelings_log'] = $row['feelings_log'] ? json_decode($row['feelings_log'], true) : [];
+                $row['accounts'] = $row['accounts'] ? json_decode($row['accounts'], true) : [];
+                return $row;
             }
+        } catch (\Exception $e) {
+            return null;
         }
-        
-        return null;
     }
 
     public static function create(string $tenantId, array $data): array
@@ -54,10 +56,25 @@ class Employee
             'feelings_log' => json_encode([]),
             'accounts' => json_encode([])
         ];
-        
-        ExcelStorage::appendRow("tenant_{$tenantId}.xlsx", 'employees', $employee, self::$headers);
-        
-        return $employee;
+        try {
+            Database::execute('INSERT INTO employees (id, tenant_id, full_name, email, telegram_chat_id, birthday, hired_date, position, team_id, feelings_log, accounts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $employee['id'],
+                $employee['tenant_id'],
+                $employee['full_name'],
+                $employee['email'],
+                $employee['telegram_chat_id'],
+                $employee['birthday'] ?: null,
+                $employee['hired_date'] ?: null,
+                $employee['position'],
+                $employee['team_id'] ?: null,
+                $employee['feelings_log'],
+                $employee['accounts']
+            ]);
+            return $employee;
+        } catch (\Exception $e) {
+            // DB error
+            return $employee;
+        }
     }
 
     public static function update(string $tenantId, string $id, array $data): bool
@@ -69,26 +86,31 @@ class Employee
         if (isset($data['accounts']) && is_array($data['accounts'])) {
             $data['accounts'] = json_encode($data['accounts']);
         }
-        
-        return ExcelStorage::updateRow(
-            "tenant_{$tenantId}.xlsx", 
-            'employees', 
-            'id', 
-            $id, 
-            $data, 
-            self::$headers
-        );
+        try {
+            $setParts = [];
+            $params = [];
+            foreach ($data as $k => $v) {
+                $setParts[] = "`$k` = ?";
+                $params[] = $v;
+            }
+            $params[] = $tenantId;
+            $params[] = $id;
+            $sql = 'UPDATE employees SET ' . implode(', ', $setParts) . ' WHERE tenant_id = ? AND id = ?';
+            Database::execute($sql, $params);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public static function delete(string $tenantId, string $id): bool
     {
-        return ExcelStorage::deleteRow(
-            "tenant_{$tenantId}.xlsx", 
-            'employees', 
-            'id', 
-            $id, 
-            self::$headers
-        );
+        try {
+            Database::execute('DELETE FROM employees WHERE tenant_id = ? AND id = ?', [$tenantId, $id]);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public static function getUpcomingBirthdays(string $tenantId, int $days = 30): array

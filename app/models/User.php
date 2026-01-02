@@ -9,29 +9,21 @@ class User
 
     public static function authenticate(string $email, string $password): ?array
     {
-        $users = ExcelStorage::readSheet('system.xlsx', 'users');
-        
-        foreach ($users as $user) {
-            if (strtolower($user['email']) === strtolower($email)) {
-                // Support both legacy plain text (for demo) and hashed passwords
-                $storedPassword = $user['password_hash'];
-                
-                // Check if it's a bcrypt hash (starts with $2)
-                if (strpos($storedPassword, '$2') === 0) {
-                    if (password_verify($password, $storedPassword)) {
-                        return $user;
-                    }
-                } else {
-                    // Legacy plain text comparison (only for demo/migration)
-                    // In production, this should be removed after migration
-                    if ($storedPassword === $password) {
-                        return $user;
-                    }
-                }
+        try {
+            $row = Database::fetchOne('SELECT * FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1', [$email]);
+            if (!$row) return null;
+
+            $storedPassword = $row['password_hash'] ?? '';
+
+            if (strpos($storedPassword, '$2') === 0) {
+                return password_verify($password, $storedPassword) ? $row : null;
             }
+
+            return $storedPassword === $password ? $row : null;
+        } catch (\Exception $e) {
+            // Database error: authentication not available
+            return null;
         }
-        
-        return null;
     }
 
     /**
@@ -44,20 +36,20 @@ class User
 
     public static function find(string $id): ?array
     {
-        $users = ExcelStorage::readSheet('system.xlsx', 'users');
-        
-        foreach ($users as $user) {
-            if ($user['id'] === $id) {
-                return $user;
-            }
+        try {
+            return Database::fetchOne('SELECT * FROM users WHERE id = ? LIMIT 1', [$id]);
+        } catch (\Exception $e) {
+            return null;
         }
-        
-        return null;
     }
 
     public static function getAll(): array
     {
-        return ExcelStorage::readSheet('system.xlsx', 'users');
+        try {
+            return Database::fetchAll('SELECT * FROM users');
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public static function create(array $data): void
@@ -67,9 +59,14 @@ class User
             $data['password_hash'] = self::hashPassword($data['password']);
             unset($data['password']);
         }
-        
-        $headers = ['id', 'email', 'password_hash', 'role', 'tenant_id'];
-        ExcelStorage::appendRow('system.xlsx', 'users', $data, $headers);
+        $id = $data['id'] ?? ('user_' . time() . '_' . mt_rand(1000,9999));
+        Database::execute('INSERT INTO users (id, email, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)', [
+            $id,
+            $data['email'] ?? '',
+            $data['password_hash'] ?? '',
+            $data['role'] ?? '',
+            $data['tenant_id'] ?? null
+        ]);
     }
 
     public static function getCurrentUser(): ?array

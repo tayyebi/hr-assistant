@@ -8,20 +8,23 @@ class Tenant
 
     public static function getAll(): array
     {
-        return ExcelStorage::readSheet('system.xlsx', 'tenants');
+        try {
+            return Database::fetchAll('SELECT * FROM tenants');
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public static function find(string $id): ?array
     {
-        $tenants = self::getAll();
-        
-        foreach ($tenants as $tenant) {
-            if ($tenant['id'] === $id) {
-                return $tenant;
-            }
+        try {
+            $row = Database::fetchOne('SELECT * FROM tenants WHERE id = ? LIMIT 1', [$id]);
+            if ($row) return $row;
+        } catch (\Exception $e) {
+            // fallback
         }
-        
-        return null;
+
+            return null;
     }
 
     public static function create(string $name): array
@@ -31,13 +34,14 @@ class Tenant
             'id' => $id,
             'name' => $name
         ];
-        
-        ExcelStorage::appendRow('system.xlsx', 'tenants', $tenant, self::$headers);
-        
-        // Initialize tenant data file
-        ExcelStorage::initializeTenantData($id);
-        
-        return $tenant;
+
+        try {
+            Database::execute('INSERT INTO tenants (id, name) VALUES (?, ?)', [$id, $name]);
+            return $tenant;
+        } catch (\Exception $e) {
+            // DB error
+            return $tenant;
+        }
     }
 
     public static function getCurrentTenant(): ?array

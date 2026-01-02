@@ -12,8 +12,14 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Load core framework
 require_once __DIR__ . '/../app/core/Router.php';
 require_once __DIR__ . '/../app/core/View.php';
-require_once __DIR__ . '/../app/core/ExcelStorage.php';
 require_once __DIR__ . '/../app/core/Icon.php';
+// Database helper (for MySQL-backed storage)
+require_once __DIR__ . '/../app/core/Database.php';
+require_once __DIR__ . '/../app/core/ProviderSettings.php';
+require_once __DIR__ . '/../app/core/ProviderType.php';
+require_once __DIR__ . '/../app/core/ProviderFactory.php';
+require_once __DIR__ . '/../app/core/Providers.php';
+require_once __DIR__ . '/../app/core/AssetManager.php';
 
 // Load models
 require_once __DIR__ . '/../app/models/User.php';

@@ -9,14 +9,20 @@ class Message
 
     public static function getAll(string $tenantId): array
     {
-        return ExcelStorage::readSheet("tenant_{$tenantId}.xlsx", 'messages');
+        try {
+            return Database::fetchAll('SELECT * FROM messages WHERE tenant_id = ? ORDER BY timestamp DESC', [$tenantId]);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public static function getByEmployee(string $tenantId, string $employeeId): array
     {
-        $messages = self::getAll($tenantId);
-        
-        return array_filter($messages, fn($msg) => $msg['employee_id'] === $employeeId);
+        try {
+            return Database::fetchAll('SELECT * FROM messages WHERE tenant_id = ? AND employee_id = ? ORDER BY timestamp DESC', [$tenantId, $employeeId]);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public static function create(string $tenantId, array $data): array
@@ -31,15 +37,30 @@ class Message
             'subject' => $data['subject'] ?? '',
             'timestamp' => date('c')
         ];
-        
-        ExcelStorage::appendRow("tenant_{$tenantId}.xlsx", 'messages', $message, self::$headers);
-        
-        return $message;
+        try {
+            Database::execute('INSERT INTO messages (id, tenant_id, employee_id, sender, channel, text, subject, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+                $message['id'],
+                $message['tenant_id'],
+                $message['employee_id'] ?: null,
+                $message['sender'],
+                $message['channel'],
+                $message['text'],
+                $message['subject'],
+                date('Y-m-d H:i:s')
+            ]);
+            return $message;
+        } catch (\Exception $e) {
+            return $message;
+        }
     }
 
     public static function getUnassigned(string $tenantId): array
     {
-        return ExcelStorage::readSheet("tenant_{$tenantId}.xlsx", 'unassigned_messages');
+        try {
+            return Database::fetchAll('SELECT * FROM unassigned_messages WHERE tenant_id = ? ORDER BY timestamp DESC', [$tenantId]);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public static function createUnassigned(string $tenantId, array $data): array
@@ -54,48 +75,48 @@ class Message
             'subject' => $data['subject'] ?? '',
             'timestamp' => date('c')
         ];
-        
-        ExcelStorage::appendRow("tenant_{$tenantId}.xlsx", 'unassigned_messages', $message, self::$unassignedHeaders);
-        
-        return $message;
+        try {
+            Database::execute('INSERT INTO unassigned_messages (id, tenant_id, channel, source_id, sender_name, text, subject, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+                $message['id'],
+                $message['tenant_id'],
+                $message['channel'],
+                $message['source_id'],
+                $message['sender_name'],
+                $message['text'],
+                $message['subject'],
+                date('Y-m-d H:i:s')
+            ]);
+            return $message;
+        } catch (\Exception $e) {
+            return $message;
+        }
     }
 
     public static function assignToEmployee(string $tenantId, string $unassignedId, string $employeeId): bool
     {
-        $unassigned = self::getUnassigned($tenantId);
         $employee = Employee::find($tenantId, $employeeId);
-        
         if (!$employee) return false;
-        
-        foreach ($unassigned as $msg) {
-            if ($msg['id'] === $unassignedId) {
-                // Create a message in the conversation
-                self::create($tenantId, [
-                    'employee_id' => $employeeId,
-                    'sender' => 'employee',
-                    'channel' => $msg['channel'],
-                    'text' => $msg['text'],
-                    'subject' => $msg['subject']
-                ]);
-                
-                // Update employee's telegram chat id if applicable
-                if ($msg['channel'] === 'telegram' && !empty($msg['source_id'])) {
-                    Employee::update($tenantId, $employeeId, ['telegram_chat_id' => $msg['source_id']]);
-                }
-                
-                // Remove from unassigned
-                ExcelStorage::deleteRow(
-                    "tenant_{$tenantId}.xlsx",
-                    'unassigned_messages',
-                    'id',
-                    $unassignedId,
-                    self::$unassignedHeaders
-                );
-                
-                return true;
+
+        try {
+            $msg = Database::fetchOne('SELECT * FROM unassigned_messages WHERE tenant_id = ? AND id = ? LIMIT 1', [$tenantId, $unassignedId]);
+            if (!$msg) return false;
+
+            self::create($tenantId, [
+                'employee_id' => $employeeId,
+                'sender' => 'employee',
+                'channel' => $msg['channel'],
+                'text' => $msg['text'],
+                'subject' => $msg['subject']
+            ]);
+
+            if ($msg['channel'] === 'telegram' && !empty($msg['source_id'])) {
+                Employee::update($tenantId, $employeeId, ['telegram_chat_id' => $msg['source_id']]);
             }
+
+            Database::execute('DELETE FROM unassigned_messages WHERE id = ? AND tenant_id = ?', [$unassignedId, $tenantId]);
+            return true;
+        } catch (\Exception $e) {
+            return false;
         }
-        
-        return false;
     }
 }

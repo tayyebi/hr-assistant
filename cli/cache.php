@@ -9,7 +9,6 @@
 
 // Bootstrap application
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/ExcelStorage.php';
 
 // Ensure CLI context
 if (php_sapi_name() !== 'cli') {
@@ -67,17 +66,7 @@ function cacheStats(): void
     
     echo "=== Cache Statistics ===\n\n";
     
-    // Data files
-    if (is_dir($dataDir)) {
-        $xlsxFiles = glob($dataDir . '/*.xlsx');
-        echo "Data files: " . count($xlsxFiles) . "\n";
-        
-        $totalSize = 0;
-        foreach ($xlsxFiles as $file) {
-            $totalSize += filesize($file);
-        }
-        echo "Total data size: " . formatBytes($totalSize) . "\n";
-    }
+    echo "Data is stored in the configured database (MySQL). No legacy .xlsx data files are used.\n";
     
     // Cache files
     if (is_dir($cacheDir)) {

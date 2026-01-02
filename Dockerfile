@@ -10,13 +10,16 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install zip gd
+    && docker-php-ext-install zip gd pdo_mysql
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Don't copy files - they will be mounted
-# Install dependencies if composer.json exists
-CMD ["sh", "-c", "if [ -f composer.json ]; then composer install --no-interaction; fi && php -S 0.0.0.0:8080 -t public"]
+# Copy entrypoint
+COPY ./scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Default command: run entrypoint (installs deps, runs migrations/seed, starts server)
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

@@ -18,7 +18,6 @@
 
 // Bootstrap application
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/ExcelStorage.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Employee.php';
 require_once __DIR__ . '/../app/models/Tenant.php';
@@ -46,7 +45,7 @@ class JobProcessor
     public function __construct(string $tenantId)
     {
         $this->tenantId = $tenantId;
-        $this->config = ExcelStorage::readConfig($tenantId);
+        $this->config = Config::get($tenantId);
     }
     
     /**
@@ -351,7 +350,7 @@ class MessageDeliveryService
  */
 function processPendingJobs(string $tenantFilter = 'all'): void
 {
-    $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
+    $tenants = Tenant::getAll();
     
     foreach ($tenants as $tenant) {
         $tenantId = $tenant['id'];
@@ -380,7 +379,7 @@ function processPendingJobs(string $tenantFilter = 'all'): void
  */
 function retryFailedJobs(string $tenantFilter = 'all'): void
 {
-    $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
+    $tenants = Tenant::getAll();
     
     foreach ($tenants as $tenant) {
         $tenantId = $tenant['id'];
@@ -411,7 +410,7 @@ function retryFailedJobs(string $tenantFilter = 'all'): void
  */
 function listJobs(string $tenantFilter = 'all'): void
 {
-    $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
+    $tenants = Tenant::getAll();
     
     foreach ($tenants as $tenant) {
         $tenantId = $tenant['id'];
@@ -449,7 +448,7 @@ function listJobs(string $tenantFilter = 'all'): void
  */
 function showStats(string $tenantFilter = 'all'): void
 {
-    $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
+    $tenants = Tenant::getAll();
     
     foreach ($tenants as $tenant) {
         $tenantId = $tenant['id'];

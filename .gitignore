@@ -26,7 +26,6 @@ dist-ssr
 # PHP specific
 vendor/
 composer.lock
-data/*.xlsx
 data/*.lock
 *.cache
 

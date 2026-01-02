@@ -9,9 +9,11 @@
 
 // Bootstrap application
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/ExcelStorage.php';
+require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Tenant.php';
+require_once __DIR__ . '/../app/models/Team.php';
+require_once __DIR__ . '/../app/models/Employee.php';
 
 // Ensure CLI context
 if (php_sapi_name() !== 'cli') {
@@ -31,28 +33,29 @@ function generateId(string $prefix): string
  */
 function createSystemAdmin(string $email, string $password): void
 {
-    $users = ExcelStorage::readSheet('system.xlsx', 'users');
-    
-    // Check if user exists
-    foreach ($users as $user) {
-        if (strtolower($user['email']) === strtolower($email)) {
+    // Use DB if available
+    try {
+        $exists = Database::fetchOne('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [$email]);
+        if ($exists) {
             echo "User already exists: {$email}\n";
             return;
         }
+
+        $id = generateId('user');
+        Database::execute('INSERT INTO users (id, email, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)', [
+            $id,
+            $email,
+            User::hashPassword($password),
+            User::ROLE_SYSTEM_ADMIN,
+            ''
+        ]);
+
+        echo "System administrator created: {$email}\n";
+        return;
+    } catch (\Exception $e) {
+        echo "Failed to create system admin in DB: " . $e->getMessage() . "\n";
+        return;
     }
-    
-    $user = [
-        'id' => generateId('user'),
-        'email' => $email,
-        'password_hash' => User::hashPassword($password),
-        'role' => User::ROLE_SYSTEM_ADMIN,
-        'tenant_id' => ''
-    ];
-    
-    $headers = ['id', 'email', 'password_hash', 'role', 'tenant_id'];
-    ExcelStorage::appendRow('system.xlsx', 'users', $user, $headers);
-    
-    echo "System administrator created: {$email}\n";
 }
 
 /**
@@ -63,41 +66,32 @@ function createTenant(string $name, string $adminEmail, string $adminPassword): 
     // Generate tenant ID from name
     $tenantId = 'tenant_' . preg_replace('/[^a-z0-9_]/', '_', strtolower($name));
     
-    // Check if tenant exists
-    $tenants = ExcelStorage::readSheet('system.xlsx', 'tenants');
-    foreach ($tenants as $tenant) {
-        if ($tenant['id'] === $tenantId) {
+    // Try DB insertion
+    try {
+        $exists = Database::fetchOne('SELECT * FROM tenants WHERE id = ? LIMIT 1', [$tenantId]);
+        if ($exists) {
             echo "Tenant already exists: {$name}\n";
             return;
         }
+
+        Database::execute('INSERT INTO tenants (id, name) VALUES (?, ?)', [$tenantId, $name]);
+
+        $userId = generateId('user');
+        Database::execute('INSERT INTO users (id, email, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)', [
+            $userId,
+            $adminEmail,
+            User::hashPassword($adminPassword),
+            User::ROLE_TENANT_ADMIN,
+            $tenantId
+        ]);
+
+        echo "Tenant created: {$name} (ID: {$tenantId})\n";
+        echo "Tenant admin created: {$adminEmail}\n";
+        return;
+    } catch (\Exception $e) {
+        echo "Failed to create tenant in DB: " . $e->getMessage() . "\n";
+        return;
     }
-    
-    // Create tenant
-    $tenant = [
-        'id' => $tenantId,
-        'name' => $name
-    ];
-    
-    $tenantHeaders = ['id', 'name'];
-    ExcelStorage::appendRow('system.xlsx', 'tenants', $tenant, $tenantHeaders);
-    
-    // Initialize tenant data
-    ExcelStorage::initializeTenantData($tenantId);
-    
-    // Create tenant admin user
-    $user = [
-        'id' => generateId('user'),
-        'email' => $adminEmail,
-        'password_hash' => User::hashPassword($adminPassword),
-        'role' => User::ROLE_TENANT_ADMIN,
-        'tenant_id' => $tenantId
-    ];
-    
-    $userHeaders = ['id', 'email', 'password_hash', 'role', 'tenant_id'];
-    ExcelStorage::appendRow('system.xlsx', 'users', $user, $userHeaders);
-    
-    echo "Tenant created: {$name} (ID: {$tenantId})\n";
-    echo "Tenant admin created: {$adminEmail}\n";
 }
 
 /**
@@ -107,10 +101,36 @@ function seedDefaultData(): void
 {
     echo "Initializing system data...\n";
     
-    // ExcelStorage::init() is called automatically on require
-    // It creates default data if not exists
-    
-    echo "System data initialized.\n";
+    // Seed default tenants and users into DB where possible
+    try {
+        // Create default tenant
+        $tenantId = 'tenant_default_corp';
+        $exists = Database::fetchOne('SELECT * FROM tenants WHERE id = ? LIMIT 1', [$tenantId]);
+        if (!$exists) {
+            Database::execute('INSERT INTO tenants (id, name) VALUES (?, ?)', [$tenantId, 'Default Corp']);
+        }
+
+        // Create system admin
+        createSystemAdmin('sysadmin@corp.com', 'password');
+
+        // Create tenant admin
+        createTenant('Default Corp', 'admin@defaultcorp.com', 'password');
+
+        // Create a sample team and employee for deterministic test data
+        $tenantId = 'tenant_default_corp';
+        $team = Team::create($tenantId, ['name' => 'Engineering', 'description' => 'Eng team']);
+        $emp = Employee::create($tenantId, ['full_name' => 'Jane Doe', 'email' => 'jane.doe@defaultcorp.com', 'position' => 'Engineer', 'team_id' => $team['id']]);
+
+        echo "System data initialized (DB).\n";
+        echo "\nDefault credentials:\n";
+        echo "  System Admin: sysadmin@corp.com / password\n";
+        echo "  Tenant Admin: admin@defaultcorp.com / password\n";
+        return;
+    } catch (\Exception $e) {
+        // Fallback to previous behavior
+    }
+
+    echo "System data initialized (legacy).\n";
     echo "\nDefault credentials:\n";
     echo "  System Admin: sysadmin@corp.com / password\n";
     echo "  Tenant Admin: admin@defaultcorp.com / password\n";

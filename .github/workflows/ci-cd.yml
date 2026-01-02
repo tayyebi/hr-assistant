@@ -60,8 +60,8 @@ jobs:
         run: |
           php -r "
           require 'vendor/autoload.php';
-          require 'app/core/ExcelStorage.php';
-          echo 'ExcelStorage loaded successfully\n';
+          require 'app/core/Database.php';
+          echo 'Database helper loaded successfully\n';
           "
 
   build:

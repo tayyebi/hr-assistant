@@ -20,14 +20,15 @@ class Asset
      */
     public static function getAll(string $tenantId): array
     {
-        $assets = ExcelStorage::readSheet("tenant_{$tenantId}.xlsx", 'assets');
-        
-        // Parse JSON metadata
-        foreach ($assets as &$asset) {
-            $asset['metadata'] = $asset['metadata'] ? json_decode($asset['metadata'], true) : [];
+        try {
+            $rows = Database::fetchAll('SELECT * FROM assets WHERE tenant_id = ?', [$tenantId]);
+            foreach ($rows as &$asset) {
+                $asset['metadata'] = $asset['metadata'] ? json_decode($asset['metadata'], true) : [];
+            }
+            return $rows;
+        } catch (\Exception $e) {
+            return [];
         }
-        
-        return $assets;
     }
 
     /**
@@ -35,9 +36,12 @@ class Asset
      */
     public static function getByEmployee(string $tenantId, string $employeeId): array
     {
-        $assets = self::getAll($tenantId);
-        
-        return array_filter($assets, fn($asset) => $asset['employee_id'] === $employeeId);
+        try {
+            return Database::fetchAll('SELECT * FROM assets WHERE tenant_id = ? AND employee_id = ?', [$tenantId, $employeeId]);
+        } catch (\Exception $e) {
+            $assets = self::getAll($tenantId);
+            return array_filter($assets, fn($asset) => $asset['employee_id'] === $employeeId);
+        }
     }
 
     /**
@@ -75,15 +79,15 @@ class Asset
      */
     public static function find(string $tenantId, string $id): ?array
     {
-        $assets = self::getAll($tenantId);
-        
-        foreach ($assets as $asset) {
-            if ($asset['id'] === $id) {
-                return $asset;
+        try {
+            $row = Database::fetchOne('SELECT * FROM assets WHERE tenant_id = ? AND id = ? LIMIT 1', [$tenantId, $id]);
+            if ($row) {
+                $row['metadata'] = $row['metadata'] ? json_decode($row['metadata'], true) : [];
+                return $row;
             }
+        } catch (\Exception $e) {
+            return null;
         }
-        
-        return null;
     }
 
     /**
@@ -103,10 +107,23 @@ class Asset
             'created_at' => date('c'),
             'updated_at' => date('c')
         ];
-        
-        ExcelStorage::appendRow("tenant_{$tenantId}.xlsx", 'assets', $asset, self::$headers);
-        
-        return $asset;
+        try {
+            Database::execute('INSERT INTO assets (id, tenant_id, employee_id, provider, asset_identifier, asset_type, status, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $asset['id'],
+                $asset['tenant_id'],
+                $asset['employee_id'] ?: null,
+                $asset['provider'],
+                $asset['identifier'],
+                $asset['asset_type'],
+                $asset['status'],
+                $asset['metadata'],
+                date('Y-m-d H:i:s'),
+                date('Y-m-d H:i:s')
+            ]);
+            return $asset;
+        } catch (\Exception $e) {
+            return $asset;
+        }
     }
 
     /**
@@ -114,32 +131,31 @@ class Asset
      */
     public static function update(string $tenantId, string $id, array $data): bool
     {
-        $assets = self::getAll($tenantId);
-        $found = false;
-        
-        foreach ($assets as &$asset) {
-            if ($asset['id'] === $id) {
-                if (isset($data['status'])) {
-                    $asset['status'] = $data['status'];
+        try {
+            $setParts = [];
+            $params = [];
+            foreach ($data as $k => $v) {
+                if ($k === 'metadata' && is_array($v)) $v = json_encode($v);
+                // map identifier -> asset_identifier column
+                if ($k === 'identifier') {
+                    $k = 'asset_identifier';
                 }
-                if (isset($data['metadata'])) {
-                    $asset['metadata'] = json_encode($data['metadata']);
-                }
-                if (isset($data['identifier'])) {
-                    $asset['identifier'] = $data['identifier'];
-                }
-                $asset['updated_at'] = date('c');
-                $found = true;
-                break;
+                $setParts[] = "`$k` = ?";
+                $params[] = $v;
             }
-        }
-        
-        if ($found) {
-            ExcelStorage::writeSheet("tenant_{$tenantId}.xlsx", 'assets', $assets, self::$headers);
+            // add updated_at
+            $setParts[] = "`updated_at` = ?";
+            $params[] = date('Y-m-d H:i:s');
+
+            $params[] = $tenantId;
+            $params[] = $id;
+            $sql = 'UPDATE assets SET ' . implode(', ', $setParts) . ' WHERE tenant_id = ? AND id = ?';
+            Database::execute($sql, $params);
             return true;
+        } catch (\Exception $e) {
+            // fallback - not implemented for Excel update
+            return false;
         }
-        
-        return false;
     }
 
     /**
@@ -147,15 +163,12 @@ class Asset
      */
     public static function delete(string $tenantId, string $id): bool
     {
-        $assets = self::getAll($tenantId);
-        $filtered = array_filter($assets, fn($asset) => $asset['id'] !== $id);
-        
-        if (count($filtered) < count($assets)) {
-            ExcelStorage::writeSheet("tenant_{$tenantId}.xlsx", 'assets', $filtered, self::$headers);
+        try {
+            Database::execute('DELETE FROM assets WHERE tenant_id = ? AND id = ?', [$tenantId, $id]);
             return true;
+        } catch (\Exception $e) {
+            return false;
         }
-        
-        return false;
     }
 
     /**

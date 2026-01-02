@@ -16,6 +16,7 @@ HR Department All in One Tool!
 - **Third-party Sync**: Diff functionality to find orphan data between HR and external services
 - **Mobile-First Design**: Responsive CSS with auto dark/light mode
 - **Excel Data Storage**: LibreOffice/Excel compatible .xlsx files for data persistence
+ - **Data Storage**: The project uses a MySQL-backed storage. Legacy Excel (.xlsx) support has been removed and archived under `archive/legacy_excel/`.
 - **Docker Support**: Lightweight container with mounted volumes for easy development
 
 ## Quick Start with Docker
@@ -51,7 +52,7 @@ Default credentials:
 │       ├── Router.php   # URL routing
 │       ├── View.php     # Template rendering
 │       ├── Icon.php     # SVG icon helper
-│       └── ExcelStorage.php  # Excel data layer with locking
+│       └── ExcelStorage.php  # Legacy Excel implementation has been archived (see `archive/legacy_excel/`)
 ├── cli/                 # Command-line tools
 │   ├── seed.php         # Database seeding
 │   ├── sync.php         # Third-party sync with diff
@@ -209,10 +210,7 @@ The stylesheet follows these principles:
 
 ## Data Storage
 
-Data is stored in Excel (.xlsx) files in the `data/` directory:
-
-- `system.xlsx`: Users and tenants
-- `tenant_*.xlsx`: Per-tenant data (employees, teams, messages, jobs, config)
+Data is stored in a MySQL database. Legacy `.xlsx` files and import helpers were archived to `archive/legacy_excel/` and removed from the application.
 
 Data consistency is ensured through file locking with timeout during read/write operations.
 

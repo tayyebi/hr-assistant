@@ -13,29 +13,35 @@ class Job
 
     public static function getAll(string $tenantId): array
     {
-        $jobs = ExcelStorage::readSheet("tenant_{$tenantId}.xlsx", 'jobs');
-        
-        // Parse JSON metadata
-        foreach ($jobs as &$job) {
-            $job['metadata'] = $job['metadata'] ? json_decode($job['metadata'], true) : [];
+        try {
+            $rows = Database::fetchAll('SELECT * FROM jobs WHERE tenant_id = ? ORDER BY created_at DESC', [$tenantId]);
+            foreach ($rows as &$job) {
+                $job['metadata'] = $job['metadata'] ? json_decode($job['metadata'], true) : [];
+            }
+            return $rows;
+        } catch (\Exception $e) {
+            return [];
         }
-        
-        // Sort by created_at descending
-        usort($jobs, fn($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
-        
-        return $jobs;
     }
 
     public static function find(string $tenantId, string $id): ?array
     {
+        try {
+            $row = Database::fetchOne('SELECT * FROM jobs WHERE tenant_id = ? AND id = ? LIMIT 1', [$tenantId, $id]);
+            if ($row) {
+                $row['metadata'] = $row['metadata'] ? json_decode($row['metadata'], true) : [];
+                return $row;
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
+
         $jobs = self::getAll($tenantId);
-        
         foreach ($jobs as $job) {
             if ($job['id'] === $id) {
                 return $job;
             }
         }
-        
         return null;
     }
 
@@ -53,13 +59,27 @@ class Job
             'updated_at' => date('c'),
             'metadata' => json_encode($data['metadata'] ?? [])
         ];
-        
-        ExcelStorage::appendRow("tenant_{$tenantId}.xlsx", 'jobs', $job, self::$headers);
-        
-        // Simulate job processing (in a real app, this would be a background worker)
-        self::processJob($tenantId, $job['id']);
-        
-        return $job;
+
+        try {
+            Database::execute('INSERT INTO jobs (id, tenant_id, service, action, target_name, status, result, created_at, updated_at, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $job['id'],
+                $job['tenant_id'],
+                $job['service'],
+                $job['action'],
+                $job['target_name'],
+                $job['status'],
+                $job['result'],
+                date('Y-m-d H:i:s'),
+                date('Y-m-d H:i:s'),
+                $job['metadata']
+            ]);
+            self::processJob($tenantId, $job['id']);
+            return $job;
+        } catch (\Exception $e) {
+            // DB error: still process locally
+            self::processJob($tenantId, $job['id']);
+            return $job;
+        }
     }
 
     public static function update(string $tenantId, string $id, array $data): bool
@@ -69,15 +89,22 @@ class Job
         }
         
         $data['updated_at'] = date('c');
-        
-        return ExcelStorage::updateRow(
-            "tenant_{$tenantId}.xlsx",
-            'jobs',
-            'id',
-            $id,
-            $data,
-            self::$headers
-        );
+        try {
+            $setParts = [];
+            $params = [];
+            foreach ($data as $k => $v) {
+                $setParts[] = "`$k` = ?";
+                $params[] = $v;
+            }
+            $params[] = $tenantId;
+            $params[] = $id;
+            $sql = 'UPDATE jobs SET ' . implode(', ', $setParts) . ' WHERE tenant_id = ? AND id = ?';
+            Database::execute($sql, $params);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+        }
     }
 
     public static function retry(string $tenantId, string $id): bool

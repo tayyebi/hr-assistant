@@ -6,12 +6,62 @@ class Config
 {
     public static function get(string $tenantId): array
     {
-        return ExcelStorage::readConfig($tenantId);
+        // Try database-backed provider settings first
+        $config = [];
+        try {
+            $rows = Database::fetchAll('SELECT provider, settings FROM provider_settings WHERE tenant_id = ?', [$tenantId]);
+            foreach ($rows as $row) {
+                $settings = json_decode($row['settings'], true) ?: [];
+                // Merge into flat config
+                foreach ($settings as $k => $v) {
+                    $config[$k] = $v;
+                }
+            }
+        } catch (\Exception $e) {
+            // fallback to Excel
+        }
+
+        return $config;
     }
 
     public static function save(string $tenantId, array $config): void
     {
-        ExcelStorage::writeConfig($tenantId, $config);
+        // Split config by provider using ProviderSettings definitions
+        try {
+            $allFields = ProviderSettings::getAllFields();
+            $byProvider = [];
+
+            // Map each config key to a provider
+            foreach ($config as $k => $v) {
+                $found = false;
+                foreach ($allFields as $provider => $fields) {
+                    if (array_key_exists($k, $fields)) {
+                        $byProvider[$provider][$k] = $v;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $byProvider['__global__'][$k] = $v;
+                }
+            }
+
+            // Upsert provider_settings rows
+            foreach ($byProvider as $provider => $settings) {
+                $settingsJson = json_encode($settings);
+                $exists = Database::fetchOne('SELECT 1 FROM provider_settings WHERE tenant_id = ? AND provider = ? LIMIT 1', [$tenantId, $provider]);
+                if ($exists) {
+                    Database::execute('UPDATE provider_settings SET settings = ? WHERE tenant_id = ? AND provider = ?', [$settingsJson, $tenantId, $provider]);
+                } else {
+                    Database::execute('INSERT INTO provider_settings (tenant_id, provider, settings) VALUES (?, ?, ?)', [$tenantId, $provider, $settingsJson]);
+                }
+            }
+
+            return;
+        } catch (\Exception $e) {
+            // DB error - do not persist
+            return;
+        }
     }
 
     public static function getValue(string $tenantId, string $key, $default = ''): string
