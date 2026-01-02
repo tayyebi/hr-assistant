@@ -27,13 +27,32 @@
     provider_instance_id: "{{ (provider_instances_api.json.instances | selectattr('name','equalto','E2E GitLab') | list)[0].id }}"
   when: provider_instance_id is not defined
 
-- name: Get created test employee id from DB
-  shell: docker exec -i hr-assistant-mockdb-1 mysql -u root -ptest -N -e "USE hr_assistant_test; SELECT id FROM employees WHERE email = 'test@example.com' LIMIT 1;"
-  register: employee_id_raw
+- name: Fetch employees page to find test employee id
+  uri:
+    url: "http://app:8080/employees"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+    return_content: yes
+  register: employees_page_for_id
 
-- name: Trim employee id
+- name: Store employees HTML
   set_fact:
-    test_employee_id: "{{ employee_id_raw.stdout | trim }}"
+    employees_html: "{{ (employees_page_for_id | default({})).get('content', (employees_page_for_id | default({})).get('body', '')) }}"
+
+- name: Extract test employee id from employees HTML
+  set_fact:
+    test_employee_id: >-
+      {{ (employees_html | default('') | regex_findall('(?s)data-employee-id="(emp_[0-9_]+)".*?test@example.com') | first)
+         | default(employees_html | default('') | regex_findall('(?s)test@example.com.*?data-employee-id="(emp_[0-9_]+)"') | first)
+         | default('') }}
+
+- name: Assert test employee id extracted
+  assert:
+    that:
+      - test_employee_id is defined
+      - test_employee_id != ''
 
 - name: Assign a git asset to the test employee using provider instance
   uri:
@@ -52,6 +71,10 @@
   register: assign_response
 
 - name: Assert assignment succeeded
+  debug:
+    var: assign_response.json
+
+- name: Assert assignment succeeded
   assert:
     that:
       - assign_response.json.success == true
@@ -63,10 +86,23 @@
     headers:
       Cookie: "{{ cookie_header }}"
     status_code: 200
+    return_content: yes
   register: assets_page_after_assign
+
+- name: Assert assigned asset appears in assets page
+  debug:
+    msg: "Assets page excerpt: {{ (assets_page_after_assign.content | default(''))[:800] }}"
+
+- name: Debug assigned git accounts block
+  debug:
+    msg: "{{ (assets_page_after_assign.content | default('')) | regex_findall('(?s)<h4>Assigned Git Accounts</h4>.*?<\/table>') | first }}"
+
+- name: Debug search for raw identifier
+  debug:
+    msg: "Found raw e2e_user: {{ (assets_page_after_assign.content | default('')) | regex_search('e2e_user') }}"
 
 - name: Assert assigned asset appears in assets page
   assert:
     that:
       - assets_page_after_assign.status == 200
-      - assets_page_after_assign.content | regex_search('e2e_user')
+      - (assets_page_after_assign.content | default('')) | regex_search('e2e_user')

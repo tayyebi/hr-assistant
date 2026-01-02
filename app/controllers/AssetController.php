@@ -167,6 +167,7 @@ class AssetController
         $tenantId = User::getTenantId();
         $employeeId = $_POST['employee_id'] ?? '';
         $providerType = $_POST['provider'] ?? '';
+        $providerInstanceId = $_POST['provider_instance_id'] ?? null;
         $assetIdentifier = $_POST['asset_identifier'] ?? '';
         $assetType = $_POST['asset_type'] ?? '';
         

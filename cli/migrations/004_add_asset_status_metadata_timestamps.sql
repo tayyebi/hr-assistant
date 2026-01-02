@@ -1,0 +1,6 @@
+-- Add status, metadata, created_at, and updated_at columns to assets
+ALTER TABLE assets
+ADD COLUMN status VARCHAR(64) DEFAULT 'pending',
+ADD COLUMN metadata JSON DEFAULT NULL,
+ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;

@@ -23,7 +23,11 @@ class Asset
         try {
             $rows = Database::fetchAll('SELECT * FROM assets WHERE tenant_id = ?', [$tenantId]);
             foreach ($rows as &$asset) {
+                // Normalize DB columns to model shape
                 $asset['metadata'] = $asset['metadata'] ? json_decode($asset['metadata'], true) : [];
+                $asset['identifier'] = $asset['asset_identifier'] ?? ($asset['identifier'] ?? '');
+                // Keep backwards-compatible keys
+                if (!isset($asset['status'])) $asset['status'] = $asset['status'] ?? null;
             }
             return $rows;
         } catch (\Exception $e) {
@@ -37,7 +41,13 @@ class Asset
     public static function getByEmployee(string $tenantId, string $employeeId): array
     {
         try {
-            return Database::fetchAll('SELECT * FROM assets WHERE tenant_id = ? AND employee_id = ?', [$tenantId, $employeeId]);
+            $rows = Database::fetchAll('SELECT * FROM assets WHERE tenant_id = ? AND employee_id = ?', [$tenantId, $employeeId]);
+            foreach ($rows as &$asset) {
+                $asset['metadata'] = $asset['metadata'] ? json_decode($asset['metadata'], true) : [];
+                $asset['identifier'] = $asset['asset_identifier'] ?? ($asset['identifier'] ?? '');
+                if (!isset($asset['status'])) $asset['status'] = $asset['status'] ?? null;
+            }
+            return $rows;
         } catch (\Exception $e) {
             $assets = self::getAll($tenantId);
             return array_filter($assets, fn($asset) => $asset['employee_id'] === $employeeId);
@@ -83,6 +93,7 @@ class Asset
             $row = Database::fetchOne('SELECT * FROM assets WHERE tenant_id = ? AND id = ? LIMIT 1', [$tenantId, $id]);
             if ($row) {
                 $row['metadata'] = $row['metadata'] ? json_decode($row['metadata'], true) : [];
+                $row['identifier'] = $row['asset_identifier'] ?? ($row['identifier'] ?? '');
                 return $row;
             }
         } catch (\Exception $e) {
