@@ -104,7 +104,6 @@ class Job
         } catch (\Exception $e) {
             return false;
         }
-        }
     }
 
     public static function retry(string $tenantId, string $id): bool

@@ -64,6 +64,56 @@ class SettingsController
     }
 
     /**
+     * Create a provider instance for this tenant
+     */
+    public function createProviderInstance(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $type = $_POST['type'] ?? '';
+        $provider = $_POST['provider'] ?? '';
+        $name = $_POST['name'] ?? '';
+        $settings = $_POST['settings'] ?? '';
+
+        if (empty($type) || empty($provider) || empty($name)) {
+            $_SESSION['flash_message'] = 'Type, provider and name are required for provider instance.';
+            View::redirect('/settings');
+            return;
+        }
+
+        $parsedSettings = [];
+        if (!empty($settings)) {
+            // Expect JSON string in settings
+            $decoded = json_decode($settings, true);
+            $parsedSettings = is_array($decoded) ? $decoded : [];
+        }
+
+        ProviderInstance::create($tenantId, [
+            'type' => $type,
+            'provider' => $provider,
+            'name' => $name,
+            'settings' => $parsedSettings
+        ]);
+
+        $_SESSION['flash_message'] = 'Provider instance created successfully.';
+        View::redirect('/settings');
+    }
+
+    public function deleteProviderInstance(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $id = $_POST['id'] ?? '';
+        if (!empty($id)) {
+            ProviderInstance::delete($tenantId, $id);
+            $_SESSION['flash_message'] = 'Provider instance removed.';
+        }
+        View::redirect('/settings');
+    }
+
+    /**
      * Get configuration for enabled providers
      */
     private function getEnabledProvidersConfig(string $tenantId, array $config): array

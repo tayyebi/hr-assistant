@@ -201,21 +201,35 @@ class AssetManager
      */
     public function assignAssetToEmployee(
         string $employeeId,
-        string $providerType,
+        string $providerTypeOrInstance,
         string $assetIdentifier,
-        string $assetType
+        string $assetType,
+        ?string $providerInstanceId = null
     ): bool {
         try {
-            // Check if assignment already exists for this employee and provider
+            // If a provider instance ID was provided, use it; otherwise we treat the input as provider type
+            $provider = $providerTypeOrInstance;
+            if ($providerInstanceId) {
+                $prov = ProviderInstance::find($this->tenantId, $providerInstanceId);
+                if ($prov) {
+                    $provider = $prov['provider'];
+                }
+            }
+
+            // Check if assignment already exists for this employee and provider (by provider_instance_id when available)
             $allAssets = Asset::getByEmployee($this->tenantId, $employeeId);
-            $existing = array_filter($allAssets, fn($a) => $a['provider'] === $providerType);
-            
+            $existing = array_filter($allAssets, fn($a) => (
+                ($providerInstanceId && ($a['provider_instance_id'] ?? '') === $providerInstanceId) ||
+                (!$providerInstanceId && ($a['provider'] ?? '') === $provider)
+            ));
+
             if (!empty($existing)) {
-                // Update existing assignment
+                // Update existing assignment(s)
                 foreach ($existing as $existingAsset) {
                     Asset::update($this->tenantId, $existingAsset['id'], [
                         'identifier' => $assetIdentifier,
                         'asset_type' => $assetType,
+                        'provider_instance_id' => $providerInstanceId ?? $existingAsset['provider_instance_id'] ?? null,
                         'status' => Asset::STATUS_ACTIVE,
                         'updated_at' => date('c'),
                     ]);
@@ -224,7 +238,8 @@ class AssetManager
                 // Create new assignment
                 Asset::create($this->tenantId, [
                     'employee_id' => $employeeId,
-                    'provider' => $providerType,
+                    'provider' => $provider,
+                    'provider_instance_id' => $providerInstanceId,
                     'asset_type' => $assetType,
                     'identifier' => $assetIdentifier,
                     'status' => Asset::STATUS_ACTIVE,

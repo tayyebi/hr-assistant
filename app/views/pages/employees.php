@@ -66,6 +66,11 @@
                         </td>
                         <td><?php echo htmlspecialchars($emp['hired_date']); ?></td>
                         <td style="text-align: right;">
+                            <button data-variant="ghost" data-size="icon"
+                                    data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
+                                    onclick="manageAssets(this)">
+                                <?php Icon::render('link', 16, 16); ?>
+                            </button>
                             <button data-variant="ghost" data-size="icon" 
                                     data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
                                     data-full-name="<?php echo htmlspecialchars($emp['full_name']); ?>"
@@ -163,4 +168,97 @@ document.querySelector('dialog').addEventListener('close', function() {
     form.reset();
     form.querySelector('[name="hired_date"]').value = '<?php echo date('Y-m-d'); ?>';
 });
+</script>
+
+<!-- Manage Assets Modal -->
+<dialog id="assets-dialog">
+    <article>
+        <header>
+            <h3>Manage Assets for <span id="assets-employee-name"></span></h3>
+            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
+                <?php Icon::render('close', 24, 24); ?>
+            </button>
+        </header>
+
+        <section>
+            <div id="provider-instances-container">Loading available provider instances...</div>
+        </section>
+
+        <footer>
+            <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Close</button>
+        </footer>
+    </article>
+</dialog>
+
+<script>
+async function manageAssets(button) {
+    const employeeId = button.dataset.employeeId;
+    const dialog = document.getElementById('assets-dialog');
+    document.getElementById('assets-employee-name').textContent = button.closest('tr').querySelector('strong').textContent;
+
+    // Fetch provider instances
+    const res = await fetch('/api/provider-instances');
+    const data = await res.json();
+    const container = document.getElementById('provider-instances-container');
+    container.innerHTML = '';
+
+    if (!data.success || !data.instances) {
+        container.textContent = 'No provider instances available.';
+    } else {
+        // Group by type
+        const grouped = {};
+        data.instances.forEach(i => {
+            if (!grouped[i.type]) grouped[i.type] = [];
+            grouped[i.type].push(i);
+        });
+
+        for (const [type, instances] of Object.entries(grouped)) {
+            const section = document.createElement('section');
+            section.innerHTML = `<h4>${type}</h4>`;
+            instances.forEach(inst => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '8px';
+                div.innerHTML = `
+                    <strong>${inst.name}</strong> <small style="color: var(--text-muted);">(${inst.provider})</small>
+                    <div style="margin-top: 6px; display:flex; gap:8px;">
+                        <input type="text" placeholder="Identifier (email/username)" data-inst-id="${inst.id}" class="asset-identifier-input">
+                        <select data-inst-type="${type}" data-inst-provider="${inst.provider}" class="asset-type-select">
+                            <option value="">Select asset type</option>
+                            <option value="email">email</option>
+                            <option value="git">git</option>
+                            <option value="messenger">messenger</option>
+                            <option value="iam">iam</option>
+                        </select>
+                        <button data-inst-id="${inst.id}" onclick="assignAsset('${employeeId}', this)">Assign</button>
+                    </div>
+                `;
+                section.appendChild(div);
+            });
+            container.appendChild(section);
+        }
+    }
+
+    dialog.showModal();
+}
+
+async function assignAsset(employeeId, button) {
+    const instId = button.dataset.instId;
+    const wrap = button.closest('div');
+    const identifier = wrap.querySelector('.asset-identifier-input').value;
+    const select = wrap.querySelector('.asset-type-select');
+    const assetType = select.value || 'git';
+
+    const resp = await fetch('/assets/assign', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `employee_id=${encodeURIComponent(employeeId)}&provider_instance_id=${encodeURIComponent(instId)}&asset_identifier=${encodeURIComponent(identifier)}&asset_type=${encodeURIComponent(assetType)}`
+    });
+    const data = await resp.json();
+    if (data.success) {
+        alert('Asset assigned');
+        location.reload();
+    } else {
+        alert('Failed: ' + (data.error || 'unknown'));
+    }
+}
 </script>

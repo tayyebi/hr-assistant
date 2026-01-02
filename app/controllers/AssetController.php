@@ -73,6 +73,22 @@ class AssetController
     }
 
     /**
+     * API endpoint to get provider instances for the current tenant
+     */
+    public function getProviderInstances(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $instances = ProviderInstance::getAll($tenantId);
+
+        View::json([
+            'success' => true,
+            'instances' => $instances
+        ]);
+    }
+
+    /**
      * API endpoint to get assets by type (email, git, messenger, iam)
      */
     public function getAssetsByType(): void
@@ -113,6 +129,7 @@ class AssetController
         
         $tenantId = User::getTenantId();
         $providerType = $_POST['provider'] ?? '';
+        $providerInstanceId = $_POST['provider_instance_id'] ?? null;
         
         if (empty($providerType) || !ProviderType::isValid($providerType)) {
             View::json(['error' => 'Invalid provider', 'success' => false]);
@@ -138,7 +155,7 @@ class AssetController
         $assetIdentifier = $_POST['asset_identifier'] ?? '';
         $assetType = $_POST['asset_type'] ?? '';
         
-        if (empty($employeeId) || empty($providerType) || empty($assetIdentifier) || empty($assetType)) {
+        if (empty($employeeId) || (empty($providerType) && empty($providerInstanceId)) || empty($assetIdentifier) || empty($assetType)) {
             View::json(['error' => 'Missing required fields', 'success' => false]);
             return;
         }
@@ -150,7 +167,14 @@ class AssetController
             return;
         }
         
-        if (!ProviderType::isValid($providerType)) {
+        if ($providerInstanceId) {
+            $prov = ProviderInstance::find($tenantId, $providerInstanceId);
+            if (!$prov) {
+                View::json(['error' => 'Invalid provider instance', 'success' => false]);
+                return;
+            }
+            $providerType = $prov['provider'];
+        } elseif (!ProviderType::isValid($providerType)) {
             View::json(['error' => 'Invalid provider', 'success' => false]);
             return;
         }
@@ -160,7 +184,8 @@ class AssetController
             $employeeId,
             $providerType,
             $assetIdentifier,
-            $assetType
+            $assetType,
+            $providerInstanceId
         );
         
         if ($success) {

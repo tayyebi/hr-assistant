@@ -17,16 +17,25 @@ require_once __DIR__ . '/../app/core/Icon.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/ProviderSettings.php';
 require_once __DIR__ . '/../app/core/ProviderType.php';
-require_once __DIR__ . '/../app/core/ProviderFactory.php';
+// Provider base classes
+require_once __DIR__ . '/../app/core/Provider.php';
+require_once __DIR__ . '/../app/core/HttpProvider.php';
+
+// Provider implementations (depends on the base classes above)
 require_once __DIR__ . '/../app/core/Providers.php';
+
+// Provider factory must be loaded after implementations to allow auto-registration
+require_once __DIR__ . '/../app/core/ProviderFactory.php';
 require_once __DIR__ . '/../app/core/AssetManager.php';
 
 // Load models
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Employee.php';
 require_once __DIR__ . '/../app/models/Team.php';
+require_once __DIR__ . '/../app/models/Asset.php';
 require_once __DIR__ . '/../app/models/Message.php';
 require_once __DIR__ . '/../app/models/Job.php';
+require_once __DIR__ . '/../app/models/ProviderInstance.php';
 require_once __DIR__ . '/../app/models/Config.php';
 require_once __DIR__ . '/../app/models/Tenant.php';
 
@@ -71,12 +80,17 @@ $router->add('POST', '/messages/retry', 'MessageController', 'retryDelivery');
 
 $router->add('GET', '/assets', 'AssetController', 'index');
 $router->add('POST', '/assets/provision', 'AssetController', 'provision');
+$router->add('POST', '/assets/assign', 'AssetController', 'assignAsset');
+$router->add('GET', '/api/provider-instances', 'AssetController', 'getProviderInstances');
 
 $router->add('GET', '/jobs', 'JobController', 'index');
 $router->add('POST', '/jobs/retry', 'JobController', 'retry');
 
 $router->add('GET', '/settings', 'SettingsController', 'index');
 $router->add('POST', '/settings', 'SettingsController', 'save');
+// Provider Instances management
+$router->add('POST', '/settings/providers', 'SettingsController', 'createProviderInstance');
+$router->add('POST', '/settings/providers/delete', 'SettingsController', 'deleteProviderInstance');
 
 $router->add('GET', '/admin', 'SystemAdminController', 'index');
 $router->add('POST', '/admin/tenants', 'SystemAdminController', 'createTenant');

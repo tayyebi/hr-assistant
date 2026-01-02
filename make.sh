@@ -60,6 +60,10 @@ check_container() {
 run_php() {
     check_container
     ${PHP_EXEC} "$@"
+cmd_provider_list() {
+    log_info "Listing provider instances..."
+    run_php cli/provider.php list
+}
 }
 
 # Command: seed
@@ -224,6 +228,8 @@ Commands:
 Examples:
   ./make.sh seed:admin admin@company.com secretpassword
   ./make.sh seed:tenant "Acme Corp" admin@acme.com password123
+    ./make.sh provider:create <type> <provider> <name> <settings_json>
+    ./make.sh provider:list
   ./make.sh sync:diff mailcow
   ./make.sh sync:push gitlab --dry-run
   ./make.sh jobs:process
@@ -247,6 +253,12 @@ case "${1:-help}" in
         ;;
     sync:diff)
         cmd_sync_diff "$2"
+        ;;
+    provider:create)
+        cmd_provider_create "$2" "$3" "$4" "$5"
+        ;;
+    provider:list)
+        cmd_provider_list
         ;;
     sync:push)
         cmd_sync_push "$2" "$3"

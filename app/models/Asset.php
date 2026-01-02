@@ -11,7 +11,7 @@ class Asset
     const STATUS_FAILED = 'failed';
 
     private static array $headers = [
-        'id', 'tenant_id', 'employee_id', 'provider', 'asset_type', 
+        'id', 'tenant_id', 'employee_id', 'provider', 'provider_instance_id', 'asset_type', 
         'identifier', 'status', 'metadata', 'created_at', 'updated_at'
     ];
 
@@ -100,6 +100,7 @@ class Asset
             'tenant_id' => $tenantId,
             'employee_id' => $data['employee_id'] ?? '',
             'provider' => $data['provider'] ?? '',
+            'provider_instance_id' => $data['provider_instance_id'] ?? null,
             'asset_type' => $data['asset_type'] ?? '',
             'identifier' => $data['identifier'] ?? '',
             'status' => $data['status'] ?? self::STATUS_PENDING,
@@ -108,11 +109,12 @@ class Asset
             'updated_at' => date('c')
         ];
         try {
-            Database::execute('INSERT INTO assets (id, tenant_id, employee_id, provider, asset_identifier, asset_type, status, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            Database::execute('INSERT INTO assets (id, tenant_id, employee_id, provider, provider_instance_id, asset_identifier, asset_type, status, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
                 $asset['id'],
                 $asset['tenant_id'],
                 $asset['employee_id'] ?: null,
                 $asset['provider'],
+                $asset['provider_instance_id'],
                 $asset['identifier'],
                 $asset['asset_type'],
                 $asset['status'],

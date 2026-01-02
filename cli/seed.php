@@ -47,7 +47,7 @@ function createSystemAdmin(string $email, string $password): void
             $email,
             User::hashPassword($password),
             User::ROLE_SYSTEM_ADMIN,
-            ''
+            null
         ]);
 
         echo "System administrator created: {$email}\n";
@@ -66,15 +66,22 @@ function createTenant(string $name, string $adminEmail, string $adminPassword): 
     // Generate tenant ID from name
     $tenantId = 'tenant_' . preg_replace('/[^a-z0-9_]/', '_', strtolower($name));
     
-    // Try DB insertion
+    // Try DB insertion (create tenant if missing, but always attempt to create admin user)
     try {
         $exists = Database::fetchOne('SELECT * FROM tenants WHERE id = ? LIMIT 1', [$tenantId]);
-        if ($exists) {
+        if (!$exists) {
+            Database::execute('INSERT INTO tenants (id, name) VALUES (?, ?)', [$tenantId, $name]);
+            echo "Tenant created: {$name} (ID: {$tenantId})\n";
+        } else {
             echo "Tenant already exists: {$name}\n";
-            return;
         }
 
-        Database::execute('INSERT INTO tenants (id, name) VALUES (?, ?)', [$tenantId, $name]);
+        // Create or skip tenant admin if it already exists
+        $adminExists = Database::fetchOne('SELECT * FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1', [$adminEmail]);
+        if ($adminExists) {
+            echo "Tenant admin already exists: {$adminEmail}\n";
+            return;
+        }
 
         $userId = generateId('user');
         Database::execute('INSERT INTO users (id, email, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)', [
@@ -85,7 +92,6 @@ function createTenant(string $name, string $adminEmail, string $adminPassword): 
             $tenantId
         ]);
 
-        echo "Tenant created: {$name} (ID: {$tenantId})\n";
         echo "Tenant admin created: {$adminEmail}\n";
         return;
     } catch (\Exception $e) {
