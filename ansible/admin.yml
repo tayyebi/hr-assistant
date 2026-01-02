@@ -1,0 +1,14 @@
+---
+- name: Get admin page
+  uri:
+    url: "http://app:8080/admin"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: admin_page
+
+- name: Assert admin page loaded
+  assert:
+    that:
+      - admin_page.status == 200

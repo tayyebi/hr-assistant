@@ -1,0 +1,14 @@
+---
+- name: Get assets page
+  uri:
+    url: "http://app:8080/assets"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: assets_page
+
+- name: Assert assets page loaded
+  assert:
+    that:
+      - assets_page.status == 200

@@ -1,0 +1,14 @@
+---
+- name: Get jobs list
+  uri:
+    url: "http://app:8080/jobs"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: jobs_list
+
+- name: Assert jobs page loaded
+  assert:
+    that:
+      - jobs_list.status == 200

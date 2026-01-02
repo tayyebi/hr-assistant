@@ -1,0 +1,53 @@
+---
+- name: Test login with valid tenant admin credentials
+  uri:
+    url: "http://app:8080/login"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      email: "admin@defaultcorp.com"
+      password: "password"
+    follow_redirects: none
+    status_code: 302
+  register: login_result
+
+- name: Assert login redirects to dashboard
+  assert:
+    that:
+      - login_result.status == 302
+      - "'dashboard' in login_result.location"
+
+- name: Store session cookie
+  set_fact:
+    session_cookie: "{{ login_result.set_cookie }}"
+
+- name: Test login with invalid credentials
+  uri:
+    url: "http://app:8080/login"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      email: "invalid@example.com"
+      password: "wrongpassword"
+    follow_redirects: none
+    status_code: 302
+  register: invalid_login
+
+- name: Assert invalid login redirects back to login
+  assert:
+    that:
+      - invalid_login.status == 302
+      - "'login' in invalid_login.location"
+
+- name: Test logout
+  uri:
+    url: "http://app:8080/logout"
+    method: GET
+    follow_redirects: none
+    status_code: 302
+  register: logout_result
+
+- name: Assert logout redirects to login
+  assert:
+    that:
+      - logout_result.status == 302

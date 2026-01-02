@@ -1,0 +1,14 @@
+---
+- name: Get settings page
+  uri:
+    url: "http://app:8080/settings"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: settings_page
+
+- name: Assert settings page loaded
+  assert:
+    that:
+      - settings_page.status == 200

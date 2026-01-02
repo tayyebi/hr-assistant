@@ -1,0 +1,29 @@
+services:
+  app:
+    environment:
+      - DB_HOST=mockdb
+      - DB_NAME=hr_assistant_test
+      - DB_USER=test
+      - DB_PASS=test
+    depends_on:
+      - mockdb
+  mockdb:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: hr_assistant_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    ports:
+      - "3307:3306"
+      
+  ansible:
+    build:
+      context: ./ansible
+    image: hr-assistant-ansible:latest
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    depends_on:
+      - app
+    entrypoint: ["/workspace/ansible/startup.sh"]

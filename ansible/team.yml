@@ -1,0 +1,14 @@
+---
+- name: Get teams list
+  uri:
+    url: "http://app:8080/teams"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: teams_list
+
+- name: Assert teams page loaded
+  assert:
+    that:
+      - teams_list.status == 200
