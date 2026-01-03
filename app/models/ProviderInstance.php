@@ -5,7 +5,7 @@
  */
 class ProviderInstance
 {
-    private static array $headers = ['id', 'tenant_id', 'type', 'provider', 'name', 'settings', 'created_at', 'updated_at'];
+    private static array $headers = ['id', 'tenant_id', 'type', 'provider', 'name', 'version', 'settings', 'created_at', 'updated_at'];
 
     public static function getAll(string $tenantId): array
     {
@@ -45,14 +45,15 @@ class ProviderInstance
             'type' => $data['type'] ?? '',
             'provider' => $data['provider'] ?? '',
             'name' => $data['name'] ?? '',
+            'version' => $data['version'] ?? '1.0',
             'settings' => $settings,
             'created_at' => date('c'),
             'updated_at' => date('c'),
         ];
 
         try {
-            Database::execute('INSERT INTO provider_instances (id, tenant_id, type, provider, name, settings, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-                $row['id'], $row['tenant_id'], $row['type'], $row['provider'], $row['name'], $row['settings'], date('Y-m-d H:i:s'), date('Y-m-d H:i:s')
+            Database::execute('INSERT INTO provider_instances (id, tenant_id, type, provider, name, version, settings, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $row['id'], $row['tenant_id'], $row['type'], $row['provider'], $row['name'], $row['version'], $row['settings'], date('Y-m-d H:i:s'), date('Y-m-d H:i:s')
             ]);
             $row['settings'] = json_decode($row['settings'], true);
             return $row;
@@ -72,6 +73,7 @@ class ProviderInstance
             if (isset($data['settings'])) { $set[] = '`settings` = ?'; $params[] = json_encode($data['settings']); }
             if (isset($data['provider'])) { $set[] = '`provider` = ?'; $params[] = $data['provider']; }
             if (isset($data['type'])) { $set[] = '`type` = ?'; $params[] = $data['type']; }
+            if (isset($data['version'])) { $set[] = '`version` = ?'; $params[] = $data['version']; }
             if (empty($set)) return false;
             $set[] = '`updated_at` = ?'; $params[] = date('Y-m-d H:i:s');
             $params[] = $tenantId; $params[] = $id;

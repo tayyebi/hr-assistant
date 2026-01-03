@@ -1,105 +1,8 @@
 <?php
-/**
- * Email Provider Types
- */
-class EmailProvider
-{
-    const MAILCOW = 'mailcow';
-    const EXCHANGE = 'exchange';
-    const IMAP = 'imap';
-
-    public static function getAll(): array
-    {
-        return [self::MAILCOW, self::EXCHANGE, self::IMAP];
-    }
-
-    public static function getName(string $provider): string
-    {
-        $names = [
-            self::MAILCOW => 'Mailcow',
-            self::EXCHANGE => 'Microsoft Exchange',
-            self::IMAP => 'IMAP',
-        ];
-        return $names[$provider] ?? ucfirst($provider);
-    }
-}
-
-/**
- * Git Provider Types
- */
-class GitProvider
-{
-    const GITLAB = 'gitlab';
-    const GITEA = 'gitea';
-    const GITHUB = 'github';
-
-    public static function getAll(): array
-    {
-        return [self::GITLAB, self::GITEA, self::GITHUB];
-    }
-
-    public static function getName(string $provider): string
-    {
-        $names = [
-            self::GITLAB => 'GitLab',
-            self::GITEA => 'Gitea',
-            self::GITHUB => 'GitHub',
-        ];
-        return $names[$provider] ?? ucfirst($provider);
-    }
-}
-
-/**
- * Messenger Provider Types
- */
-class MessengerProvider
-{
-    const TELEGRAM = 'telegram';
-    const WHATSAPP = 'whatsapp';
-    const SLACK = 'slack';
-    const TEAMS = 'teams';
-
-    public static function getAll(): array
-    {
-        return [self::TELEGRAM, self::WHATSAPP, self::SLACK, self::TEAMS];
-    }
-
-    public static function getName(string $provider): string
-    {
-        $names = [
-            self::TELEGRAM => 'Telegram',
-            self::WHATSAPP => 'WhatsApp',
-            self::SLACK => 'Slack',
-            self::TEAMS => 'Microsoft Teams',
-        ];
-        return $names[$provider] ?? ucfirst($provider);
-    }
-}
-
-/**
- * IAM Provider Types
- */
-class IamProvider
-{
-    const KEYCLOAK = 'keycloak';
-    const OKTA = 'okta';
-    const AZURE_AD = 'azure_ad';
-
-    public static function getAll(): array
-    {
-        return [self::KEYCLOAK, self::OKTA, self::AZURE_AD];
-    }
-
-    public static function getName(string $provider): string
-    {
-        $names = [
-            self::KEYCLOAK => 'Keycloak',
-            self::OKTA => 'Okta',
-            self::AZURE_AD => 'Azure AD',
-        ];
-        return $names[$provider] ?? ucfirst($provider);
-    }
-}
+require_once __DIR__ . '/provider_types/EmailProvider.php';
+require_once __DIR__ . '/provider_types/GitProvider.php';
+require_once __DIR__ . '/provider_types/MessengerProvider.php';
+require_once __DIR__ . '/provider_types/IamProvider.php';
 
 /**
  * Provider Type Enumeration
@@ -179,6 +82,26 @@ class ProviderType
             return IamProvider::getName($provider);
         }
         return ucfirst($provider);
+    }
+
+    /**
+     * Get API version for a provider
+     */
+    public static function getVersion(string $provider): string
+    {
+        if (in_array($provider, EmailProvider::getAll())) {
+            return EmailProvider::getVersion($provider);
+        }
+        if (in_array($provider, GitProvider::getAll())) {
+            return GitProvider::getVersion($provider);
+        }
+        if (in_array($provider, MessengerProvider::getAll())) {
+            return MessengerProvider::getVersion($provider);
+        }
+        if (in_array($provider, IamProvider::getAll())) {
+            return IamProvider::getVersion($provider);
+        }
+        return '1.0';
     }
 
     /**

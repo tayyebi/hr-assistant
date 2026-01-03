@@ -79,6 +79,130 @@
     that:
       - assign_response.json.success == true
 
+- name: Assign a GitLab repository to the test employee
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ provider_instance_id }}"
+      asset_identifier: "1"  # Assuming project ID 1
+      asset_type: "repository"
+    status_code: 200
+  register: repo_assign_response
+
+- name: Assert repository assignment succeeded
+  assert:
+    that:
+      - repo_assign_response.json.success == true
+
+- name: Set keycloak provider_instance_id
+  set_fact:
+    keycloak_provider_instance_id: "{{ (provider_instances_api.json.instances | selectattr('name','equalto','E2E Keycloak') | list)[0].id }}"
+  when: keycloak_provider_instance_id is not defined
+
+- name: Assign a Keycloak account to the test employee
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ keycloak_provider_instance_id }}"
+      asset_identifier: "e2e_keycloak_user"
+      asset_type: "iam"
+    status_code: 200
+  register: keycloak_assign_response
+
+- name: Assert Keycloak assignment succeeded and password returned
+  assert:
+    that:
+      - keycloak_assign_response.json.success == true
+      - keycloak_assign_response.json.password is defined
+      - keycloak_assign_response.json.password | length > 0
+
+- name: Set telegram provider_instance_id
+  set_fact:
+    telegram_provider_instance_id: "{{ (provider_instances_api.json.instances | selectattr('name','equalto','E2E Telegram') | list)[0].id }}"
+  when: telegram_provider_instance_id is not defined
+
+- name: Assign a Telegram chat to the test employee
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ telegram_provider_instance_id }}"
+      asset_identifier: "@testchat"
+      asset_type: "messenger"
+    status_code: 200
+  register: telegram_assign_response
+
+- name: Assert Telegram assignment succeeded
+  assert:
+    that:
+      - telegram_assign_response.json.success == true
+
+- name: Set mailcow provider_instance_id
+  set_fact:
+    mailcow_provider_instance_id: "{{ (provider_instances_api.json.instances | selectattr('name','equalto','E2E Mailcow') | list)[0].id }}"
+  when: mailcow_provider_instance_id is not defined
+
+- name: Assign a Mailcow mailbox to the test employee
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ mailcow_provider_instance_id }}"
+      asset_identifier: "e2euser@defaultcorp.com"
+      asset_type: "email"
+    status_code: 200
+  register: mailcow_assign_response
+
+- name: Assert Mailcow assignment succeeded and password returned
+  assert:
+    that:
+      - mailcow_assign_response.json.success == true
+      - mailcow_assign_response.json.password is defined
+      - mailcow_assign_response.json.password | length > 0
+
+- name: Assign a Mailcow alias to the test employee
+  uri:
+    url: "http://app:8080/assets/assign"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ mailcow_provider_instance_id }}"
+      asset_identifier: "alias@defaultcorp.com"
+      asset_type: "alias"
+    status_code: 200
+  register: alias_assign_response
+
+- name: Assert alias assignment succeeded
+  assert:
+    that:
+      - alias_assign_response.json.success == true
+
 - name: Fetch assigned assets via API for employee
   uri:
     url: "http://app:8080/api/employee-assets?employee_id={{ test_employee_id }}"

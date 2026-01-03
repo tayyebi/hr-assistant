@@ -220,7 +220,7 @@ class AssetController
         }
         
         $assetManager = new AssetManager($tenantId);
-        $success = $assetManager->assignAssetToEmployee(
+        $result = $assetManager->assignAssetToEmployee(
             $employeeId,
             $providerType,
             $assetIdentifier,
@@ -228,10 +228,11 @@ class AssetController
             $providerInstanceId
         );
         
-        if ($success) {
+        if ($result['success']) {
             View::json([
                 'success' => true,
                 'message' => 'Asset assigned successfully',
+                'password' => $result['password'],
             ]);
         } else {
             View::json(['error' => 'Failed to assign asset', 'success' => false]);

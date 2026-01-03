@@ -26,9 +26,15 @@ switch ($cmd) {
         $name = $argv[4];
         $settings = $argv[5] ?? '';
         $settingsParsed = [];
+        $version = '1.0';
         if (!empty($settings)) {
             $decoded = json_decode($settings, true);
             $settingsParsed = is_array($decoded) ? $decoded : [];
+            // Extract version from settings if present
+            if (isset($settingsParsed['version'])) {
+                $version = $settingsParsed['version'];
+                unset($settingsParsed['version']);
+            }
         }
 
         // Use default tenant for CLI environment 'tenant_default_corp'
@@ -37,6 +43,7 @@ switch ($cmd) {
             'type' => $type,
             'provider' => $provider,
             'name' => $name,
+            'version' => $version,
             'settings' => $settingsParsed
         ]);
         echo "Created provider instance: {$row['id']}\n";

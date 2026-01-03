@@ -91,6 +91,53 @@ Asset::create($tenantId, [
 ]);
 ```
 
+### Debugging Methods
+
+The `AssetManager` class provides several debugging methods for troubleshooting provider configurations and asset assignments:
+
+```php
+$am = new AssetManager($tenantId);
+
+// Get all enabled provider instances for the tenant
+$providers = $am->getEnabledProviders();
+foreach ($providers as $provider) {
+    echo "Provider: {$provider['name']} ({$provider['provider']}) v{$provider['version']}\n";
+}
+
+// Test connection to a specific provider
+$result = $am->testProviderConnection('gitlab');
+if ($result['success']) {
+    echo "GitLab connection: OK\n";
+} else {
+    echo "GitLab connection failed: {$result['message']}\n";
+}
+
+// Get configuration for a provider type
+$config = $am->getProviderConfig('gitlab');
+print_r($config);
+
+// Get details of a specific asset
+$asset = $am->getAssetDetails('gitlab', 'user123');
+if ($asset) {
+    echo "Asset exists: {$asset['identifier']}\n";
+}
+
+// Get all assets assigned to an employee
+$assets = $am->getEmployeeAssets('emp_123');
+foreach ($assets as $asset) {
+    echo "Asset: {$asset['identifier']} ({$asset['provider_type']})\n";
+}
+
+// Get available assets grouped by provider type
+$grouped = $am->getAvailableAssetsGrouped();
+foreach ($grouped as $type => $assets) {
+    echo "Type: $type\n";
+    foreach ($assets as $asset) {
+        echo "  - {$asset['identifier']}\n";
+    }
+}
+```
+
 ## Management Commands
 
 The `make.sh` script provides convenient commands for system management:

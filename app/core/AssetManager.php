@@ -195,61 +195,82 @@ class AssetManager
     }
 
     /**
-     * Assign an asset to an employee
-     *
-     * @return bool True on success
+     * Generate a secure random password
      */
+    private function generatePassword(int $length = 12): string
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+        $password = '';
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+        return $password;
+    }
     public function assignAssetToEmployee(
         string $employeeId,
         string $providerTypeOrInstance,
         string $assetIdentifier,
         string $assetType,
         ?string $providerInstanceId = null
-    ): bool {
+    ): array {
         try {
-            // If a provider instance ID was provided, use it; otherwise we treat the input as provider type
-            $provider = $providerTypeOrInstance;
+            // Get provider instance
+            $prov = null;
+            $providerType = $providerTypeOrInstance;
             if ($providerInstanceId) {
                 $prov = ProviderInstance::find($this->tenantId, $providerInstanceId);
                 if ($prov) {
-                    $provider = $prov['provider'];
+                    $providerType = $prov['provider'];
                 }
             }
 
-            // Check if assignment already exists for this employee and provider (by provider_instance_id when available)
-            $allAssets = Asset::getByEmployee($this->tenantId, $employeeId);
-            $existing = array_filter($allAssets, fn($a) => (
-                ($providerInstanceId && ($a['provider_instance_id'] ?? '') === $providerInstanceId) ||
-                (!$providerInstanceId && ($a['provider'] ?? '') === $provider)
-            ));
-
-            if (!empty($existing)) {
-                // Update existing assignment(s)
-                foreach ($existing as $existingAsset) {
-                    Asset::update($this->tenantId, $existingAsset['id'], [
-                        'identifier' => $assetIdentifier,
-                        'asset_type' => $assetType,
-                        'provider_instance_id' => $providerInstanceId ?? $existingAsset['provider_instance_id'] ?? null,
-                        'status' => Asset::STATUS_ACTIVE,
-                        'updated_at' => date('c'),
-                    ]);
-                }
-            } else {
-                // Create new assignment
-                Asset::create($this->tenantId, [
-                    'employee_id' => $employeeId,
-                    'provider' => $provider,
-                    'provider_instance_id' => $providerInstanceId,
-                    'asset_type' => $assetType,
-                    'identifier' => $assetIdentifier,
-                    'status' => Asset::STATUS_ACTIVE,
-                ]);
+            if (!$prov && !$providerInstanceId) {
+                // Find any instance for the provider type
+                $instances = ProviderInstance::getAll($this->tenantId);
+                $prov = array_filter($instances, fn($i) => $i['provider'] === $providerType);
+                $prov = $prov ? reset($prov) : null;
             }
 
-            return true;
+            if (!$prov) {
+                return ['success' => false, 'password' => null];
+            }
+
+            // Create provider
+            $provider = ProviderFactory::create($this->tenantId, $providerType, $prov['settings'] ?? [], $prov['version'] ?? '1.0');
+
+            // Get employee details
+            $employee = Employee::find($this->tenantId, $employeeId);
+            if (!$employee) {
+                return ['success' => false, 'password' => null];
+            }
+
+            // Call createAsset
+            $createData = [
+                'identifier' => $assetIdentifier,
+                'asset_type' => $assetType,
+                'employee' => $employee,
+            ];
+            $createdAsset = $provider->createAsset($createData);
+
+            if (!$createdAsset) {
+                return ['success' => false, 'password' => null];
+            }
+
+            // Store the assignment
+            $assetId = Asset::create($this->tenantId, [
+                'employee_id' => $employeeId,
+                'provider' => $providerType,
+                'provider_instance_id' => $prov['id'],
+                'asset_type' => $assetType,
+                'identifier' => $createdAsset['id'] ?? $assetIdentifier,
+                'status' => Asset::STATUS_ACTIVE,
+                'metadata' => json_encode($createdAsset['metadata'] ?? []),
+            ]);
+
+            return ['success' => true, 'password' => $createdAsset['password'] ?? null];
         } catch (Exception $e) {
             error_log("Error assigning asset to employee: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'password' => null];
         }
     }
 
