@@ -1,4 +1,7 @@
 {
+    "name": "tayyebi/hr-assistant",
+    "description": "HR Department All in One Tool - Multi-tenant HR management system with employee tracking, team management, digital assets provisioning, and third-party service integrations",
+    "license": "MIT",
     "require": {
         "guzzlehttp/guzzle": "^7.5"
     }
