@@ -344,3 +344,240 @@
   assert:
     that:
       - assign_invalid_prov.json.success == false
+
+# New tests for asset listing and assignment of existing assets
+
+- name: Test API endpoint for listing available assets from GitLab provider
+  uri:
+    url: "http://app:8080/api/provider-assets?provider_instance_id={{ provider_instance_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: gitlab_available_assets
+
+- name: Assert GitLab available assets API returns success
+  assert:
+    that:
+      - gitlab_available_assets.json.success == true
+      - gitlab_available_assets.json.assets is defined
+
+- name: Debug GitLab available assets
+  debug:
+    var: gitlab_available_assets.json
+
+- name: Test API endpoint for listing available assets from Keycloak provider
+  uri:
+    url: "http://app:8080/api/provider-assets?provider_instance_id={{ keycloak_provider_instance_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: keycloak_available_assets
+
+- name: Assert Keycloak available assets API returns success
+  assert:
+    that:
+      - keycloak_available_assets.json.success == true
+      - keycloak_available_assets.json.assets is defined
+
+- name: Test API endpoint for listing available assets from Telegram provider
+  uri:
+    url: "http://app:8080/api/provider-assets?provider_instance_id={{ telegram_provider_instance_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: telegram_available_assets
+
+- name: Assert Telegram available assets API returns success
+  assert:
+    that:
+      - telegram_available_assets.json.success == true
+      - telegram_available_assets.json.assets is defined
+
+- name: Test API endpoint for listing available assets from Mailcow provider
+  uri:
+    url: "http://app:8080/api/provider-assets?provider_instance_id={{ mailcow_provider_instance_id }}"
+    method: GET
+    headers:
+      Cookie: "{{ cookie_header }}"
+    status_code: 200
+  register: mailcow_available_assets
+
+- name: Assert Mailcow available assets API returns success
+  assert:
+    that:
+      - mailcow_available_assets.json.success == true
+      - mailcow_available_assets.json.assets is defined
+
+# Test assigning existing assets
+
+- name: Find an available GitLab user account to assign
+  set_fact:
+    available_gitlab_user: "{{ (gitlab_available_assets.json.assets | selectattr('type','equalto','account') | list)[0] }}"
+  when: (gitlab_available_assets.json.assets | selectattr('type','equalto','account') | list) | length > 0
+
+- name: Assign existing GitLab user account to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ provider_instance_id }}"
+      asset_id: "{{ available_gitlab_user.id }}"
+    status_code: 200
+  register: assign_existing_gitlab_user
+  when: available_gitlab_user is defined
+
+- name: Assert existing GitLab user assignment succeeded and password returned
+  assert:
+    that:
+      - assign_existing_gitlab_user.json.success == true
+      - assign_existing_gitlab_user.json.password is defined
+      - assign_existing_gitlab_user.json.password | length > 0
+  when: available_gitlab_user is defined
+
+- name: Find an available GitLab repository to assign
+  set_fact:
+    available_gitlab_repo: "{{ (gitlab_available_assets.json.assets | selectattr('type','equalto','repository') | list)[0] }}"
+  when: (gitlab_available_assets.json.assets | selectattr('type','equalto','repository') | list) | length > 0
+
+- name: Assign existing GitLab repository to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ provider_instance_id }}"
+      asset_id: "{{ available_gitlab_repo.id }}"
+      access_level: "maintainer"
+    status_code: 200
+  register: assign_existing_gitlab_repo
+  when: available_gitlab_repo is defined
+
+- name: Assert existing GitLab repository assignment succeeded
+  assert:
+    that:
+      - assign_existing_gitlab_repo.json.success == true
+  when: available_gitlab_repo is defined
+
+- name: Find an available Keycloak account to assign
+  set_fact:
+    available_keycloak_account: "{{ (keycloak_available_assets.json.assets | selectattr('type','equalto','account') | list)[0] }}"
+  when: (keycloak_available_assets.json.assets | selectattr('type','equalto','account') | list) | length > 0
+
+- name: Assign existing Keycloak account to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ keycloak_provider_instance_id }}"
+      asset_id: "{{ available_keycloak_account.id }}"
+    status_code: 200
+  register: assign_existing_keycloak_account
+  when: available_keycloak_account is defined
+
+- name: Assert existing Keycloak account assignment succeeded and password returned
+  assert:
+    that:
+      - assign_existing_keycloak_account.json.success == true
+      - assign_existing_keycloak_account.json.password is defined
+      - assign_existing_keycloak_account.json.password | length > 0
+  when: available_keycloak_account is defined
+
+- name: Find an available Telegram chat to assign
+  set_fact:
+    available_telegram_chat: "{{ (telegram_available_assets.json.assets | selectattr('type','equalto','chat') | list)[0] }}"
+  when: (telegram_available_assets.json.assets | selectattr('type','equalto','chat') | list) | length > 0
+
+- name: Assign existing Telegram chat to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ telegram_provider_instance_id }}"
+      asset_id: "{{ available_telegram_chat.id }}"
+    status_code: 200
+  register: assign_existing_telegram_chat
+  when: available_telegram_chat is defined
+
+- name: Assert existing Telegram chat assignment succeeded
+  assert:
+    that:
+      - assign_existing_telegram_chat.json.success == true
+  when: available_telegram_chat is defined
+
+- name: Find an available Mailcow mailbox to assign
+  set_fact:
+    available_mailcow_mailbox: "{{ (mailcow_available_assets.json.assets | selectattr('type','equalto','mailbox') | list)[0] }}"
+  when: (mailcow_available_assets.json.assets | selectattr('type','equalto','mailbox') | list) | length > 0
+
+- name: Assign existing Mailcow mailbox to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ mailcow_provider_instance_id }}"
+      asset_id: "{{ available_mailcow_mailbox.id }}"
+    status_code: 200
+  register: assign_existing_mailcow_mailbox
+  when: available_mailcow_mailbox is defined
+
+- name: Assert existing Mailcow mailbox assignment succeeded and password returned
+  assert:
+    that:
+      - assign_existing_mailcow_mailbox.json.success == true
+      - assign_existing_mailcow_mailbox.json.password is defined
+      - assign_existing_mailcow_mailbox.json.password | length > 0
+  when: available_mailcow_mailbox is defined
+
+- name: Find an available Mailcow alias to assign
+  set_fact:
+    available_mailcow_alias: "{{ (mailcow_available_assets.json.assets | selectattr('type','equalto','alias') | list)[0] }}"
+  when: (mailcow_available_assets.json.assets | selectattr('type','equalto','alias') | list) | length > 0
+
+- name: Assign existing Mailcow alias to employee
+  uri:
+    url: "http://app:8080/assets/assign-existing"
+    method: POST
+    headers:
+      Cookie: "{{ cookie_header }}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      employee_id: "{{ test_employee_id }}"
+      provider_instance_id: "{{ mailcow_provider_instance_id }}"
+      asset_id: "{{ available_mailcow_alias.id }}"
+    status_code: 200
+  register: assign_existing_mailcow_alias
+  when: available_mailcow_alias is defined
+
+- name: Assert existing Mailcow alias assignment succeeded
+  assert:
+    that:
+      - assign_existing_mailcow_alias.json.success == true
+  when: available_mailcow_alias is defined

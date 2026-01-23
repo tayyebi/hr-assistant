@@ -110,6 +110,37 @@ class TelegramProviderV7 extends HttpProvider
         return [];
     }
 
+    public function listAvailableAssets(): array
+    {
+        // For now, return empty as Telegram doesn't provide API to list chats
+        // In a real implementation, this could be populated from application-managed chat list
+        return [];
+    }
+
+    public function assignAsset(string $assetId, array $employee, array $options = []): array
+    {
+        if (!$this->isConfigured()) {
+            throw new Exception('Telegram provider not configured');
+        }
+
+        $chatId = substr($assetId, 9); // Remove 'telegram_' prefix
+        if (str_starts_with($chatId, '-')) {
+            $chatId = substr($chatId, 1);
+        }
+
+        // Verify chat exists
+        $chatInfo = $this->get('getChat?chat_id=-' . $chatId);
+        if (!is_array($chatInfo) || !isset($chatInfo['ok']) || !$chatInfo['ok']) {
+            throw new Exception('Invalid Telegram chat ID or chat not accessible');
+        }
+
+        return [
+            'id' => $assetId,
+            'password' => null,
+            'metadata' => ['chat_id' => $chatId, 'assigned_at' => date('c')]
+        ];
+    }
+
     public function testConnection(): bool
     {
         if (!$this->isConfigured()) {

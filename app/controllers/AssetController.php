@@ -291,4 +291,86 @@ class AssetController
         $_SESSION['flash_message_type'] = 'success';
         View::redirect('/assets?service=' . urlencode($service));
     }
+
+    /**
+     * API endpoint to get available assets from a provider instance
+     */
+    public function getProviderInstanceAssets(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $providerInstanceId = $_GET['provider_instance_id'] ?? '';
+
+        if (empty($providerInstanceId)) {
+            View::json(['error' => 'Provider instance ID required', 'success' => false]);
+            return;
+        }
+
+        $prov = ProviderInstance::find($tenantId, $providerInstanceId);
+        if (!$prov) {
+            View::json(['error' => 'Provider instance not found', 'success' => false]);
+            return;
+        }
+
+        try {
+            $provider = ProviderFactory::create($tenantId, $prov['provider'], $prov['settings'] ?? [], $prov['version'] ?? '1.0');
+            $assets = $provider->listAvailableAssets();
+            View::json(['success' => true, 'assets' => $assets]);
+        } catch (Exception $e) {
+            View::json(['error' => 'Failed to list provider assets: ' . $e->getMessage(), 'success' => false]);
+        }
+    }
+
+    /**
+     * API endpoint to assign an existing asset to an employee
+     */
+    public function assignExistingAsset(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $employeeId = $_POST['employee_id'] ?? '';
+        $providerInstanceId = $_POST['provider_instance_id'] ?? '';
+        $assetId = $_POST['asset_id'] ?? '';
+        $accessLevel = $_POST['access_level'] ?? null;
+
+        if (empty($employeeId) || empty($providerInstanceId) || empty($assetId)) {
+            View::json(['error' => 'Missing required fields', 'success' => false]);
+            return;
+        }
+
+        // Verify employee exists
+        $employee = Employee::find($tenantId, $employeeId);
+        if (!$employee) {
+            View::json(['error' => 'Employee not found', 'success' => false]);
+            return;
+        }
+
+        // Verify provider instance exists
+        $prov = ProviderInstance::find($tenantId, $providerInstanceId);
+        if (!$prov) {
+            View::json(['error' => 'Provider instance not found', 'success' => false]);
+            return;
+        }
+
+        $assetManager = new AssetManager($tenantId);
+        $result = $assetManager->assignExistingAssetToEmployee(
+            $employeeId,
+            $prov['provider'],
+            $assetId,
+            $providerInstanceId,
+            ['access_level' => $accessLevel]
+        );
+
+        if ($result['success']) {
+            View::json([
+                'success' => true,
+                'message' => 'Asset assigned successfully',
+                'password' => $result['password'],
+            ]);
+        } else {
+            View::json(['error' => $result['error'] ?? 'Failed to assign asset', 'success' => false]);
+        }
+    }
 }

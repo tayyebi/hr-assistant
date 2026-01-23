@@ -198,6 +198,138 @@ class MailcowProvider extends HttpProvider
         }, $mailboxes);
     }
 
+    public function listAvailableAssets(): array
+    {
+        if (!$this->isConfigured()) {
+            return [];
+        }
+
+        $assets = [];
+
+        // Get mailboxes
+        $mailboxes = $this->get('get/mailbox/all', $this->getMailcowHeaders());
+        if (is_array($mailboxes)) {
+            foreach ($mailboxes as $mailbox) {
+                $assets[] = [
+                    'id' => 'mailcow_mailbox_' . md5($mailbox['username']),
+                    'type' => 'mailbox',
+                    'identifier' => $mailbox['username'],
+                    'name' => $mailbox['name'] ?: $mailbox['username'],
+                    'metadata' => $mailbox
+                ];
+            }
+        }
+
+        // Get aliases
+        $aliases = $this->get('get/alias/all', $this->getMailcowHeaders());
+        if (is_array($aliases)) {
+            foreach ($aliases as $alias) {
+                $assets[] = [
+                    'id' => 'mailcow_alias_' . md5($alias['address']),
+                    'type' => 'alias',
+                    'identifier' => $alias['address'],
+                    'name' => $alias['address'],
+                    'metadata' => $alias
+                ];
+            }
+        }
+
+        return $assets;
+    }
+
+    public function assignAsset(string $assetId, array $employee, array $options = []): array
+    {
+        if (!$this->isConfigured()) {
+            throw new Exception('Mailcow provider not configured');
+        }
+
+        if (str_starts_with($assetId, 'mailcow_mailbox_')) {
+            // Assign mailbox - set password
+            $emailMd5 = substr($assetId, 16); // Remove 'mailcow_mailbox_' prefix
+            $password = $options['password'] ?? bin2hex(random_bytes(8));
+
+            // Find the mailbox
+            $mailboxes = $this->get('get/mailbox/all', $this->getMailcowHeaders());
+            $mailbox = null;
+            foreach ($mailboxes as $mb) {
+                if (md5($mb['username']) === $emailMd5) {
+                    $mailbox = $mb;
+                    break;
+                }
+            }
+
+            if (!$mailbox) {
+                throw new Exception('Mailbox not found');
+            }
+
+            $result = $this->post('edit/mailbox', [
+                $mailbox['username'] => [
+                    'password' => $password,
+                    'password2' => $password,
+                    'active' => 1
+                ]
+            ], $this->getMailcowHeaders());
+
+            if (!is_array($result) || empty($result[0]['type']) || $result[0]['type'] !== 'success') {
+                throw new Exception('Failed to update mailbox password: ' . json_encode($result));
+            }
+
+            return [
+                'id' => $assetId,
+                'password' => $password,
+                'metadata' => ['mailbox' => $mailbox['username'], 'assigned_at' => date('c')]
+            ];
+        } elseif (str_starts_with($assetId, 'mailcow_alias_')) {
+            // Assign alias - point to employee's mailbox
+            $aliasMd5 = substr($assetId, 14); // Remove 'mailcow_alias_' prefix
+
+            // Find employee's mailbox
+            $employeeAssets = Asset::getByEmployee($this->tenantId, $employee['id'] ?? '');
+            $mailboxAsset = array_filter($employeeAssets, fn($a) => $a['provider'] === EmailProvider::MAILCOW && str_starts_with($a['identifier'], 'mailcow_mailbox_'));
+            if (empty($mailboxAsset)) {
+                throw new Exception('Employee must have a mailbox assigned first');
+            }
+            $mailboxAsset = reset($mailboxAsset);
+            $mailboxEmail = json_decode($mailboxAsset['metadata'] ?? '{}', true)['mailbox'] ?? '';
+            if (!$mailboxEmail) {
+                throw new Exception('Mailbox email not found in employee assets');
+            }
+
+            // Find the alias
+            $aliases = $this->get('get/alias/all', $this->getMailcowHeaders());
+            $alias = null;
+            foreach ($aliases as $al) {
+                if (md5($al['address']) === $aliasMd5) {
+                    $alias = $al;
+                    break;
+                }
+            }
+
+            if (!$alias) {
+                throw new Exception('Alias not found');
+            }
+
+            $result = $this->post('edit/alias', [
+                $alias['address'] => [
+                    'goto' => $mailboxEmail,
+                    'active' => 1
+                ]
+            ], $this->getMailcowHeaders());
+
+            if (!is_array($result) || empty($result[0]['type']) || $result[0]['type'] !== 'success') {
+                throw new Exception('Failed to update alias: ' . json_encode($result));
+            }
+
+            return [
+                'id' => $assetId,
+                'password' => null,
+                'metadata' => ['alias' => $alias['address'], 'goto' => $mailboxEmail, 'assigned_at' => date('c')]
+            ];
+        } else {
+            throw new Exception('Invalid asset ID format');
+        }
+    }
+
     public function testConnection(): bool
     {
         if (!$this->isConfigured()) {

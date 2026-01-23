@@ -56,6 +56,20 @@ interface IProvider
     public function listAssets(): array;
 
     /**
+     * List available assets that can be assigned to employees
+     * Returns array of assets with their types (account, repository, chat, mailbox, alias, etc.)
+     */
+    public function listAvailableAssets(): array;
+
+    /**
+     * Assign an existing asset to an employee
+     * For accounts: may set/reset password
+     * For repositories: grant access with specified level
+     * For chats/mailboxes: assign for messaging/email use
+     */
+    public function assignAsset(string $assetId, array $employee, array $options = []): array;
+
+    /**
      * Test connection to provider
      */
     public function testConnection(): bool;
@@ -119,5 +133,23 @@ abstract class AbstractProvider implements IProvider
     public function testConnection(): bool
     {
         return $this->isConfigured();
+    }
+
+    /**
+     * Default implementation: return empty array
+     * Subclasses should override to return available assets
+     */
+    public function listAvailableAssets(): array
+    {
+        return [];
+    }
+
+    /**
+     * Default implementation: throw exception
+     * Subclasses should override to implement asset assignment
+     */
+    public function assignAsset(string $assetId, array $employee, array $options = []): array
+    {
+        throw new Exception('Asset assignment not implemented for this provider');
     }
 }

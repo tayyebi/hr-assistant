@@ -192,6 +192,107 @@ class GitLabProviderV17 extends HttpProvider
         }, $users);
     }
 
+    public function listAvailableAssets(): array
+    {
+        if (!$this->isConfigured()) {
+            return [];
+        }
+
+        $assets = [];
+
+        // Get users
+        $users = $this->get('users?per_page=100', $this->getGitLabHeaders());
+        if (is_array($users)) {
+            foreach ($users as $user) {
+                $assets[] = [
+                    'id' => 'gitlab_user_' . $user['id'],
+                    'type' => 'account',
+                    'identifier' => $user['username'],
+                    'name' => $user['name'] ?: $user['username'],
+                    'metadata' => $user
+                ];
+            }
+        }
+
+        // Get projects/repositories
+        $projects = $this->get('projects?per_page=100', $this->getGitLabHeaders());
+        if (is_array($projects)) {
+            foreach ($projects as $project) {
+                $assets[] = [
+                    'id' => 'gitlab_repo_' . $project['id'],
+                    'type' => 'repository',
+                    'identifier' => $project['id'],
+                    'name' => $project['name_with_namespace'],
+                    'metadata' => $project
+                ];
+            }
+        }
+
+        return $assets;
+    }
+
+    public function assignAsset(string $assetId, array $employee, array $options = []): array
+    {
+        if (!$this->isConfigured()) {
+            throw new Exception('GitLab provider not configured');
+        }
+
+        if (str_starts_with($assetId, 'gitlab_user_')) {
+            // Assign user account - set password
+            $userId = substr($assetId, 12); // Remove 'gitlab_user_' prefix
+            $password = $options['password'] ?? bin2hex(random_bytes(8));
+
+            $result = $this->put('users/' . $userId, [
+                'password' => $password,
+                'email' => $employee['email'],
+                'name' => $employee['full_name'] ?? ($employee['first_name'] . ' ' . $employee['last_name'])
+            ], $this->getGitLabHeaders());
+
+            if (!is_array($result) && $result !== true) {
+                throw new Exception('Failed to update GitLab user: ' . json_encode($result));
+            }
+
+            return [
+                'id' => $assetId,
+                'password' => $password,
+                'metadata' => ['gitlab_user_id' => $userId, 'assigned_at' => date('c')]
+            ];
+        } elseif (str_starts_with($assetId, 'gitlab_repo_')) {
+            // Assign repository access
+            $projectId = substr($assetId, 12); // Remove 'gitlab_repo_' prefix
+            $accessLevel = $options['access_level'] ?? 30; // Developer by default
+
+            // Find employee's GitLab user ID from their assigned assets
+            $employeeAssets = Asset::getByEmployee($this->tenantId, $employee['id'] ?? '');
+            $gitlabUser = array_filter($employeeAssets, fn($a) => $a['provider'] === GitProvider::GITLAB && str_starts_with($a['identifier'], 'gitlab_user_'));
+            if (empty($gitlabUser)) {
+                throw new Exception('Employee must have a GitLab account assigned first');
+            }
+            $userAsset = reset($gitlabUser);
+            $userId = json_decode($userAsset['metadata'] ?? '{}', true)['gitlab_user_id'] ?? null;
+            if (!$userId) {
+                throw new Exception('GitLab user ID not found in employee assets');
+            }
+
+            $result = $this->post("projects/{$projectId}/members", [
+                'user_id' => $userId,
+                'access_level' => $accessLevel,
+            ], $this->getGitLabHeaders());
+
+            if (!is_array($result) && $result !== true) {
+                throw new Exception('Failed to grant GitLab repository access: ' . json_encode($result));
+            }
+
+            return [
+                'id' => $assetId,
+                'password' => null,
+                'metadata' => ['project_id' => $projectId, 'user_id' => $userId, 'access_level' => $accessLevel, 'assigned_at' => date('c')]
+            ];
+        } else {
+            throw new Exception('Invalid asset ID format');
+        }
+    }
+
     public function testConnection(): bool
     {
         if (!$this->isConfigured()) {

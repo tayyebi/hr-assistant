@@ -345,4 +345,74 @@ class AssetManager
 
         return $grouped;
     }
+
+    /**
+     * Assign an existing asset to an employee
+     */
+    public function assignExistingAssetToEmployee(
+        string $employeeId,
+        string $providerType,
+        string $assetId,
+        string $providerInstanceId,
+        array $options = []
+    ): array {
+        try {
+            // Get provider instance
+            $prov = ProviderInstance::find($this->tenantId, $providerInstanceId);
+            if (!$prov) {
+                return ['success' => false, 'error' => 'Provider instance not found'];
+            }
+
+            // Create provider
+            $provider = ProviderFactory::create($this->tenantId, $providerType, $prov['settings'] ?? [], $prov['version'] ?? '1.0');
+
+            // Get employee details
+            $employee = Employee::find($this->tenantId, $employeeId);
+            if (!$employee) {
+                return ['success' => false, 'error' => 'Employee not found'];
+            }
+
+            // Call assignAsset
+            $assignedAsset = $provider->assignAsset($assetId, $employee, $options);
+
+            if (!$assignedAsset) {
+                return ['success' => false, 'error' => 'Failed to assign asset'];
+            }
+
+            // Store the assignment
+            $assetIdStored = Asset::create($this->tenantId, [
+                'employee_id' => $employeeId,
+                'provider' => $providerType,
+                'provider_instance_id' => $prov['id'],
+                'asset_type' => $this->getAssetTypeFromId($assetId),
+                'identifier' => $assignedAsset['id'] ?? $assetId,
+                'status' => Asset::STATUS_ACTIVE,
+                'metadata' => json_encode($assignedAsset['metadata'] ?? []),
+            ]);
+
+            return ['success' => true, 'password' => $assignedAsset['password'] ?? null];
+        } catch (Exception $e) {
+            error_log("Error assigning existing asset to employee: " . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get asset type from asset ID
+     */
+    private function getAssetTypeFromId(string $assetId): string
+    {
+        if (str_contains($assetId, '_user_') || str_contains($assetId, '_account')) {
+            return 'account';
+        } elseif (str_contains($assetId, '_repo_')) {
+            return 'repository';
+        } elseif (str_contains($assetId, '_chat')) {
+            return 'chat';
+        } elseif (str_contains($assetId, '_mailbox')) {
+            return 'mailbox';
+        } elseif (str_contains($assetId, '_alias')) {
+            return 'alias';
+        }
+        return 'unknown';
+    }
 }

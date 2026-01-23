@@ -201,6 +201,66 @@ class KeycloakProviderV25 extends HttpProvider
         }, $users);
     }
 
+    public function listAvailableAssets(): array
+    {
+        if (!$this->isConfigured()) {
+            return [];
+        }
+
+        $users = $this->get('users?max=100', $this->getKeycloakHeaders());
+
+        if (!is_array($users)) {
+            return [];
+        }
+
+        $assets = [];
+        foreach ($users as $user) {
+            $assets[] = [
+                'id' => 'keycloak_' . $user['id'],
+                'type' => 'account',
+                'identifier' => $user['username'],
+                'name' => $user['username'],
+                'metadata' => $user
+            ];
+        }
+
+        return $assets;
+    }
+
+    public function assignAsset(string $assetId, array $employee, array $options = []): array
+    {
+        if (!$this->isConfigured()) {
+            throw new Exception('Keycloak provider not configured');
+        }
+
+        $userId = substr($assetId, 10); // Remove 'keycloak_' prefix
+        $password = $options['password'] ?? bin2hex(random_bytes(8));
+
+        // Set new password for the user
+        $result = $this->put(
+            'users/' . $userId,
+            ['email' => $employee['email'], 'firstName' => $employee['first_name'], 'lastName' => $employee['last_name']],
+            $this->getKeycloakHeaders()
+        );
+
+        if (!is_array($result) && $result !== true) {
+            throw new Exception('Failed to update Keycloak user: ' . json_encode($result));
+        }
+
+        // Reset password
+        $this->post(
+            'users/' . $userId . '/reset-password',
+            ['type' => 'password', 'value' => $password, 'temporary' => false],
+            $this->getKeycloakHeaders()
+        );
+
+        return [
+            'id' => $assetId,
+            'password' => $password,
+            'metadata' => ['keycloak_user_id' => $userId, 'assigned_at' => date('c')]
+        ];
+    }
+
     public function testConnection(): bool
     {
         if (!$this->isConfigured()) {
