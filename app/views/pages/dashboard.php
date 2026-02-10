@@ -10,7 +10,7 @@
     <article>
         <header>
             <h3>
-                <?php Icon::render('trending-up', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary);'); ?>
+                <?php \App\Core\Icon::render('trending-up', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary);'); ?>
                 Team Sentiment Overview
             </h3>
             <mark>Last 24h</mark>

@@ -15,7 +15,7 @@ class JobController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        $tenant = Tenant::getCurrentTenant();
+        $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
         
         $jobs = Job::getAll($tenantId);

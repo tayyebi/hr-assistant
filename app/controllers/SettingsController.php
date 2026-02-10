@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Models\{User, Config};
+use App\Models\{User, Config, Tenant};
 use App\Core\View;
 
 /**
@@ -20,7 +20,7 @@ class SettingsController
         $user = User::getCurrentUser();
         
         $config = Config::get($tenantId);
-        $providers = ProviderSettings::getProvidersMetadata();
+        $providers = \App\Core\ProviderSettings::getProvidersMetadata();
         $providersConfig = $this->getEnabledProvidersConfig($tenantId, $config);
         
         $message = $_SESSION['flash_message'] ?? null;
@@ -44,7 +44,7 @@ class SettingsController
         $tenantId = User::getTenantId();
         
         // Get all allowed configuration fields
-        $allFields = ProviderSettings::getAllFields();
+        $allFields = \App\Core\ProviderSettings::getAllFields();
         $config = Config::get($tenantId);
         
         // Process POST data for all known provider fields
@@ -89,7 +89,7 @@ class SettingsController
         }
 
         // Validate provider belongs to type
-        $providers = ProviderSettings::getProvidersMetadata();
+        $providers = \App\Core\ProviderSettings::getProvidersMetadata();
         if (!isset($providers[$provider]) || ($providers[$provider]['type'] ?? '') !== $type) {
             $_SESSION['flash_message'] = 'Provider does not match selected type.';
             View::redirect(View::workspaceUrl('/settings/'));
@@ -97,7 +97,7 @@ class SettingsController
         }
 
         // Validate and process configuration fields
-        $providerFields = ProviderSettings::getFields($provider);
+        $providerFields = \App\Core\ProviderSettings::getFields($provider);
         $processedSettings = [];
         $validationErrors = [];
 
@@ -135,7 +135,7 @@ class SettingsController
             return;
         }
 
-        ProviderInstance::create($tenantId, [
+        \App\Models\ProviderInstance::create($tenantId, [
             'type' => $type,
             'provider' => $provider,
             'name' => $name,
@@ -153,7 +153,7 @@ class SettingsController
         $tenantId = User::getTenantId();
         $id = $_POST['id'] ?? '';
         if (!empty($id)) {
-            ProviderInstance::delete($tenantId, $id);
+            \App\Models\ProviderInstance::delete($tenantId, $id);
             $_SESSION['flash_message'] = 'Provider instance removed.';
         }
         View::redirect(View::workspaceUrl('/settings'));
@@ -165,9 +165,9 @@ class SettingsController
     private function getEnabledProvidersConfig(string $tenantId, array $config): array
     {
         $enabled = [];
-        $allFields = ProviderSettings::getAllFields();
+        $allFields = \App\Core\ProviderSettings::getAllFields();
 
-        foreach (ProviderSettings::getProvidersMetadata() as $provider => $metadata) {
+        foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $provider => $metadata) {
             $fields = $allFields[$provider] ?? [];
             $hasConfig = false;
 

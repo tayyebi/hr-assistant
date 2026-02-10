@@ -19,14 +19,14 @@ class AssetController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        $tenant = Tenant::getCurrentTenant();
+        $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
         
         $employees = Employee::getAll($tenantId);
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         
         // Get available assets grouped by instance
-        $providerInstances = ProviderInstance::getAll($tenantId);
+        $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
         $instanceAssets = [];
         foreach ($providerInstances as $inst) {
             try {
@@ -80,18 +80,18 @@ class AssetController
         $tenantId = User::getTenantId();
         $providerType = $_GET['provider'] ?? '';
         
-        if (empty($providerType) || !ProviderType::isValid($providerType)) {
+        if (empty($providerType) || !\App\Core\ProviderType::isValid($providerType)) {
             View::json(['error' => 'Invalid provider', 'success' => false]);
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $assets = $assetManager->getAssetsByProvider($providerType);
         
         View::json([
             'success' => true,
             'provider' => $providerType,
-            'providerName' => ProviderType::getName($providerType),
+            'providerName' => \App\Core\ProviderType::getName($providerType),
             'assets' => $assets ?? [],
         ]);
     }
@@ -104,7 +104,7 @@ class AssetController
         AuthController::requireTenantAdmin();
 
         $tenantId = User::getTenantId();
-        $instances = ProviderInstance::getAll($tenantId);
+        $instances = \App\Models\ProviderInstance::getAll($tenantId);
 
         View::json([
             'success' => true,
@@ -147,10 +147,10 @@ class AssetController
         $assetType = $_GET['type'] ?? '';
         
         $validTypes = [
-            ProviderType::TYPE_EMAIL,
-            ProviderType::TYPE_GIT,
-            ProviderType::TYPE_MESSENGER,
-            ProviderType::TYPE_IAM,
+            \App\Core\ProviderType::TYPE_EMAIL,
+            \App\Core\ProviderType::TYPE_GIT,
+            \App\Core\ProviderType::TYPE_MESSENGER,
+            \App\Core\ProviderType::TYPE_IAM,
         ];
         
         if (!in_array($assetType, $validTypes)) {
@@ -158,7 +158,7 @@ class AssetController
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $assets = $assetManager->getAssetsByType($assetType);
         
         View::json([
@@ -179,12 +179,12 @@ class AssetController
         $providerType = $_POST['provider'] ?? '';
         $providerInstanceId = $_POST['provider_instance_id'] ?? null;
         
-        if (empty($providerType) || !ProviderType::isValid($providerType)) {
+        if (empty($providerType) || !\App\Core\ProviderType::isValid($providerType)) {
             View::json(['error' => 'Invalid provider', 'success' => false]);
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $result = $assetManager->testProviderConnection($providerType);
         
         View::json($result);
@@ -217,18 +217,18 @@ class AssetController
         }
         
         if ($providerInstanceId) {
-            $prov = ProviderInstance::find($tenantId, $providerInstanceId);
+            $prov = \App\Models\ProviderInstance::find($tenantId, $providerInstanceId);
             if (!$prov) {
                 View::json(['error' => 'Invalid provider instance', 'success' => false]);
                 return;
             }
             $providerType = $prov['provider'];
-        } elseif (!ProviderType::isValid($providerType)) {
+        } elseif (!\App\Core\ProviderType::isValid($providerType)) {
             View::json(['error' => 'Invalid provider', 'success' => false]);
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $success = $assetManager->assignAssetToEmployee(
             $employeeId,
             $providerType,
@@ -262,7 +262,7 @@ class AssetController
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $success = $assetManager->unassignAsset($assetId);
         
         if ($success) {
@@ -288,7 +288,7 @@ class AssetController
         $targetName = $_POST['target_name'] ?? '';
         $metadata = $_POST['metadata'] ?? '';
         
-        Job::create($tenantId, [
+        \App\Models\Job::create($tenantId, [
             'service' => $service,
             'action' => $action,
             'target_name' => $targetName,

@@ -15,7 +15,7 @@ class EmployeeController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        $tenant = Tenant::getCurrentTenant();
+        $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
         
         $employees = Employee::getAll($tenantId);
@@ -113,7 +113,7 @@ class EmployeeController
             return;
         }
         
-        $assetManager = new AssetManager($tenantId);
+        $assetManager = new \App\Core\AssetManager($tenantId);
         $assets = $assetManager->getEmployeeAssets($employeeId);
         
         View::json([

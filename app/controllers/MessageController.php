@@ -16,7 +16,7 @@ class MessageController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        $tenant = Tenant::getCurrentTenant();
+        $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
         
         $employees = Employee::getAll($tenantId);
@@ -31,7 +31,7 @@ class MessageController
         // Get delivery jobs for the selected employee
         $deliveryJobs = [];
         if ($selectedEmpId) {
-            $allJobs = Job::getAll($tenantId);
+            $allJobs = \App\Models\Job::getAll($tenantId);
             $deliveryJobs = array_filter($allJobs, function($job) use ($selectedEmpId) {
                 $metadata = $job['metadata'] ?? [];
                 return ($job['service'] === 'email' || $job['service'] === 'telegram') 
@@ -78,7 +78,7 @@ class MessageController
                 
                 // Send via email if requested and employee has email
                 if (($channel === 'email' || $channel === 'both') && !empty($employee['email'])) {
-                    $jobsCreated[] = Job::create($tenantId, [
+                    $jobsCreated[] = \App\Models\Job::create($tenantId, [
                         'service' => 'email',
                         'action' => 'send',
                         'target_name' => $employee['email'],
@@ -95,7 +95,7 @@ class MessageController
                 // Send via telegram if requested and employee has chat_id
                 if (($channel === 'telegram' || $channel === 'both') && !empty($employee['telegram_chat_id'])) {
                     $messageText = $subject ? "{$subject}\n\n{$text}" : $text;
-                    $jobsCreated[] = Job::create($tenantId, [
+                    $jobsCreated[] = \App\Models\Job::create($tenantId, [
                         'service' => 'telegram',
                         'action' => 'send',
                         'target_name' => "Chat:{$employee['telegram_chat_id']}",
@@ -138,17 +138,17 @@ class MessageController
         $jobId = $_POST['job_id'] ?? '';
         
         if ($jobId) {
-            $job = Job::find($tenantId, $jobId);
+            $job = \App\Models\Job::find($tenantId, $jobId);
             
-            if ($job && $job['status'] === Job::STATUS_FAILED) {
+            if ($job && $job['status'] === \App\Models\Job::STATUS_FAILED) {
                 // Reset retry count and requeue
                 $metadata = $job['metadata'] ?? [];
                 $metadata['retry_count'] = 0;
                 $metadata['manual_retry'] = true;
                 $metadata['retried_at'] = date('c');
                 
-                Job::update($tenantId, $jobId, [
-                    'status' => Job::STATUS_PENDING,
+                \App\Models\Job::update($tenantId, $jobId, [
+                    'status' => \App\Models\Job::STATUS_PENDING,
                     'result' => 'Manually retried',
                     'metadata' => $metadata
                 ]);

@@ -12,7 +12,7 @@ class View
         $viewPath = __DIR__ . '/../views/pages/' . $viewName . '.php';
         
         if (!file_exists($viewPath)) {
-            throw new Exception("View not found: {$viewName}");
+            throw new \Exception("View not found: {$viewName}");
         }
         
         extract($data);
@@ -29,7 +29,7 @@ class View
         $viewPath = __DIR__ . '/../views/pages/' . $viewName . '.php';
         
         if (!file_exists($viewPath)) {
-            throw new Exception("View not found: {$viewName}");
+            throw new \Exception("View not found: {$viewName}");
         }
         
         extract($data);
@@ -62,7 +62,7 @@ class View
     {
         $tenantId = $_SESSION['workspace_tenant_id'] ?? null;
         if ($tenantId) {
-            $tenant = Tenant::find($tenantId);
+            $tenant = \App\Models\Tenant::find($tenantId);
             return [
                 'isWorkspace' => true,
                 'tenantId' => $tenantId,

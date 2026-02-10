@@ -122,12 +122,12 @@ class Employee
     {
         $employees = self::getAll($tenantId);
         $upcoming = [];
-        $today = new DateTime();
+        $today = new \DateTime();
         
         foreach ($employees as $emp) {
             if (empty($emp['birthday'])) continue;
             
-            $birthday = new DateTime($emp['birthday']);
+            $birthday = new \DateTime($emp['birthday']);
             $birthday->setDate((int)$today->format('Y'), (int)$birthday->format('m'), (int)$birthday->format('d'));
             
             $diff = $today->diff($birthday)->days;

@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Models\{User, Employee, Asset, Message, Job};
+use App\Models\{User, Employee, Asset, Message, Job, Tenant};
 use App\Core\View;
 
 /**
