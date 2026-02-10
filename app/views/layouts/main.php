@@ -12,7 +12,7 @@
     <header>
         <h1>HR Assistant</h1>
         <button data-menu onclick="toggleSidebar()">
-            <?php Icon::render('menu', 24, 24); ?>
+            <?php \App\Core\Icon::render('menu', 24, 24); ?>
         </button>
     </header>
 
@@ -21,43 +21,43 @@
         <header>
             <h1>HR Assistant</h1>
             <p><?php 
-                $workspaceContext = View::getWorkspaceContext();
+                $workspaceContext = \App\Core\View::getWorkspaceContext();
                 echo $workspaceContext['isWorkspace'] ? 'Workspace: ' . htmlspecialchars($workspaceContext['tenantName']) : 'Administration Console';
             ?></p>
         </header>
 
         <nav>
-            <a href="<?php echo View::workspaceUrl('/dashboard'); ?>" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('dashboard', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/dashboard'); ?>" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('dashboard', 20, 20); ?>
                 Dashboard
             </a>
-            <a href="<?php echo View::workspaceUrl('/employees'); ?>" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('employees', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/employees'); ?>" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('employees', 20, 20); ?>
                 Employees
             </a>
-            <a href="<?php echo View::workspaceUrl('/teams'); ?>" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('teams', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/teams'); ?>" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('teams', 20, 20); ?>
                 Teams
             </a>
-            <a href="<?php echo View::workspaceUrl('/messages'); ?>" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('messages', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/messages'); ?>" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('messages', 20, 20); ?>
                 Direct Messages
             </a>
-            <a href="<?php echo View::workspaceUrl('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('server', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('server', 20, 20); ?>
                 Digital Assets
             </a>
-            <a href="<?php echo View::workspaceUrl('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('layers', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('layers', 20, 20); ?>
                 System Jobs
             </a>
-            <a href="<?php echo View::workspaceUrl('/settings'); ?>" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('settings', 20, 20); ?>
+            <a href="<?php echo \App\Core\View::workspaceUrl('/settings'); ?>" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('settings', 20, 20); ?>
                 Settings
             </a>
-            <?php if (User::isSystemAdmin()): ?>
+            <?php if (\App\Models\User::isSystemAdmin()): ?>
                 <a href="/admin" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.5rem;">
-                    <?php Icon::render('admin', 20, 20); ?>
+                    <?php \App\Core\Icon::render('admin', 20, 20); ?>
                     System Admin
                 </a>
             <?php endif; ?>
@@ -70,7 +70,7 @@
                 <p>● Services Connected</p>
                 <small>
                     <?php 
-                        $workspaceContext = View::getWorkspaceContext();
+                        $workspaceContext = \App\Core\View::getWorkspaceContext();
                         echo htmlspecialchars($workspaceContext['isWorkspace'] ? $workspaceContext['tenantName'] : ($tenant['name'] ?? 'System Admin'));
                     ?>
                 </small>
@@ -78,7 +78,7 @@
             <article>
                 <p><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
                 <a href="/logout">
-                    <?php Icon::render('logout', 16, 16); ?>
+                    <?php \App\Core\Icon::render('logout', 16, 16); ?>
                     Logout
                 </a>
             </article>
