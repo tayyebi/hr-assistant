@@ -4,12 +4,12 @@
  * HTTP Provider Base Class
  * Provides common HTTP functionality for API-based providers
  * 
- * Requires Guzzle HTTP client: composer require guzzlehttp/guzzle:^7.5
+ * Uses custom HttpClient - no external dependencies required
  */
 abstract class HttpProvider extends AbstractProvider
 {
     /**
-     * @var object Guzzle HTTP Client
+     * @var HttpClient Custom HTTP Client
      */
     protected $httpClient;
 
@@ -25,15 +25,11 @@ abstract class HttpProvider extends AbstractProvider
     {
         parent::__construct($tenantId, $config);
         
-        // Dynamically load Guzzle if available
-        if (class_exists('GuzzleHttp\Client')) {
-            $this->httpClient = new \GuzzleHttp\Client([
-                'timeout' => 30,
-                'verify' => true,
-            ]);
-        } else {
-            throw new Exception('GuzzleHttp\Client not found. Install via: composer require guzzlehttp/guzzle:^7.5');
-        }
+        // Use our custom HTTP client
+        $this->httpClient = new HttpClient([
+            'timeout' => 30,
+            'verify' => true,
+        ]);
     }
 
     /**
@@ -48,7 +44,13 @@ abstract class HttpProvider extends AbstractProvider
                 'headers' => $this->getDefaultHeaders($headers),
             ]);
 
-            return json_decode($response->getBody()->getContents(), true);
+            if (!$response->isSuccessful()) {
+                $this->logError('GET', $path, 'HTTP ' . $response->getStatusCode());
+                return null;
+            }
+
+            $content = $response->getBody()->getContents();
+            return !empty($content) ? json_decode($content, true) : [];
         } catch (\Exception $e) {
             $this->logError('GET', $path, $e->getMessage());
             return null;
@@ -67,6 +69,11 @@ abstract class HttpProvider extends AbstractProvider
                 'headers' => $this->getDefaultHeaders($headers),
                 'json' => $data,
             ]);
+
+            if (!$response->isSuccessful()) {
+                $this->logError('POST', $path, 'HTTP ' . $response->getStatusCode());
+                return null;
+            }
 
             $content = $response->getBody()->getContents();
             return !empty($content) ? json_decode($content, true) : true;
@@ -89,6 +96,11 @@ abstract class HttpProvider extends AbstractProvider
                 'json' => $data,
             ]);
 
+            if (!$response->isSuccessful()) {
+                $this->logError('PUT', $path, 'HTTP ' . $response->getStatusCode());
+                return null;
+            }
+
             $content = $response->getBody()->getContents();
             return !empty($content) ? json_decode($content, true) : true;
         } catch (\Exception $e) {
@@ -105,10 +117,11 @@ abstract class HttpProvider extends AbstractProvider
     protected function delete(string $path, array $headers = []): bool
     {
         try {
-            $this->httpClient->delete($this->baseUrl . $path, [
+            $response = $this->httpClient->delete($this->baseUrl . $path, [
                 'headers' => $this->getDefaultHeaders($headers),
             ]);
-            return true;
+            
+            return $response->isSuccessful();
         } catch (\Exception $e) {
             $this->logError('DELETE', $path, $e->getMessage());
             return false;

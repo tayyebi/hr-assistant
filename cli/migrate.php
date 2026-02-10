@@ -2,8 +2,7 @@
 /**
  * Simple migration runner: executes SQL files in cli/migrations in order
  */
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/Database.php';
+require_once __DIR__ . '/../autoload.php';
 
 $dir = __DIR__ . '/migrations';
 $files = glob($dir . '/*.sql');

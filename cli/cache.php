@@ -8,7 +8,7 @@
  */
 
 // Bootstrap application
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../autoload.php';
 
 // Ensure CLI context
 if (php_sapi_name() !== 'cli') {

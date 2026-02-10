@@ -1,12 +1,12 @@
 <?php
 /**
  * HR Assistant - Entry Point
- * Pure PHP MVC Application
+ * Pure PHP MVC Application with Custom Autoloader
  */
 
 session_start();
 
-// Load our custom autoloader
+// Load our custom autoloader (replaces Composer and manual requires)
 require_once __DIR__ . '/../autoload.php';
 
 // Initialize router and dispatch
