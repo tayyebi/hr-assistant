@@ -42,7 +42,7 @@
     <article>
         <header>
             <h3>
-                <?php Icon::render('bell', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-warning);'); ?>
+                <?php \App\Core\Icon::render('bell', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-warning);'); ?>
                 Reminders
             </h3>
         </header>
