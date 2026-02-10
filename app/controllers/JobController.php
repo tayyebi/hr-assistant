@@ -39,6 +39,6 @@ class JobController
             $_SESSION['flash_message'] = 'Could not retry job.';
         }
         
-        View::redirect('/jobs');
+        View::redirect(View::workspaceUrl('/jobs'));
     }
 }

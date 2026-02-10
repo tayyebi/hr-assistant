@@ -40,6 +40,35 @@ class View
         exit;
     }
 
+    /**
+     * Generate a workspace-aware URL
+     */
+    public static function workspaceUrl(string $path): string
+    {
+        $tenantId = $_SESSION['workspace_tenant_id'] ?? null;
+        if ($tenantId) {
+            return '/workspace/' . $tenantId . $path;
+        }
+        return $path;
+    }
+
+    /**
+     * Get the current workspace tenant info for display
+     */
+    public static function getWorkspaceContext(): array
+    {
+        $tenantId = $_SESSION['workspace_tenant_id'] ?? null;
+        if ($tenantId) {
+            $tenant = Tenant::find($tenantId);
+            return [
+                'isWorkspace' => true,
+                'tenantId' => $tenantId,
+                'tenantName' => $tenant['name'] ?? 'Unknown Workspace'
+            ];
+        }
+        return ['isWorkspace' => false];
+    }
+
     public static function json(array $data): void
     {
         header('Content-Type: application/json');

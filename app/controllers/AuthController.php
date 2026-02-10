@@ -10,7 +10,12 @@ class AuthController
             if (User::isSystemAdmin()) {
                 View::redirect('/admin');
             } else {
-                View::redirect('/dashboard');
+                $tenantId = User::getTenantId();
+                if ($tenantId) {
+                    View::redirect('/workspace/' . $tenantId . '/dashboard');
+                } else {
+                    View::redirect('/admin');
+                }
             }
             return;
         }
@@ -34,11 +39,46 @@ class AuthController
             if ($user['role'] === User::ROLE_SYSTEM_ADMIN) {
                 View::redirect('/admin');
             } else {
-                View::redirect('/dashboard');
+                $tenantId = $user['tenant_id'];
+                if ($tenantId) {
+                    View::redirect('/workspace/' . $tenantId . '/dashboard');
+                } else {
+                    View::redirect('/admin');
+                }
             }
         } else {
             $_SESSION['login_error'] = 'Invalid email or password.';
             View::redirect('/login');
+        }
+    }
+
+    public static function requireTenantAdmin(): void
+    {
+        if (!User::isLoggedIn()) {
+            View::redirect('/login');
+            exit;
+        }
+        
+        $user = User::getCurrentUser();
+        if (!$user) {
+            View::redirect('/login');
+            exit;
+        }
+        
+        // For workspace routes, check workspace access
+        if (isset($_SESSION['workspace_tenant_id'])) {
+            if (!User::canAccessWorkspace($_SESSION['workspace_tenant_id'])) {
+                http_response_code(403);
+                echo '<h1>403 - Access Denied</h1><p>You do not have permission to access this workspace.</p>';
+                exit;
+            }
+            return;
+        }
+        
+        // For regular routes, require tenant admin or system admin
+        if (!User::isTenantAdmin() && !User::isSystemAdmin()) {
+            View::redirect('/login');
+            exit;
         }
     }
 
@@ -51,16 +91,6 @@ class AuthController
     public static function requireAuth(): void
     {
         if (!User::isLoggedIn()) {
-            View::redirect('/login');
-            exit;
-        }
-    }
-
-    public static function requireTenantAdmin(): void
-    {
-        self::requireAuth();
-        
-        if (!User::isTenantAdmin()) {
             View::redirect('/login');
             exit;
         }

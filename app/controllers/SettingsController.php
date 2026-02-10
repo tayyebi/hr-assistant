@@ -78,7 +78,7 @@ class SettingsController
 
         if (empty($type) || empty($provider) || empty($name)) {
             $_SESSION['flash_message'] = 'Type, provider and name are required for provider instance.';
-            View::redirect('/settings');
+            View::redirect(View::workspaceUrl('/settings'));
             return;
         }
 
@@ -86,7 +86,7 @@ class SettingsController
         $providers = ProviderSettings::getProvidersMetadata();
         if (!isset($providers[$provider]) || ($providers[$provider]['type'] ?? '') !== $type) {
             $_SESSION['flash_message'] = 'Provider does not match selected type.';
-            View::redirect('/settings');
+            View::redirect(View::workspaceUrl('/settings'));
             return;
         }
 
@@ -96,7 +96,7 @@ class SettingsController
             $decoded = json_decode($settings, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $_SESSION['flash_message'] = 'Settings must be valid JSON.';
-                View::redirect('/settings');
+                View::redirect(View::workspaceUrl('/settings'));
                 return;
             }
             $parsedSettings = is_array($decoded) ? $decoded : [];
@@ -110,7 +110,7 @@ class SettingsController
         ]);
 
         $_SESSION['flash_message'] = 'Provider instance created successfully.';
-        View::redirect('/settings');
+        View::redirect(View::workspaceUrl('/settings'));
     }
 
     public function deleteProviderInstance(): void
@@ -123,7 +123,7 @@ class SettingsController
             ProviderInstance::delete($tenantId, $id);
             $_SESSION['flash_message'] = 'Provider instance removed.';
         }
-        View::redirect('/settings');
+        View::redirect(View::workspaceUrl('/settings'));
     }
 
     /**

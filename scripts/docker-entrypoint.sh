@@ -29,4 +29,4 @@ echo "Seeding default data..."
 php cli/seed.php || true
 
 echo "Starting PHP built-in server..."
-php -S 0.0.0.0:8080 -t public
+php -S 0.0.0.0:8080 -t public public/router.php

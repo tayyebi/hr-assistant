@@ -1,14 +1,25 @@
 <?php
 /**
- * Simple Router for PHP MVC
+ * Workspace Router for PHP MVC with Tenant Support
  */
 class Router
 {
     private array $routes = [];
+    private array $workspaceRoutes = [];
 
     public function add(string $method, string $path, string $controller, string $action): void
     {
         $this->routes[] = [
+            'method' => $method,
+            'path' => $path,
+            'controller' => $controller,
+            'action' => $action
+        ];
+    }
+
+    public function addWorkspace(string $method, string $path, string $controller, string $action): void
+    {
+        $this->workspaceRoutes[] = [
             'method' => $method,
             'path' => $path,
             'controller' => $controller,
@@ -23,6 +34,30 @@ class Router
             $uri = rtrim($uri, '/');
         }
 
+        // Try workspace routes first (pattern: /workspace/{tenantId}/...)
+        if (preg_match('#^/workspace/([^/]+)(/.*)?$#', $uri, $matches)) {
+            $tenantId = $matches[1];
+            $workspacePath = $matches[2] ?: '/';
+            
+            // Set tenant context in session for this request
+            $_SESSION['workspace_tenant_id'] = $tenantId;
+            
+            foreach ($this->workspaceRoutes as $route) {
+                if ($route['method'] === $method && $route['path'] === $workspacePath) {
+                    $controller = new $route['controller']();
+                    $action = $route['action'];
+                    $controller->$action();
+                    return;
+                }
+            }
+            
+            // No workspace route matched
+            http_response_code(404);
+            echo '<h1>404 - Workspace Page Not Found</h1>';
+            return;
+        }
+
+        // Try regular routes
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $route['path'] === $uri) {
                 $controller = new $route['controller']();

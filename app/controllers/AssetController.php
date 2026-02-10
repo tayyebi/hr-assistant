@@ -288,6 +288,6 @@ class AssetController
         
         $_SESSION['flash_message'] = "Task \"{$action}\" for {$targetName} queued successfully.";
         $_SESSION['flash_message_type'] = 'success';
-        View::redirect('/assets?service=' . urlencode($service));
+        View::redirect(View::workspaceUrl('/assets?service=' . urlencode($service)));
     }
 }

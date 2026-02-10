@@ -1,3 +1,6 @@
+# TO RUN THIS FILE DROP THE .bak FROM
+# THE FILENAME. AND SIMPLY USE up COMMAND.
+
 services:
   app:
     environment:

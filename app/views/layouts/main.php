@@ -20,33 +20,48 @@
     <aside>
         <header>
             <h1>HR Assistant</h1>
-            <p>Administration Console</p>
+            <p><?php 
+                $workspaceContext = View::getWorkspaceContext();
+                echo $workspaceContext['isWorkspace'] ? 'Workspace: ' . htmlspecialchars($workspaceContext['tenantName']) : 'Administration Console';
+            ?></p>
         </header>
 
         <nav>
-            <a href="/dashboard" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/dashboard'); ?>" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('dashboard', 20, 20); ?>
                 Dashboard
             </a>
-            <a href="/employees" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/employees'); ?>" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('employees', 20, 20); ?>
                 Employees
             </a>
-            <a href="/teams" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/teams'); ?>" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('teams', 20, 20); ?>
                 Teams
             </a>
-            <a href="/messages" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/messages'); ?>" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('messages', 20, 20); ?>
                 Direct Messages
             </a>
-            <a href="/assets" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('server', 20, 20); ?>
                 Digital Assets
             </a>
-            <a href="/jobs" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo View::workspaceUrl('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('layers', 20, 20); ?>
                 System Jobs
+            </a>
+            <a href="<?php echo View::workspaceUrl('/settings'); ?>" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
+                <?php Icon::render('settings', 20, 20); ?>
+                Settings
+            </a>
+            <?php if (User::isSystemAdmin()): ?>
+                <a href="/admin" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.5rem;">
+                    <?php Icon::render('admin', 20, 20); ?>
+                    System Admin
+                </a>
+            <?php endif; ?>
+        </nav>
             </a>
             <a href="/settings" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
                 <?php Icon::render('settings', 20, 20); ?>
@@ -60,7 +75,10 @@
                 <p>● Backend Sync Active</p>
                 <p>● Services Connected</p>
                 <small>
-                    <?php echo htmlspecialchars($tenant['name'] ?? 'Unknown Tenant'); ?>
+                    <?php 
+                        $workspaceContext = View::getWorkspaceContext();
+                        echo htmlspecialchars($workspaceContext['isWorkspace'] ? $workspaceContext['tenantName'] : ($tenant['name'] ?? 'System Admin'));
+                    ?>
                 </small>
             </article>
             <article>

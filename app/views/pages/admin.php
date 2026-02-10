@@ -37,12 +37,16 @@
                     <?php foreach ($tenants as $tenant): ?>
                         <li>
                             <img src="/icons/home.svg" alt="" width="20" height="20" style="filter: invert(37%) sepia(93%) saturate(1352%) hue-rotate(200deg) brightness(97%) contrast(101%);">
-                            <div>
+                            <div style="flex: 1;">
                                 <strong><?php echo htmlspecialchars($tenant['name']); ?></strong>
                                 <p style="margin: 0; font-size: 0.75rem; font-family: monospace; color: var(--text-muted);">
                                     <?php echo htmlspecialchars($tenant['id']); ?>
                                 </p>
                             </div>
+                            <a href="/workspace/<?php echo htmlspecialchars($tenant['id']); ?>/dashboard" 
+                               style="padding: 0.25rem 0.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 4px; font-size: 0.8rem;">
+                                Open Workspace
+                            </a>
                         </li>
                     <?php endforeach; ?>
                 </ul>

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build: .
@@ -11,6 +9,11 @@ services:
       - .:/app:cached
     environment:
       - TZ=UTC
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=hr_assistant
+      - DB_USER=root
+      - DB_PASS=example
     depends_on:
       - db
   db:

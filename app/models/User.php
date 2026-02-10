@@ -97,7 +97,29 @@ class User
 
     public static function getTenantId(): ?string
     {
+        // For workspace context, use the workspace tenant ID if available
+        if (isset($_SESSION['workspace_tenant_id'])) {
+            $user = self::getCurrentUser();
+            if ($user && ($user['role'] === self::ROLE_SYSTEM_ADMIN || $user['tenant_id'] === $_SESSION['workspace_tenant_id'])) {
+                return $_SESSION['workspace_tenant_id'];
+            }
+        }
+        
         $user = self::getCurrentUser();
         return $user ? ($user['tenant_id'] ?: null) : null;
+    }
+
+    public static function canAccessWorkspace(string $tenantId): bool
+    {
+        $user = self::getCurrentUser();
+        if (!$user) return false;
+        
+        // System admins can access any workspace
+        if ($user['role'] === self::ROLE_SYSTEM_ADMIN) {
+            return true;
+        }
+        
+        // Tenant admins can only access their own workspace
+        return $user['tenant_id'] === $tenantId;
     }
 }

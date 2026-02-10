@@ -40,7 +40,7 @@ class TeamController
         ]);
         
         $_SESSION['flash_message'] = 'Team created successfully.';
-        View::redirect('/teams');
+        View::redirect(View::workspaceUrl('/teams'));
     }
 
     public function addMember(): void
@@ -54,7 +54,7 @@ class TeamController
         Team::addMember($tenantId, $teamId, $employeeId);
         
         $_SESSION['flash_message'] = 'Member added to team.';
-        View::redirect('/teams');
+        View::redirect(View::workspaceUrl('/teams'));
     }
 
     public function removeMember(): void
@@ -68,7 +68,7 @@ class TeamController
         Team::removeMember($tenantId, $teamId, $employeeId);
         
         $_SESSION['flash_message'] = 'Member removed from team.';
-        View::redirect('/teams');
+        View::redirect(View::workspaceUrl('/teams'));
     }
 
     public function addAlias(): void
@@ -86,7 +86,7 @@ class TeamController
             $_SESSION['flash_message'] = 'Invalid email format.';
         }
         
-        View::redirect('/teams');
+        View::redirect(View::workspaceUrl('/teams'));
     }
 
     public function removeAlias(): void
@@ -100,6 +100,6 @@ class TeamController
         Team::removeAlias($tenantId, $teamId, $alias);
         
         $_SESSION['flash_message'] = 'Alias removed (queued for deletion).';
-        View::redirect('/teams');
+        View::redirect(View::workspaceUrl('/teams'));
     }
 }

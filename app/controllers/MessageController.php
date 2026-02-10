@@ -154,7 +154,7 @@ class MessageController
         }
         
         $employeeId = $_POST['employee_id'] ?? '';
-        View::redirect('/messages?employee=' . urlencode($employeeId));
+        View::redirect(View::workspaceUrl('/messages?employee=' . urlencode($employeeId)));
     }
 
     public function assign(): void
@@ -173,6 +173,6 @@ class MessageController
             }
         }
         
-        View::redirect('/messages?view=inbox');
+        View::redirect(View::workspaceUrl('/messages?view=inbox'));
     }
 }
