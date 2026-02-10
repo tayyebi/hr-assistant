@@ -1,6 +1,6 @@
 <?php
 
-namespace HRAssistant\Core\Utils;
+namespace App\Core\Utils;
 
 /**
  * String Utility Helper

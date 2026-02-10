@@ -1,8 +1,8 @@
 <?php
 
-namespace HRAssistant\Core;
+namespace App\Core;
 
-use HRAssistant\Models\{Asset, Employee};
+use App\Models\{Asset, Employee};
 
 /**
  * Asset Manager

@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Asset, Employee, Config};
-use HRAssistant\Core\{View, ProviderFactory};
+use App\Models\{User, Asset, Employee, Config};
+use App\Core\{View, ProviderFactory};
 
 /**
  * Asset Controller

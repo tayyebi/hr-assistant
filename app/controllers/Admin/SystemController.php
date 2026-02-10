@@ -1,6 +1,6 @@
 <?php
 
-namespace HRAssistant\Controllers\Admin;
+namespace App\Controllers\Admin;
 
 /**
  * System Administration Controller

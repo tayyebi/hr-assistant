@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Employee, Team};
-use HRAssistant\Core\View;
+use App\Models\{User, Employee, Team};
+use App\Core\View;
 
 /**
  * Employee Controller

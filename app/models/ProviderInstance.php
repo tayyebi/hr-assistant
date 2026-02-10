@@ -1,8 +1,8 @@
 <?php
 
-namespace HRAssistant\Models;
+namespace App\Models;
 
-use HRAssistant\Core\Database;
+use App\Core\Database;
 
 /**
  * ProviderInstance Model

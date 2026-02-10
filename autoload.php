@@ -17,6 +17,10 @@ class HRAutoloader
      * @var array PSR-4 namespace mappings
      */
     private static $namespaces = [
+        'App\\Controllers\\' => 'app/controllers/',
+        'App\\Models\\' => 'app/models/',
+        'App\\Core\\' => 'app/core/',
+        'App\\' => 'app/',
         'HRAssistant\\Controllers\\' => 'app/controllers/',
         'HRAssistant\\Models\\' => 'app/models/',
         'HRAssistant\\Core\\' => 'app/core/',

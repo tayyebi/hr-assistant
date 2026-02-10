@@ -1,6 +1,6 @@
 <?php
 
-namespace HRAssistant\Core;
+namespace App\Core;
 
 /**
  * Icon Helper - Loads SVG icons from the icons directory

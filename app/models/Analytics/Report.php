@@ -1,6 +1,6 @@
 <?php
 
-namespace HRAssistant\Models\Analytics;
+namespace App\Models\Analytics;
 
 /**
  * Analytics Report Model

@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Employee, Asset, Message, Job};
-use HRAssistant\Core\View;
+use App\Models\{User, Employee, Asset, Message, Job};
+use App\Core\View;
 
 /**
  * Dashboard Controller

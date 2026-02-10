@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\User;
-use HRAssistant\Core\{Database, View};
+use App\Models\User;
+use App\Core\{Database, View};
 
 /**
  * API Controller for external integrations and mobile access

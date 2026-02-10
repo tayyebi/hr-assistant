@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Config};
-use HRAssistant\Core\View;
+use App\Models\{User, Config};
+use App\Core\View;
 
 /**
  * Settings Controller

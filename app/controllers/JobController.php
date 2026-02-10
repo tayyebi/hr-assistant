@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Job};
-use HRAssistant\Core\View;
+use App\Models\{User, Job};
+use App\Core\View;
 
 /**
  * Job Controller

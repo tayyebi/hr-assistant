@@ -1,6 +1,6 @@
 <?php
 
-namespace HRAssistant\Core;
+namespace App\Core;
 
 /**
  * HTTP Provider Base Class

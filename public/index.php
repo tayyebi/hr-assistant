@@ -10,17 +10,18 @@ session_start();
 require_once __DIR__ . '/../autoload.php';
 
 // Initialize router and dispatch
+use App\Core\Router;
 $router = new Router();
 
 // Define regular routes (login, admin)
-$router->add('GET', '/', 'AuthController', 'login');
-$router->add('GET', '/login', 'AuthController', 'login');
-$router->add('POST', '/login', 'AuthController', 'authenticate');
-$router->add('GET', '/logout', 'AuthController', 'logout');
+$router->add('GET', '/', 'App\\Controllers\\AuthController', 'login');
+$router->add('GET', '/login', 'App\\Controllers\\AuthController', 'login');
+$router->add('POST', '/login', 'App\\Controllers\\AuthController', 'authenticate');
+$router->add('GET', '/logout', 'App\\Controllers\\AuthController', 'logout');
 
 // System admin routes
-$router->add('GET', '/admin', 'SystemAdminController', 'index');
-$router->add('POST', '/admin/tenants', 'SystemAdminController', 'createTenant');
+$router->add('GET', '/admin', 'App\\Controllers\\SystemAdminController', 'index');
+$router->add('POST', '/admin/tenants', 'App\\Controllers\\SystemAdminController', 'createTenant');
 
 // Define workspace routes (pattern: /workspace/{tenantId}/...)
 $router->addWorkspace('GET', '/', 'DashboardController', 'index');

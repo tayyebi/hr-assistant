@@ -1,9 +1,9 @@
 <?php
 
-namespace HRAssistant\Controllers;
+namespace App\Controllers;
 
-use HRAssistant\Models\{User, Tenant};
-use HRAssistant\Core\View;
+use App\Models\{User, Tenant};
+use App\Core\View;
 
 /**
  * System Admin Controller
