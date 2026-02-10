@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Message, Employee};
+use HRAssistant\Core\View;
+
 /**
  * Message Controller
  * Handles direct messaging with job-based delivery (email + telegram with retry)

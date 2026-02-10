@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Asset, Employee, Config};
+use HRAssistant\Core\{View, ProviderFactory};
+
 /**
  * Asset Controller
  * Handles asset discovery, assignment, and management across providers

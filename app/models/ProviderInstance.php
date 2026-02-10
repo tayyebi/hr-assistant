@@ -1,4 +1,9 @@
 <?php
+
+namespace HRAssistant\Models;
+
+use HRAssistant\Core\Database;
+
 /**
  * ProviderInstance Model
  * Stores tenant-scoped provider configurations (e.g., GitLab for tenant X)

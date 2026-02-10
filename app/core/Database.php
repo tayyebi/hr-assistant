@@ -1,4 +1,7 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Database connection helper (PDO singleton)
  */

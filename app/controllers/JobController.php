@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Job};
+use HRAssistant\Core\View;
+
 /**
  * Job Controller
  */

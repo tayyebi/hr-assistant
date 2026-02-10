@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Config};
+use HRAssistant\Core\View;
+
 /**
  * Settings Controller
  * Manages provider configuration

@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Team, Employee};
+use HRAssistant\Core\View;
+
 /**
  * Team Controller
  */

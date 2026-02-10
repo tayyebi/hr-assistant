@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Tenant};
+use HRAssistant\Core\View;
+
 /**
  * System Admin Controller
  */

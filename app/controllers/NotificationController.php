@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\User;
+use HRAssistant\Core\{Database, View};
+
 /**
  * Notification Controller
  * Real-time notification system implementation

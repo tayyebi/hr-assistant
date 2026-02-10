@@ -1,4 +1,7 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Provider Interface
  * All provider implementations must implement this interface

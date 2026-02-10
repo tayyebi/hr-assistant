@@ -4,7 +4,9 @@
  */
 require_once __DIR__ . '/../autoload.php';
 
-// Use the existing Database class without namespace for now
+// Trigger autoload for Database class
+use HRAssistant\Core\Database;
+
 // Create migrations table if it doesn't exist
 try {
     Database::execute("CREATE TABLE IF NOT EXISTS migrations (

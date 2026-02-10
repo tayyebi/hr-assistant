@@ -1,4 +1,7 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Mailcow Email Provider
  */

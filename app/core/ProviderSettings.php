@@ -1,8 +1,12 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Provider Settings Configuration
  * Defines configuration fields required for each provider type
  */
+
 class ProviderSettings
 {
     /**

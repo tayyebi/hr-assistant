@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\{User, Employee, Asset, Message, Job};
+use HRAssistant\Core\View;
+
 /**
  * Dashboard Controller
  */

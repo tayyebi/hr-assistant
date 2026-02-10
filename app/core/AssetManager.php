@@ -1,5 +1,9 @@
 <?php
 
+namespace HRAssistant\Core;
+
+use HRAssistant\Models\{Asset, Employee};
+
 /**
  * Asset Manager
  * Handles fetching, caching, and listing assets from configured providers

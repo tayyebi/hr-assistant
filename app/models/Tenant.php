@@ -1,4 +1,9 @@
 <?php
+
+namespace HRAssistant\Models;
+
+use HRAssistant\Core\Database;
+
 /**
  * Tenant Model
  */

@@ -1,4 +1,7 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Workspace Router for PHP MVC with Tenant Support
  */

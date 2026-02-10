@@ -1,4 +1,7 @@
 <?php
+
+namespace HRAssistant\Core;
+
 /**
  * Custom HTTP Client
  * Pure PHP HTTP client to replace GuzzleHTTP dependency

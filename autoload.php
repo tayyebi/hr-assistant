@@ -94,6 +94,74 @@ class HRAutoloader
         
         return false;
     }
+    
+    /**
+     * Create backward compatibility alias for a namespaced class
+     */
+    private static function createAlias($namespacedClass, $alias)
+    {
+        if (class_exists($namespacedClass) && !class_exists($alias)) {
+            class_alias($namespacedClass, $alias);
+        }
+    }
+    
+    /**
+     * Create backward compatibility alias for specific namespaced classes
+     */
+    private static function createBackwardCompatibilityAlias($className)
+    {
+        // Define mapping from namespaced classes to their backward compatible aliases
+        $aliases = [
+            // Core class aliases
+            'HRAssistant\\Core\\Database' => 'Database',
+            'HRAssistant\\Core\\View' => 'View',
+            'HRAssistant\\Core\\Router' => 'Router',
+            'HRAssistant\\Core\\Icon' => 'Icon',
+            'HRAssistant\\Core\\HttpClient' => 'HttpClient',
+            'HRAssistant\\Core\\HttpProvider' => 'HttpProvider',
+            'HRAssistant\\Core\\IProvider' => 'IProvider',
+            'HRAssistant\\Core\\AbstractProvider' => 'AbstractProvider',
+            'HRAssistant\\Core\\ProviderFactory' => 'ProviderFactory',
+            'HRAssistant\\Core\\ProviderSettings' => 'ProviderSettings',
+            'HRAssistant\\Core\\EmailProvider' => 'EmailProvider',
+            'HRAssistant\\Core\\GitProvider' => 'GitProvider',
+            'HRAssistant\\Core\\MessengerProvider' => 'MessengerProvider',
+            'HRAssistant\\Core\\IamProvider' => 'IamProvider',
+            'HRAssistant\\Core\\ProviderType' => 'ProviderType',
+            'HRAssistant\\Core\\AssetManager' => 'AssetManager',
+            'HRAssistant\\Core\\MailcowProvider' => 'MailcowProvider',
+            
+            // Model class aliases
+            'HRAssistant\\Models\\User' => 'User',
+            'HRAssistant\\Models\\Employee' => 'Employee',
+            'HRAssistant\\Models\\Tenant' => 'Tenant',
+            'HRAssistant\\Models\\Team' => 'Team',
+            'HRAssistant\\Models\\Asset' => 'Asset',
+            'HRAssistant\\Models\\Job' => 'Job',
+            'HRAssistant\\Models\\Message' => 'Message',
+            'HRAssistant\\Models\\Config' => 'Config',
+            'HRAssistant\\Models\\ProviderInstance' => 'ProviderInstance',
+            
+            // Controller class aliases
+            'HRAssistant\\Controllers\\AuthController' => 'AuthController',
+            'HRAssistant\\Controllers\\DashboardController' => 'DashboardController',
+            'HRAssistant\\Controllers\\EmployeeController' => 'EmployeeController',
+            'HRAssistant\\Controllers\\TeamController' => 'TeamController',
+            'HRAssistant\\Controllers\\AssetController' => 'AssetController',
+            'HRAssistant\\Controllers\\JobController' => 'JobController',
+            'HRAssistant\\Controllers\\MessageController' => 'MessageController',
+            'HRAssistant\\Controllers\\SettingsController' => 'SettingsController',
+            'HRAssistant\\Controllers\\SystemAdminController' => 'SystemAdminController',
+            'HRAssistant\\Controllers\\NotificationController' => 'NotificationController',
+            'HRAssistant\\Controllers\\ReportsController' => 'ReportsController',
+            'HRAssistant\\Controllers\\AuditController' => 'AuditController',
+            'HRAssistant\\Controllers\\ApiController' => 'ApiController',
+        ];
+        
+        if (isset($aliases[$className])) {
+            self::createAlias($className, $aliases[$className]);
+        }
+    }
 
     /**
      * Load class using PSR-4 namespace mapping
@@ -109,6 +177,8 @@ class HRAutoloader
                 $file = self::$basePath . '/' . $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
                 
                 if (self::loadFile($file)) {
+                    // Create backward compatibility alias after successful load
+                    self::createBackwardCompatibilityAlias($className);
                     return true;
                 }
             }

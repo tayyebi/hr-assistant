@@ -1,4 +1,9 @@
 <?php
+
+namespace HRAssistant\Models;
+
+use HRAssistant\Core\Database;
+
 /**
  * Config Model for Tenant Configuration
  */

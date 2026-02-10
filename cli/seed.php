@@ -9,11 +9,10 @@
 
 // Bootstrap application
 require_once __DIR__ . '/../autoload.php';
-require_once __DIR__ . '/../app/core/Database.php';
-require_once __DIR__ . '/../app/models/User.php';
-require_once __DIR__ . '/../app/models/Tenant.php';
-require_once __DIR__ . '/../app/models/Team.php';
-require_once __DIR__ . '/../app/models/Employee.php';
+
+// Use PSR-4 imports
+use HRAssistant\Core\Database;
+use HRAssistant\Models\{User, Tenant, Team, Employee};
 
 // Ensure CLI context
 if (php_sapi_name() !== 'cli') {

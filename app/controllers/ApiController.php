@@ -1,4 +1,10 @@
 <?php
+
+namespace HRAssistant\Controllers;
+
+use HRAssistant\Models\User;
+use HRAssistant\Core\{Database, View};
+
 /**
  * API Controller for external integrations and mobile access
  * Provides RESTful endpoints for all major functionality

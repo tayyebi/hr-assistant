@@ -1,4 +1,9 @@
 <?php
+
+namespace HRAssistant\Models;
+
+use HRAssistant\Core\Database;
+
 /**
  * Asset Model
  * Manages digital assets (email accounts, git accounts, messenger accounts, etc.)

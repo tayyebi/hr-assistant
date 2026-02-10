@@ -1,5 +1,7 @@
 <?php
 
+namespace HRAssistant\Core;
+
 /**
  * HTTP Provider Base Class
  * Provides common HTTP functionality for API-based providers
