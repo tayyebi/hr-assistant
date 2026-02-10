@@ -1,6 +1,6 @@
 FROM php:8.3-cli
 
-# Install required extensions
+# Install required PHP extensions
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
@@ -12,12 +12,9 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install zip gd pdo_mysql
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 WORKDIR /app
 
-# Copy entrypoint
+# Copy only the entrypoint script (code files will be mounted as volumes)
 COPY ./scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
