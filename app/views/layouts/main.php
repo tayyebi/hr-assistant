@@ -62,12 +62,6 @@
                 </a>
             <?php endif; ?>
         </nav>
-            </a>
-            <a href="/settings" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
-                <?php Icon::render('settings', 20, 20); ?>
-                Settings
-            </a>
-        </nav>
 
         <footer>
             <article>
