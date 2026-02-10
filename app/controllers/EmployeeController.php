@@ -50,7 +50,7 @@ class EmployeeController
         ]);
         
         $_SESSION['flash_message'] = 'Employee added successfully.';
-        View::redirect('/employees');
+        View::redirect(View::workspaceUrl('/employees/'));
     }
 
     public function update(): void
@@ -69,7 +69,7 @@ class EmployeeController
         ]);
         
         $_SESSION['flash_message'] = 'Employee updated successfully.';
-        View::redirect(View::workspaceUrl('/employees'));
+        View::redirect(View::workspaceUrl('/employees/'));
     }
 
     public function delete(): void
@@ -82,7 +82,7 @@ class EmployeeController
         Employee::delete($tenantId, $id);
         
         $_SESSION['flash_message'] = 'Employee removed successfully.';
-        View::redirect(View::workspaceUrl('/employees'));
+        View::redirect(View::workspaceUrl('/employees/'));
     }
 
     /**

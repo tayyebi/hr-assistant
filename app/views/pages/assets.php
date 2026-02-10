@@ -380,7 +380,7 @@ document.querySelectorAll('.unassign-asset-btn').forEach(btn => {
                                     <input type="hidden" name="metadata" value="<?php echo htmlspecialchars(json_encode(['accountId' => $account['accountId']])); ?>">
                                     <button type="submit" data-variant="secondary" data-size="sm">Reset PW</button>
                                 </form>
-                                <form method="POST" action="<?php echo View::workspaceUrl('assets/provision'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo View::workspaceUrl('/assets/provision/'); ?>" style="display: inline;">
                                     <input type="hidden" name="service" value="<?php echo htmlspecialchars($activeService); ?>">
                                     <input type="hidden" name="action" value="DEACTIVATE">
                                     <input type="hidden" name="target_name" value="<?php echo htmlspecialchars($emp['full_name']); ?>">
@@ -388,7 +388,7 @@ document.querySelectorAll('.unassign-asset-btn').forEach(btn => {
                                     <button type="submit" data-variant="danger" data-size="sm">Suspend</button>
                                 </form>
                             <?php else: ?>
-                                <form method="POST" action="<?php echo View::workspaceUrl('assets/provision'); ?>">
+                                <form method="POST" action="<?php echo View::workspaceUrl('/assets/provision/'); ?>">
                                     <input type="hidden" name="service" value="<?php echo htmlspecialchars($activeService); ?>">
                                     <input type="hidden" name="action" value="PROVISION">
                                     <input type="hidden" name="target_name" value="<?php echo htmlspecialchars($emp['full_name']); ?>">

@@ -1,8 +1,23 @@
 <?php
 /**
- * Simple migration runner: executes SQL files in cli/migrations in order
+ * Enhanced migration runner: executes SQL files in cli/migrations in order with better error handling
  */
 require_once __DIR__ . '/../autoload.php';
+
+use HRAssistant\Core\Database;
+
+// Create migrations table if it doesn't exist
+try {
+    Database::execute("CREATE TABLE IF NOT EXISTS migrations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+    echo "✅ Migrations table ready\n";
+} catch (Exception $e) {
+    echo "❌ Failed to create migrations table: " . $e->getMessage() . "\n";
+    exit(1);
+}
 
 $dir = __DIR__ . '/migrations';
 $files = glob($dir . '/*.sql');
@@ -11,12 +26,12 @@ sort($files, SORT_NATURAL);
 foreach ($files as $file) {
     $name = basename($file);
 
-    // Check if already applied. If the migrations table doesn't exist yet, proceed to applying.
+    // Check if already applied
     $skip = false;
     try {
         $exists = Database::fetchOne('SELECT 1 FROM migrations WHERE name = ? LIMIT 1', [$name]);
         if ($exists) {
-            echo "Skipping {$name}, already applied\n";
+            echo "⏭️  Skipping {$name}, already applied\n";
             $skip = true;
         }
     } catch (\Exception $e) {
@@ -25,20 +40,26 @@ foreach ($files as $file) {
     }
     if ($skip) continue;
 
-    echo "Applying {$name}...\n";
+    echo "🚀 Applying {$name}...\n";
     $sql = file_get_contents($file);
     try {
-        // Execute the SQL file. Avoid wrapping DDL in transactions as some statements
-        // cause implicit commits in MariaDB/MySQL which makes transactions unreliable here.
-        Database::getConnection()->exec($sql);
+        // Split multiple statements and execute them separately for better error handling
+        $statements = array_filter(array_map('trim', explode(';', $sql)));
+        
+        foreach ($statements as $statement) {
+            if (!empty($statement)) {
+                Database::getConnection()->exec($statement);
+            }
+        }
+        
         // Record migration
         $stmt = Database::getConnection()->prepare('INSERT INTO migrations (name) VALUES (?)');
         $stmt->execute([$name]);
-        echo "Applied {$name}\n";
+        echo "✅ Applied {$name}\n";
     } catch (\Exception $e) {
-        echo "Error applying {$name}: " . $e->getMessage() . "\n";
-        // Do not abort entire process - report and move on
+        echo "❌ Error applying {$name}: " . $e->getMessage() . "\n";
+        exit(1); // Exit on error to prevent partial migrations
     }
 }
 
-echo "Migrations complete.\n";
+echo "\n🎉 All migrations completed successfully!\n";

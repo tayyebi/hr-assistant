@@ -8,13 +8,13 @@ class AuthController
     {
         if (User::isLoggedIn()) {
             if (User::isSystemAdmin()) {
-                View::redirect('/admin');
+                View::redirect('/admin/');
             } else {
                 $tenantId = User::getTenantId();
                 if ($tenantId) {
-                    View::redirect('/workspace/' . $tenantId . '/dashboard');
+                    View::redirect('/workspace/' . $tenantId . '/dashboard/');
                 } else {
-                    View::redirect('/admin');
+                    View::redirect('/admin/');
                 }
             }
             return;
@@ -37,31 +37,31 @@ class AuthController
             $_SESSION['user_id'] = $user['id'];
             
             if ($user['role'] === User::ROLE_SYSTEM_ADMIN) {
-                View::redirect('/admin');
+                View::redirect('/admin/');
             } else {
                 $tenantId = $user['tenant_id'];
                 if ($tenantId) {
-                    View::redirect('/workspace/' . $tenantId . '/dashboard');
+                    View::redirect('/workspace/' . $tenantId . '/dashboard/');
                 } else {
-                    View::redirect('/admin');
+                    View::redirect('/admin/');
                 }
             }
         } else {
             $_SESSION['login_error'] = 'Invalid email or password.';
-            View::redirect('/login');
+            View::redirect('/login/');
         }
     }
 
     public static function requireTenantAdmin(): void
     {
         if (!User::isLoggedIn()) {
-            View::redirect('/login');
+            View::redirect('/login/');
             exit;
         }
         
         $user = User::getCurrentUser();
         if (!$user) {
-            View::redirect('/login');
+            View::redirect('/login/');
             exit;
         }
         
@@ -77,7 +77,7 @@ class AuthController
         
         // For regular routes, require tenant admin or system admin
         if (!User::isTenantAdmin() && !User::isSystemAdmin()) {
-            View::redirect('/login');
+            View::redirect('/login/');
             exit;
         }
     }
@@ -85,13 +85,13 @@ class AuthController
     public function logout(): void
     {
         session_destroy();
-        View::redirect('/login');
+        View::redirect('/login/');
     }
 
     public static function requireAuth(): void
     {
         if (!User::isLoggedIn()) {
-            View::redirect('/login');
+            View::redirect('/login/');
             exit;
         }
     }
@@ -101,7 +101,7 @@ class AuthController
         self::requireAuth();
         
         if (!User::isSystemAdmin()) {
-            View::redirect('/login');
+            View::redirect('/login/');
             exit;
         }
     }

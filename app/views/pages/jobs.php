@@ -65,7 +65,7 @@
                         </td>
                         <td style="text-align: right;">
                             <?php if ($job['status'] === 'failed'): ?>
-                                <form method="POST" action="<?php echo View::workspaceUrl('jobs/retry'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo View::workspaceUrl('/jobs/retry/'); ?>" style="display: inline;">
                                     <input type="hidden" name="job_id" value="<?php echo htmlspecialchars($job['id']); ?>">
                                     <button type="submit" data-size="sm">
                                         <?php Icon::render('play', 12, 12); ?>

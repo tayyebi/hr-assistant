@@ -37,7 +37,7 @@
                         <p style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--color-primary); margin-bottom: var(--spacing-sm);">Active Email Aliases</p>
                         <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs);">
                             <?php foreach ($team['email_aliases'] as $alias): ?>
-                                <form method="POST" action="<?php echo View::workspaceUrl('teams/remove-alias'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo View::workspaceUrl('/teams/remove-alias'); ?>" style="display: inline;">
                                     <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
                                     <input type="hidden" name="alias" value="<?php echo htmlspecialchars($alias); ?>">
                                     <mark>
@@ -53,7 +53,7 @@
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
                         <h4 style="margin: 0;">Members (<?php echo count($team['member_ids']); ?>)</h4>
-                        <form method="POST" action="<?php echo View::workspaceUrl('teams/add-member'); ?>" style="display: flex; gap: var(--spacing-xs);">
+                        <form method="POST" action="<?php echo View::workspaceUrl('/teams/add-member'); ?>" style="display: flex; gap: var(--spacing-xs);">
                             <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
                             <select name="employee_id" onchange="this.form.submit()" style="font-size: 0.75rem; padding: var(--spacing-xs);">
                                 <option value="">+ Add Member</option>
@@ -84,7 +84,7 @@
                                         </figure>
                                         <span style="font-size: 0.875rem;"><?php echo htmlspecialchars($member['full_name']); ?></span>
                                     </div>
-                                    <form method="POST" action="<?php echo View::workspaceUrl('teams/remove-member'); ?>" style="display: inline;">
+                                    <form method="POST" action="<?php echo View::workspaceUrl('/teams/remove-member'); ?>" style="display: inline;">
                                         <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
                                         <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($memberId); ?>">
                                         <button type="submit" data-variant="ghost" data-size="icon" style="padding: 0;">
@@ -115,7 +115,7 @@
             </button>
         </header>
 
-        <form method="POST" action="<?php echo View::workspaceUrl('teams'); ?>">
+        <form method="POST" action="<?php echo View::workspaceUrl('/teams'); ?>">
             <div>
                 <label>Team Name</label>
                 <input type="text" name="name" required placeholder="e.g. Marketing Team">
@@ -139,7 +139,7 @@
             </button>
         </header>
 
-        <form method="POST" action="<?php echo View::workspaceUrl('teams/add-alias'); ?>">
+        <form method="POST" action="<?php echo View::workspaceUrl('/teams/add-alias'); ?>">
             <input type="hidden" name="team_id">
             <p style="font-size: 0.875rem;">This will create an alias in your configured Mail service.</p>
             

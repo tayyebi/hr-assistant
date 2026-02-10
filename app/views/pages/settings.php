@@ -45,7 +45,7 @@
                     <li>
                         <strong><?php echo htmlspecialchars($inst['name']); ?></strong>
                         <small style="margin-left: var(--spacing-sm); color: var(--text-muted);">(<?php echo htmlspecialchars($inst['type']); ?> / <?php echo htmlspecialchars($inst['provider']); ?>)</small>
-                        <form method="POST" action="<?php echo View::workspaceUrl('settings/providers/delete'); ?>" style="display:inline; margin-left: var(--spacing-md);">
+                        <form method="POST" action="<?php echo View::workspaceUrl('/settings/providers/delete/'); ?>" style="display:inline; margin-left: var(--spacing-md);">
                             <input type="hidden" name="id" value="<?php echo htmlspecialchars($inst['id']); ?>">
                             <button type="submit" data-variant="ghost" data-size="icon">Delete</button>
                         </form>
@@ -57,7 +57,7 @@
 
     <article>
         <h4>Create Provider Instance</h4>
-        <form method="POST" action="<?php echo View::workspaceUrl('settings/providers'); ?>" id="provider-form">
+        <form method="POST" action="<?php echo View::workspaceUrl('/settings/providers/'); ?>" id="provider-form">
             <section data-grid="3">
                 <div>
                     <label>Type</label>

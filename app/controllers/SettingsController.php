@@ -59,7 +59,7 @@ class SettingsController
         
         // Set success message
         $_SESSION['flash_message'] = 'Configuration saved successfully!';
-        header('Location: /settings');
+        header('Location: ' . View::workspaceUrl('/settings/'));
         exit();
     }
 
@@ -78,7 +78,7 @@ class SettingsController
 
         if (empty($type) || empty($provider) || empty($name)) {
             $_SESSION['flash_message'] = 'Type, provider and name are required for provider instance.';
-            View::redirect(View::workspaceUrl('/settings'));
+            View::redirect(View::workspaceUrl('/settings/'));
             return;
         }
 
@@ -86,7 +86,7 @@ class SettingsController
         $providers = ProviderSettings::getProvidersMetadata();
         if (!isset($providers[$provider]) || ($providers[$provider]['type'] ?? '') !== $type) {
             $_SESSION['flash_message'] = 'Provider does not match selected type.';
-            View::redirect(View::workspaceUrl('/settings'));
+            View::redirect(View::workspaceUrl('/settings/'));
             return;
         }
 
