@@ -74,7 +74,7 @@ class SettingsController
         $type = $_POST['type'] ?? '';
         $provider = $_POST['provider'] ?? '';
         $name = $_POST['name'] ?? '';
-        $settings = $_POST['settings'] ?? '';
+        $config = $_POST['config'] ?? [];
 
         if (empty($type) || empty($provider) || empty($name)) {
             $_SESSION['flash_message'] = 'Type, provider and name are required for provider instance.';
@@ -90,23 +90,50 @@ class SettingsController
             return;
         }
 
-        $parsedSettings = [];
-        if (!empty($settings)) {
-            // Expect JSON string in settings
-            $decoded = json_decode($settings, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $_SESSION['flash_message'] = 'Settings must be valid JSON.';
-                View::redirect(View::workspaceUrl('/settings'));
-                return;
+        // Validate and process configuration fields
+        $providerFields = ProviderSettings::getFields($provider);
+        $processedSettings = [];
+        $validationErrors = [];
+
+        foreach ($providerFields as $fieldName => $fieldConfig) {
+            $value = $config[$fieldName] ?? '';
+            
+            // Check required fields
+            if (($fieldConfig['required'] ?? false) && empty($value)) {
+                $validationErrors[] = "Field '{$fieldConfig['label']}' is required.";
+                continue;
             }
-            $parsedSettings = is_array($decoded) ? $decoded : [];
+            
+            // Process value based on field type
+            switch ($fieldConfig['type'] ?? 'text') {
+                case 'checkbox':
+                    $processedSettings[$fieldName] = !empty($value) ? true : false;
+                    break;
+                case 'number':
+                    if (!empty($value)) {
+                        $processedSettings[$fieldName] = (int) $value;
+                    }
+                    break;
+                default:
+                    if (!empty($value)) {
+                        $processedSettings[$fieldName] = $value;
+                    }
+                    break;
+            }
+        }
+
+        // If there are validation errors, return with error message
+        if (!empty($validationErrors)) {
+            $_SESSION['flash_message'] = 'Validation failed: ' . implode(' ', $validationErrors);
+            View::redirect(View::workspaceUrl('/settings'));
+            return;
         }
 
         ProviderInstance::create($tenantId, [
             'type' => $type,
             'provider' => $provider,
             'name' => $name,
-            'settings' => $parsedSettings
+            'settings' => $processedSettings
         ]);
 
         $_SESSION['flash_message'] = 'Provider instance created successfully.';

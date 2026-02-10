@@ -45,7 +45,7 @@
                     <li>
                         <strong><?php echo htmlspecialchars($inst['name']); ?></strong>
                         <small style="margin-left: var(--spacing-sm); color: var(--text-muted);">(<?php echo htmlspecialchars($inst['type']); ?> / <?php echo htmlspecialchars($inst['provider']); ?>)</small>
-                        <form method="POST" action="/settings/providers/delete" style="display:inline; margin-left: var(--spacing-md);">
+                        <form method="POST" action="<?php echo View::workspaceUrl('settings/providers/delete'); ?>" style="display:inline; margin-left: var(--spacing-md);">
                             <input type="hidden" name="id" value="<?php echo htmlspecialchars($inst['id']); ?>">
                             <button type="submit" data-variant="ghost" data-size="icon">Delete</button>
                         </form>
@@ -57,7 +57,7 @@
 
     <article>
         <h4>Create Provider Instance</h4>
-        <form method="POST" action="/settings/providers">
+        <form method="POST" action="<?php echo View::workspaceUrl('settings/providers'); ?>" id="provider-form">
             <section data-grid="3">
                 <div>
                     <label>Type</label>
@@ -82,12 +82,15 @@
                     <label>Name</label>
                     <input type="text" name="name" placeholder="e.g. GitLab - Engineering" required>
                 </div>
-                <div style="grid-column: span 3;">
-                    <label>Settings (JSON)</label>
-                    <textarea name="settings" placeholder='{"gitlab_url":"https://gitlab.example","gitlab_token":"token"}' style="min-height: 120px; width: 100%;"></textarea>
-                    <small style="color: var(--text-muted);">Optional JSON with provider-specific settings. These will be used when querying provider APIs.</small>
-                </div>
             </section>
+            
+            <!-- Provider-specific configuration fields -->
+            <div id="provider-config" style="margin-top: var(--spacing-md); display: none;">
+                <h5>Provider Configuration</h5>
+                <section data-grid="2" id="config-fields">
+                    <!-- Dynamic fields will be inserted here -->
+                </section>
+            </div>
             <footer style="margin-top: var(--spacing-md);">
                 <button type="submit">Add Provider Instance</button>
             </footer>
@@ -96,17 +99,45 @@
 </section>
 
 <script>
-// Provider instance form: filter provider list based on selected type
+// Provider instance form: filter provider list based on selected type and show config fields
 const typeSelect = document.querySelector('select[name="type"]');
 const providerSelect = document.getElementById('provider-select');
+const providerConfig = document.getElementById('provider-config');
+const configFields = document.getElementById('config-fields');
+
+// Provider field definitions loaded from PHP
+const providerFieldsData = <?php 
+echo json_encode(array_reduce(
+    array_keys(ProviderSettings::getProvidersMetadata()),
+    function($carry, $provider) {
+        $carry[$provider] = ProviderSettings::getFields($provider);
+        return $carry;
+    },
+    []
+));
+?>;
+
 if (typeSelect && providerSelect) {
     typeSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         providerSelect.disabled = !val;
+        
+        // Filter provider options
         for (const opt of providerSelect.querySelectorAll('option[data-type]')) {
             opt.style.display = (opt.dataset.type === val) ? 'block' : 'none';
         }
         providerSelect.value = '';
+        hideProviderConfig();
+    });
+    
+    providerSelect.addEventListener('change', (e) => {
+        const selectedProvider = e.target.value;
+        
+        if (selectedProvider && providerFieldsData[selectedProvider]) {
+            showProviderConfig(selectedProvider, providerFieldsData[selectedProvider]);
+        } else {
+            hideProviderConfig();
+        }
     });
 
     // Click on provider card to prefill the create form
@@ -115,14 +146,80 @@ if (typeSelect && providerSelect) {
             const prov = card.dataset.provider;
             const type = card.dataset.type;
             typeSelect.value = type;
-            // trigger change to enable provider select and filter
             typeSelect.dispatchEvent(new Event('change'));
             providerSelect.value = prov;
-            // focus name input and scroll into view
+            providerSelect.dispatchEvent(new Event('change'));
             document.querySelector('input[name="name"]').focus();
             document.querySelector('input[name="name"]').scrollIntoView({behavior: 'smooth', block: 'center'});
         });
     });
+}
+
+function showProviderConfig(provider, fields) {
+    configFields.innerHTML = '';
+    
+    Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
+        const fieldDiv = document.createElement('div');
+        
+        // Create label
+        const label = document.createElement('label');
+        label.textContent = fieldConfig.label;
+        if (fieldConfig.required) {
+            const required = document.createElement('span');
+            required.style.color = 'var(--danger, #dc2626)';
+            required.textContent = ' *';
+            label.appendChild(required);
+        }
+        fieldDiv.appendChild(label);
+        
+        // Create input field
+        let input;
+        if (fieldConfig.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = 3;
+        } else if (fieldConfig.type === 'select' && fieldConfig.options) {
+            input = document.createElement('select');
+            Object.entries(fieldConfig.options).forEach(([value, text]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                input.appendChild(option);
+            });
+        } else if (fieldConfig.type === 'checkbox') {
+            input = document.createElement('input');
+            input.type = 'checkbox';
+            input.value = '1';
+        } else {
+            input = document.createElement('input');
+            input.type = fieldConfig.type || 'text';
+        }
+        
+        input.name = `config[${fieldName}]`;
+        if (fieldConfig.required) input.required = true;
+        if (fieldConfig.placeholder) input.placeholder = fieldConfig.placeholder;
+        if (fieldConfig.value) input.value = fieldConfig.value;
+        
+        fieldDiv.appendChild(input);
+        
+        // Add description if provided
+        if (fieldConfig.description) {
+            const desc = document.createElement('small');
+            desc.style.color = 'var(--text-muted, #6b7280)';
+            desc.style.display = 'block';
+            desc.style.marginTop = '0.25rem';
+            desc.textContent = fieldConfig.description;
+            fieldDiv.appendChild(desc);
+        }
+        
+        configFields.appendChild(fieldDiv);
+    });
+    
+    providerConfig.style.display = 'block';
+}
+
+function hideProviderConfig() {
+    providerConfig.style.display = 'none';
+    configFields.innerHTML = '';
 }
 </script>
 

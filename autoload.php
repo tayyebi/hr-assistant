@@ -68,15 +68,19 @@ class HRAutoloader
      * @var array Map of known controller classes
      */
     private static $controllerClasses = [
+        'ApiController' => 'app/controllers/ApiController.php',
+        'AssetController' => 'app/controllers/AssetController.php',
+        'AuditController' => 'app/controllers/AuditController.php',
         'AuthController' => 'app/controllers/AuthController.php',
         'DashboardController' => 'app/controllers/DashboardController.php',
         'EmployeeController' => 'app/controllers/EmployeeController.php',
-        'TeamController' => 'app/controllers/TeamController.php',
-        'MessageController' => 'app/controllers/MessageController.php',
-        'AssetController' => 'app/controllers/AssetController.php',
         'JobController' => 'app/controllers/JobController.php',
+        'MessageController' => 'app/controllers/MessageController.php',
+        'NotificationController' => 'app/controllers/NotificationController.php',
+        'ReportsController' => 'app/controllers/ReportsController.php',
         'SettingsController' => 'app/controllers/SettingsController.php',
-        'SystemAdminController' => 'app/controllers/SystemAdminController.php'
+        'SystemAdminController' => 'app/controllers/SystemAdminController.php',
+        'TeamController' => 'app/controllers/TeamController.php'
     ];
 
     /**

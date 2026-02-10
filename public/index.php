@@ -58,5 +58,10 @@ $router->addWorkspace('POST', '/settings', 'SettingsController', 'save');
 $router->addWorkspace('POST', '/settings/providers', 'SettingsController', 'createProviderInstance');
 $router->addWorkspace('POST', '/settings/providers/delete', 'SettingsController', 'deleteProviderInstance');
 
+$router->addWorkspace('GET', '/reports', 'ReportsController', 'index');
+$router->addWorkspace('GET', '/notifications', 'NotificationController', 'index');
+$router->addWorkspace('GET', '/audit', 'AuditController', 'index');
+$router->addWorkspace('GET', '/api-docs', 'ApiController', 'index');
+
 // Dispatch the request
 $router->dispatch($_SERVER['REQUEST_METHOD'], parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));

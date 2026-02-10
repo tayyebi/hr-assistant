@@ -68,7 +68,7 @@
                                 <?php endif; ?>
                                 <?php echo htmlspecialchars(substr($msg['text'], 0, 100)); ?>...
                             </p>
-                            <form method="POST" action="/messages/assign" style="display: flex; gap: var(--spacing-sm);">
+                            <form method="POST" action="<?php echo View::workspaceUrl('messages/assign'); ?>" style="display: flex; gap: var(--spacing-sm);">
                                 <input type="hidden" name="message_id" value="<?php echo htmlspecialchars($msg['id']); ?>">
                                 <select name="employee_id" style="flex: 1; font-size: 0.75rem;">
                                     <option value="">Assign to...</option>
@@ -120,7 +120,7 @@
             </main>
 
             <footer>
-                <form method="POST" action="/messages/send">
+                <form method="POST" action="<?php echo View::workspaceUrl('messages/send'); ?>">
                     <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($selectedEmployee['id']); ?>">
                     <input type="hidden" name="channel" value="<?php echo $channel; ?>">
                     
