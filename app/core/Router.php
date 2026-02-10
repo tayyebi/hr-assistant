@@ -37,7 +37,7 @@ class Router
         // Try workspace routes first (pattern: /workspace/{tenantId}/...)
         if (preg_match('#^/workspace/([^/]+)(/.*)?$#', $uri, $matches)) {
             $tenantId = $matches[1];
-            $workspacePath = $matches[2] ?: '/';
+            $workspacePath = isset($matches[2]) ? $matches[2] : '/';
             
             // Set tenant context in session for this request
             $_SESSION['workspace_tenant_id'] = $tenantId;

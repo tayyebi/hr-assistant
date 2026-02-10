@@ -1,87 +1,32 @@
 <?php
 /**
- * Custom Autoloader for HR Assistant
- * Pure PHP autoloader without external dependencies
+ * Dynamic PSR-4 Autoloader for HR Assistant
+ * Fully automatic class loading with namespace support
  * 
- * This autoloader follows PSR-4-like conventions but adapted for a simpler structure:
- * - Controllers end with "Controller" suffix and are in app/controllers/
- * - Models are in app/models/ 
- * - Core classes are in app/core/
- * 
- * Usage: require_once 'autoload.php';
+ * Features:
+ * - PSR-4 compliant namespace mapping
+ * - Automatic file discovery
+ * - Support for legacy non-namespaced classes
+ * - Case-insensitive file system support
+ * - Development-friendly error reporting
  */
 
 class HRAutoloader
 {
     /**
-     * @var array Map of class name patterns to directories
+     * @var array PSR-4 namespace mappings
      */
-    private static $classMap = [
-        'Controller' => 'app/controllers/',
-        'Model' => 'app/models/',
-        'Core' => 'app/core/'
+    private static $namespaces = [
+        'HRAssistant\\Controllers\\' => 'app/controllers/',
+        'HRAssistant\\Models\\' => 'app/models/',
+        'HRAssistant\\Core\\' => 'app/core/',
+        'HRAssistant\\' => 'app/',
     ];
 
     /**
-     * @var array Map of known core classes (for classes that don't follow naming conventions)
+     * @var array Legacy class mappings for backward compatibility
      */
-    private static $coreClasses = [
-        'Router' => 'app/core/Router.php',
-        'View' => 'app/core/View.php',
-        'Database' => 'app/core/Database.php',
-        'Icon' => 'app/core/Icon.php',
-        'Provider' => 'app/core/Provider.php',
-        'IProvider' => 'app/core/Provider.php',
-        'AbstractProvider' => 'app/core/Provider.php',
-        'HttpProvider' => 'app/core/HttpProvider.php',
-        'HttpClient' => 'app/core/HttpClient.php',
-        'HttpResponse' => 'app/core/HttpClient.php',
-        'HttpResponseBody' => 'app/core/HttpClient.php',
-        'Providers' => 'app/core/Providers.php',
-        'ProviderFactory' => 'app/core/ProviderFactory.php',
-        'ProviderSettings' => 'app/core/ProviderSettings.php',
-        'ProviderType' => 'app/core/ProviderType.php',
-        'EmailProvider' => 'app/core/ProviderType.php',
-        'GitProvider' => 'app/core/ProviderType.php',
-        'MessengerProvider' => 'app/core/ProviderType.php',
-        'IamProvider' => 'app/core/ProviderType.php',
-        'AssetManager' => 'app/core/AssetManager.php',
-        'ExcelStorage' => 'app/core/ExcelStorage.php'
-    ];
-
-    /**
-     * @var array Map of known model classes
-     */
-    private static $modelClasses = [
-        'User' => 'app/models/User.php',
-        'Employee' => 'app/models/Employee.php',
-        'Team' => 'app/models/Team.php',
-        'Asset' => 'app/models/Asset.php',
-        'Message' => 'app/models/Message.php',
-        'Job' => 'app/models/Job.php',
-        'ProviderInstance' => 'app/models/ProviderInstance.php',
-        'Config' => 'app/models/Config.php',
-        'Tenant' => 'app/models/Tenant.php'
-    ];
-
-    /**
-     * @var array Map of known controller classes
-     */
-    private static $controllerClasses = [
-        'ApiController' => 'app/controllers/ApiController.php',
-        'AssetController' => 'app/controllers/AssetController.php',
-        'AuditController' => 'app/controllers/AuditController.php',
-        'AuthController' => 'app/controllers/AuthController.php',
-        'DashboardController' => 'app/controllers/DashboardController.php',
-        'EmployeeController' => 'app/controllers/EmployeeController.php',
-        'JobController' => 'app/controllers/JobController.php',
-        'MessageController' => 'app/controllers/MessageController.php',
-        'NotificationController' => 'app/controllers/NotificationController.php',
-        'ReportsController' => 'app/controllers/ReportsController.php',
-        'SettingsController' => 'app/controllers/SettingsController.php',
-        'SystemAdminController' => 'app/controllers/SystemAdminController.php',
-        'TeamController' => 'app/controllers/TeamController.php'
-    ];
+    private static $legacyClasses = [];
 
     /**
      * @var string Base directory path for the application
@@ -89,184 +34,253 @@ class HRAutoloader
     private static $basePath;
 
     /**
+     * @var bool Enable development mode for verbose error reporting
+     */
+    private static $devMode = true;
+
+    /**
+     * @var array Cache for discovered files to improve performance
+     */
+    private static $fileCache = [];
+
+    /**
      * Initialize the autoloader
      * 
-     * @param string|null $basePath Base path for the application (defaults to dirname of this file)
+     * @param string|null $basePath Base path for the application
+     * @param bool $devMode Enable development mode for verbose errors
      */
-    public static function init($basePath = null)
+    public static function init($basePath = null, $devMode = true)
     {
         self::$basePath = $basePath ?: dirname(__FILE__);
+        self::$devMode = $devMode;
+        
+        // Discover existing files for legacy support
+        self::discoverLegacyClasses();
+        
+        // Register autoloader with highest priority
         spl_autoload_register([self::class, 'autoload'], true, true);
+        
+        if (self::$devMode) {
+            self::validateDirectories();
+        }
     }
 
     /**
-     * Autoload function that gets called when a class needs to be loaded
+     * PSR-4 compliant autoloader
      * 
-     * @param string $className The name of the class to load
-     * @return bool True if the class was loaded, false otherwise
+     * @param string $className Fully qualified class name
+     * @return bool True if class was loaded successfully
      */
     public static function autoload($className)
     {
-        // First, try the explicit class maps
-        if (isset(self::$coreClasses[$className])) {
-            return self::loadClass(self::$coreClasses[$className]);
-        }
-
-        if (isset(self::$modelClasses[$className])) {
-            return self::loadClass(self::$modelClasses[$className]);
-        }
-
-        if (isset(self::$controllerClasses[$className])) {
-            return self::loadClass(self::$controllerClasses[$className]);
-        }
-
-        // Try pattern-based loading for new classes
-        return self::loadByPattern($className);
-    }
-
-    /**
-     * Load a class by its file path
-     * 
-     * @param string $filePath Relative path to the class file
-     * @return bool True if loaded successfully, false otherwise
-     */
-    private static function loadClass($filePath)
-    {
-        $fullPath = self::$basePath . DIRECTORY_SEPARATOR . $filePath;
-        
-        if (file_exists($fullPath)) {
-            require_once $fullPath;
+        // First try PSR-4 namespace mapping
+        if (self::loadPsr4Class($className)) {
             return true;
         }
-
+        
+        // Fallback to legacy class mapping
+        if (self::loadLegacyClass($className)) {
+            return true;
+        }
+        
+        // Try file discovery as last resort
+        if (self::discoverAndLoadClass($className)) {
+            return true;
+        }
+        
+        if (self::$devMode) {
+            error_log("HRAutoloader: Failed to load class '$className'");
+        }
+        
         return false;
     }
 
     /**
-     * Load a class based on naming patterns
+     * Load class using PSR-4 namespace mapping
      * 
-     * @param string $className The name of the class to load
-     * @return bool True if loaded successfully, false otherwise
+     * @param string $className
+     * @return bool
      */
-    private static function loadByPattern($className)
+    private static function loadPsr4Class($className)
     {
-        // Try controllers (classes ending with "Controller")
-        if (substr($className, -10) === 'Controller') {
-            $filePath = 'app/controllers/' . $className . '.php';
-            if (self::loadClass($filePath)) {
-                return true;
+        foreach (self::$namespaces as $namespace => $baseDir) {
+            if (strpos($className, $namespace) === 0) {
+                $relativeClass = substr($className, strlen($namespace));
+                $file = self::$basePath . '/' . $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+                
+                if (self::loadFile($file)) {
+                    return true;
+                }
             }
         }
-
-        // Try models (check common model directory)
-        $modelPath = 'app/models/' . $className . '.php';
-        if (self::loadClass($modelPath)) {
-            return true;
-        }
-
-        // Try core classes
-        $corePath = 'app/core/' . $className . '.php';
-        if (self::loadClass($corePath)) {
-            return true;
-        }
-
-        // Try scanning directories for the class
-        return self::scanDirectories($className);
+        
+        return false;
     }
 
     /**
-     * Scan all known directories for a class file
+     * Load class using legacy mapping
      * 
-     * @param string $className The name of the class to find
-     * @return bool True if found and loaded, false otherwise
+     * @param string $className
+     * @return bool
      */
-    private static function scanDirectories($className)
+    private static function loadLegacyClass($className)
+    {
+        if (isset(self::$legacyClasses[$className])) {
+            return self::loadFile(self::$basePath . '/' . self::$legacyClasses[$className]);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Discover and load class by searching directories
+     * 
+     * @param string $className
+     * @return bool
+     */
+    private static function discoverAndLoadClass($className)
+    {
+        // Check cache first
+        if (isset(self::$fileCache[$className])) {
+            return self::loadFile(self::$fileCache[$className]);
+        }
+        
+        // Search in common directories
+        $searchPaths = [
+            'app/controllers/' . $className . '.php',
+            'app/models/' . $className . '.php',
+            'app/core/' . $className . '.php',
+        ];
+        
+        // Try case-insensitive search for controllers and models
+        if (preg_match('/Controller$/', $className)) {
+            $searchPaths[] = 'app/controllers/' . $className . '.php';
+        }
+        
+        if (preg_match('/^[A-Z][a-z]+$/', $className)) {
+            $searchPaths[] = 'app/models/' . $className . '.php';
+        }
+        
+        foreach ($searchPaths as $path) {
+            $fullPath = self::$basePath . '/' . $path;
+            if (file_exists($fullPath)) {
+                self::$fileCache[$className] = $fullPath;
+                return self::loadFile($fullPath);
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Load a PHP file
+     * 
+     * @param string $file
+     * @return bool
+     */
+    private static function loadFile($file)
+    {
+        if (file_exists($file)) {
+            require_once $file;
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Discover existing classes for legacy support
+     */
+    private static function discoverLegacyClasses()
     {
         $directories = [
             'app/controllers/',
             'app/models/',
-            'app/core/',
-            'cli/'
+            'app/core/'
         ];
-
+        
         foreach ($directories as $dir) {
-            $fullDir = self::$basePath . DIRECTORY_SEPARATOR . $dir;
+            $fullDir = self::$basePath . '/' . $dir;
             if (is_dir($fullDir)) {
                 $files = glob($fullDir . '*.php');
                 foreach ($files as $file) {
-                    $filename = basename($file, '.php');
-                    if ($filename === $className) {
-                        require_once $file;
-                        return true;
-                    }
+                    $className = basename($file, '.php');
+                    self::$legacyClasses[$className] = str_replace(self::$basePath . '/', '', $file);
                 }
             }
         }
-
-        return false;
     }
 
     /**
-     * Add a new class to the autoloader mapping
-     * 
-     * @param string $className Name of the class
-     * @param string $filePath Relative path to the class file
+     * Validate that required directories exist
      */
-    public static function addClass($className, $filePath)
+    private static function validateDirectories()
     {
-        // Determine the type based on the file path
-        if (strpos($filePath, 'controllers/') !== false) {
-            self::$controllerClasses[$className] = $filePath;
-        } elseif (strpos($filePath, 'models/') !== false) {
-            self::$modelClasses[$className] = $filePath;
-        } elseif (strpos($filePath, 'core/') !== false) {
-            self::$coreClasses[$className] = $filePath;
+        foreach (self::$namespaces as $namespace => $dir) {
+            $fullPath = self::$basePath . '/' . $dir;
+            if (!is_dir($fullPath)) {
+                error_log("HRAutoloader: Directory '$fullPath' does not exist for namespace '$namespace'");
+            }
         }
     }
 
     /**
-     * Get all registered classes
+     * Register a new namespace
      * 
-     * @return array Array of all registered classes with their file paths
+     * @param string $namespace
+     * @param string $baseDir
      */
-    public static function getAllClasses()
+    public static function registerNamespace($namespace, $baseDir)
     {
-        return array_merge(
-            self::$coreClasses,
-            self::$modelClasses,
-            self::$controllerClasses
-        );
+        self::$namespaces[$namespace] = $baseDir;
     }
 
     /**
-     * Check if a class is registered
+     * Get registered namespaces
      * 
-     * @param string $className Name of the class to check
-     * @return bool True if registered, false otherwise
+     * @return array
      */
-    public static function isClassRegistered($className)
+    public static function getNamespaces()
     {
-        return isset(self::$coreClasses[$className]) ||
-               isset(self::$modelClasses[$className]) ||
-               isset(self::$controllerClasses[$className]);
+        return self::$namespaces;
     }
 
     /**
-     * Get debug information about the autoloader
+     * Get discovered legacy classes
      * 
-     * @return array Debug information
+     * @return array
      */
-    public static function getDebugInfo()
+    public static function getLegacyClasses()
+    {
+        return self::$legacyClasses;
+    }
+
+    /**
+     * Clear file cache (useful for development)
+     */
+    public static function clearCache()
+    {
+        self::$fileCache = [];
+    }
+
+    /**
+     * Get autoloader statistics
+     * 
+     * @return array
+     */
+    public static function getStats()
     {
         return [
-            'base_path' => self::$basePath,
-            'core_classes' => count(self::$coreClasses),
-            'model_classes' => count(self::$modelClasses),
-            'controller_classes' => count(self::$controllerClasses),
-            'total_classes' => count(self::getAllClasses())
+            'namespaces' => count(self::$namespaces),
+            'legacy_classes' => count(self::$legacyClasses),
+            'cached_files' => count(self::$fileCache),
+            'dev_mode' => self::$devMode
         ];
     }
 }
 
-// Auto-initialize the autoloader when this file is included
+// Initialize autoloader
 HRAutoloader::init();
+
+// Alias for backward compatibility
+class_alias('HRAutoloader', 'Autoloader');
