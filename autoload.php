@@ -41,6 +41,10 @@ class HRAutoloader
         'ProviderFactory' => 'app/core/ProviderFactory.php',
         'ProviderSettings' => 'app/core/ProviderSettings.php',
         'ProviderType' => 'app/core/ProviderType.php',
+        'EmailProvider' => 'app/core/ProviderType.php',
+        'GitProvider' => 'app/core/ProviderType.php',
+        'MessengerProvider' => 'app/core/ProviderType.php',
+        'IamProvider' => 'app/core/ProviderType.php',
         'AssetManager' => 'app/core/AssetManager.php',
         'ExcelStorage' => 'app/core/ExcelStorage.php'
     ];

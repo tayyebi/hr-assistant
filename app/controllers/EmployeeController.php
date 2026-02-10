@@ -69,7 +69,7 @@ class EmployeeController
         ]);
         
         $_SESSION['flash_message'] = 'Employee updated successfully.';
-        View::redirect(View::workspaceUrl('/employees'));eUrl('/employees'));
+        View::redirect(View::workspaceUrl('/employees'));
     }
 
     public function delete(): void

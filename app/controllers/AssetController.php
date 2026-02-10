@@ -47,6 +47,8 @@ class AssetController
         unset($_SESSION['flash_message']);
         unset($_SESSION['flash_message_type']);
         
+        $activeService = $_GET['service'] ?? 'mailcow';
+
         View::render('assets', [
             'tenant' => $tenant,
             'user' => $user,
@@ -56,6 +58,7 @@ class AssetController
             'assignedAssets' => $assignedAssets,
             'message' => $message,
             'messageType' => $messageType,
+            'activeService' => $activeService,
             'activeTab' => 'assets'
         ]);
     }
