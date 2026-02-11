@@ -13,6 +13,7 @@ class ProviderType
     const TYPE_MESSENGER = 'messenger';
     const TYPE_IAM = 'iam';
     const TYPE_SECRETS = 'secrets';
+    const TYPE_CALENDAR = 'calendar';
 
     /**
      * Get all available provider types
@@ -24,7 +25,8 @@ class ProviderType
             \App\Core\GitProvider::getAll(),
             \App\Core\MessengerProvider::getAll(),
             \App\Core\IamProvider::getAll(),
-            \App\Core\SecretsProvider::getAll()
+            \App\Core\SecretsProvider::getAll(),
+            \App\Core\CalendarProvider::getAll()
         );
     }
 
@@ -39,6 +41,7 @@ class ProviderType
             self::TYPE_MESSENGER => \App\Core\MessengerProvider::getAll(),
             self::TYPE_IAM => \App\Core\IamProvider::getAll(),
             self::TYPE_SECRETS => \App\Core\SecretsProvider::getAll(),
+            self::TYPE_CALENDAR => \App\Core\CalendarProvider::getAll(),
         ];
 
         return $providers[$type] ?? [];
@@ -64,6 +67,9 @@ class ProviderType
         if (in_array($provider, \App\Core\SecretsProvider::getAll())) {
             return self::TYPE_SECRETS;
         }
+        if (in_array($provider, \App\Core\CalendarProvider::getAll())) {
+            return self::TYPE_CALENDAR;
+        }
 
         return null;
     }
@@ -88,6 +94,9 @@ class ProviderType
         if (in_array($provider, \App\Core\SecretsProvider::getAll())) {
             return \App\Core\SecretsProvider::getName($provider);
         }
+        if (in_array($provider, \App\Core\CalendarProvider::getAll())) {
+            return \App\Core\CalendarProvider::getName($provider);
+        }
 
         return ucfirst($provider);
     }
@@ -103,6 +112,7 @@ class ProviderType
             self::TYPE_MESSENGER => 'Messaging Services',
             self::TYPE_IAM => 'Identity & Access Management',
             self::TYPE_SECRETS => 'Secrets & Password Management',
+            self::TYPE_CALENDAR => 'Calendar Services',
             default => ucfirst($type) . ' Services'
         };
     }

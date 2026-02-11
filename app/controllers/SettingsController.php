@@ -259,7 +259,7 @@ class SettingsController
         // For each provider instance, test connection and capture errors
         foreach ($providerInstances as $instance) {
             try {
-                $provider = \App\Core\ProviderFactory::create($instance['provider'], $instance['settings'] ?? []);
+                $provider = \App\Core\ProviderFactory::create($tenantId, $instance['provider'], $instance['settings'] ?? []);
                 if (!$provider->testConnection()) {
                     $errors[] = [
                         'instance' => $instance['name'],

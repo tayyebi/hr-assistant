@@ -10,6 +10,7 @@ services:
       - DB_PASS=test
     depends_on:
       - mockdb
+      
   mockdb:
     image: mariadb:10.5
     environment:
