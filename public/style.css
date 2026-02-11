@@ -1642,3 +1642,324 @@ body.login-page {
     -webkit-overflow-scrolling: touch;
     border-radius: 6px;
 }
+
+/* ============================================
+   ADMIN PAGE STYLES
+   ============================================ */
+
+body.admin-page {
+    background-color: var(--color-bg-alt);
+}
+
+.admin-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
+    background-color: var(--color-text);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    gap: 1rem;
+    box-shadow: 0 1px 3px var(--color-shadow);
+    z-index: 1000;
+}
+
+.admin-navbar .navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.admin-navbar .navbar-brand strong {
+    color: var(--color-primary);
+}
+
+.admin-navbar-end {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-left: auto;
+}
+
+.admin-navbar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: white;
+    text-decoration: none;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.admin-navbar-item:hover {
+    color: var(--color-primary);
+}
+
+.admin-main {
+    margin-top: var(--navbar-height);
+    padding: 1.5rem;
+    min-height: calc(100vh - var(--navbar-height));
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--color-text);
+}
+
+.admin-notification {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--color-border);
+}
+
+.admin-notification.is-success {
+    background-color: rgba(45, 158, 107, 0.1);
+    border-left-color: var(--color-success);
+    color: #1f7a4f;
+}
+
+.admin-notification.is-danger {
+    background-color: rgba(200, 64, 64, 0.1);
+    border-left-color: var(--color-danger);
+    color: #a63535;
+}
+
+.admin-notification .delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: var(--transition);
+    margin-left: auto;
+}
+
+.admin-notification .delete:hover {
+    opacity: 1;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media screen and (min-width: 769px) {
+    .admin-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.tenant-item {
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.tenant-item.inactive {
+    opacity: 0.6;
+}
+
+.tenant-item-header {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.tenant-item-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.tenant-item-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.tenant-item-status.active {
+    background-color: rgba(45, 158, 107, 0.2);
+    color: #1f7a4f;
+}
+
+.tenant-item-status.inactive {
+    background-color: rgba(86, 89, 89, 0.2);
+    color: var(--color-text-secondary);
+}
+
+.tenant-item-id {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    font-family: 'Monaco', 'Courier New', monospace;
+    margin: 0;
+}
+
+.tenant-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.tenant-item-actions .button {
+    flex: 1;
+    min-width: 40px;
+}
+
+@media screen and (min-width: 576px) {
+    .tenant-item-actions .button {
+        flex: 0 1 auto;
+    }
+}
+
+.tenant-item-actions .button span:last-child {
+    display: none;
+}
+
+@media screen and (min-width: 768px) {
+    .tenant-item-actions .button span:last-child {
+        display: inline;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    color: var(--color-text-secondary);
+}
+
+.empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.admin-card {
+    background-color: var(--color-bg);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px var(--color-shadow);
+    overflow: hidden;
+}
+
+.admin-card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-alt);
+}
+
+.admin-card-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.form-field {
+    margin-bottom: 1.5rem;
+}
+
+.form-field label {
+    display: block;
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-field input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.form-field input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
+}
+
+.form-submit {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.form-submit:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.tenant-form {
+    margin: 0;
+    display: inline;
+}
+
+/* Mobile responsive adjustments */
+@media screen and (max-width: 768px) {
+    .admin-main {
+        padding: 1rem;
+    }
+
+    .admin-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tenant-item {
+        padding: 1rem;
+    }
+
+    .admin-card-body {
+        padding: 1rem;
+    }
+
+    .admin-navbar {
+        padding: 0 1rem;
+    }
+
+    .admin-navbar .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .admin-navbar-item span:last-child {
+        display: none;
+    }
+}
+
