@@ -22,6 +22,10 @@ $router->add('GET', '/logout', 'App\\Controllers\\AuthController', 'logout');
 // System admin routes
 $router->add('GET', '/admin', 'App\\Controllers\\SystemAdminController', 'index');
 $router->add('POST', '/admin/tenants', 'App\\Controllers\\SystemAdminController', 'createTenant');
+$router->add('POST', '/admin/tenants/edit', 'App\\Controllers\\SystemAdminController', 'editTenant');
+$router->add('POST', '/admin/tenants/deactivate', 'App\\Controllers\\SystemAdminController', 'deactivateTenant');
+$router->add('POST', '/admin/tenants/activate', 'App\\Controllers\\SystemAdminController', 'activateTenant');
+$router->add('POST', '/admin/tenants/delete', 'App\\Controllers\\SystemAdminController', 'deleteTenant');
 
 // Define workspace routes (pattern: /workspace/{tenantId}/...)
 $router->addWorkspace('GET', '/', 'App\\Controllers\\DashboardController', 'index');
@@ -58,9 +62,11 @@ $router->addWorkspace('GET', '/settings', 'App\\Controllers\\SettingsController'
 $router->addWorkspace('POST', '/settings', 'App\\Controllers\\SettingsController', 'save');
 $router->addWorkspace('POST', '/settings/providers', 'App\\Controllers\\SettingsController', 'createProviderInstance');
 $router->addWorkspace('POST', '/settings/providers/delete', 'App\\Controllers\\SettingsController', 'deleteProviderInstance');
+$router->addWorkspace('POST', '/settings/test-connection', 'App\\Controllers\\SettingsController', 'testProviderConnection');
 
 // Repository routes
 $router->addWorkspace('GET', '/repositories', 'App\\Controllers\\RepositoryController', 'index');
+$router->addWorkspace('GET', '/calendars', 'App\\Controllers\\CalendarController', 'index');
 $router->addWorkspace('GET', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'getAccess');
 $router->addWorkspace('POST', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'setAccess');
 $router->addWorkspace('GET', '/api/repositories/commits', 'App\\Controllers\\RepositoryController', 'getCommits');

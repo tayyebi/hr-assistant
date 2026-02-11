@@ -171,6 +171,48 @@ class SettingsController
     }
 
     /**
+     * Test provider connection (AJAX endpoint)
+     */
+    public function testProviderConnection(): void
+    {
+        AuthController::requireTenantAdmin();
+        header('Content-Type: application/json');
+
+        $tenantId = User::getTenantId();
+        $provider = $_POST['provider'] ?? '';
+        $config = $_POST['config'] ?? [];
+
+        if (empty($provider)) {
+            echo json_encode(['success' => false, 'message' => 'Provider is required']);
+            exit;
+        }
+
+        try {
+            // Create provider instance
+            $providerInstance = \App\Core\ProviderFactory::create($tenantId, $provider, $config);
+            
+            // Test connection
+            if ($providerInstance->testConnection()) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Connection successful! Provider is properly configured.'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Connection test failed. Please verify your configuration.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Connection error: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Get configuration for enabled providers
      */
     private function getEnabledProvidersConfig(string $tenantId, array $config): array

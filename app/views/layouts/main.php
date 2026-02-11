@@ -47,6 +47,10 @@
                 <?php \App\Core\Icon::render('git-branch', 20, 20); ?>
                 Repositories
             </a>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/calendars'); ?>" <?php echo ($activeTab ?? '') === 'calendars' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('clock', 20, 20); ?>
+                Calendars
+            </a>
             <a href="<?php echo \App\Core\UrlHelper::workspace('/secrets'); ?>" <?php echo ($activeTab ?? '') === 'secrets' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('key', 20, 20); ?>
                 Secrets

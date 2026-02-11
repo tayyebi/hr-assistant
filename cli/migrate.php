@@ -5,7 +5,7 @@
 require_once __DIR__ . '/../autoload.php';
 
 // Trigger autoload for Database class
-use HRAssistant\Core\Database;
+use App\Core\Database;
 
 // Create migrations table if it doesn't exist
 try {

@@ -35,9 +35,11 @@
         </article>
 
         <aside>
-            <p><strong>Demo Credentials:</strong></p>
-            <p>Sys Admin: sysadmin@corp.com / password</p>
-            <p>Tenant Admin: admin@defaultcorp.com / password</p>
+            <p><strong>Default Credentials:</strong></p>
+            <p>System Admin: admin@localhost / password</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                Run <code style="background: var(--bg-secondary); padding: 0.1rem 0.3rem; border-radius: 3px;">php cli/seed.php</code> to create the default admin user.
+            </p>
         </aside>
     </main>
 </body>

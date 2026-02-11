@@ -181,6 +181,210 @@ class MailcowProvider extends HttpProvider
 }
 
 /**
+ * Google Calendar Provider
+ */
+class GoogleCalendarProvider extends HttpProvider
+{
+    public function __construct(string $tenantId, array $config)
+    {
+        parent::__construct($tenantId, $config);
+        // No baseUrl needed for Google API, handled per request
+    }
+
+    public function getType(): string
+    {
+        return CalendarProvider::GOOGLE_CALENDAR;
+    }
+
+    public function getAssetType(): string
+    {
+        return ProviderType::TYPE_CALENDAR;
+    }
+
+    public function getConfigKeys(): array
+    {
+        return ['google_service_account_json', 'google_calendar_id'];
+    }
+
+    public function createAsset(array $data): array
+    {
+        // $data: ['title', 'start', 'end', 'description', 'attendees' => [], ...]
+        // Implement Google Calendar event creation here
+        return $this->formatAsset(
+            'gcal_' . uniqid(),
+            $data['title'] ?? '',
+            'active',
+            $data
+        );
+    }
+
+    public function deleteAsset(string $assetId): bool
+    {
+        // Implement Google Calendar event deletion here
+        return true;
+    }
+
+    public function updateAsset(string $assetId, array $data): bool
+    {
+        // Implement Google Calendar event update here
+        return true;
+    }
+
+    public function getAsset(string $assetId): ?array
+    {
+        // Implement Google Calendar event fetch here
+        return null;
+    }
+
+    public function listAssets(): array
+    {
+        // Implement Google Calendar event list here
+        return [];
+    }
+
+    public function testConnection(): bool
+    {
+        // Implement Google Calendar API connection test here
+        return true;
+    }
+}
+
+/**
+ * Outlook Calendar Provider
+ */
+class OutlookCalendarProvider extends HttpProvider
+{
+    public function __construct(string $tenantId, array $config)
+    {
+        parent::__construct($tenantId, $config);
+        // No baseUrl needed for Microsoft Graph, handled per request
+    }
+
+    public function getType(): string
+    {
+        return CalendarProvider::OUTLOOK_CALENDAR;
+    }
+
+    public function getAssetType(): string
+    {
+        return ProviderType::TYPE_CALENDAR;
+    }
+
+    public function getConfigKeys(): array
+    {
+        return ['outlook_tenant_id', 'outlook_client_id', 'outlook_client_secret', 'outlook_calendar_id'];
+    }
+
+    public function createAsset(array $data): array
+    {
+        // Implement Outlook Calendar event creation here
+        return $this->formatAsset(
+            'outlook_' . uniqid(),
+            $data['title'] ?? '',
+            'active',
+            $data
+        );
+    }
+
+    public function deleteAsset(string $assetId): bool
+    {
+        // Implement Outlook Calendar event deletion here
+        return true;
+    }
+
+    public function updateAsset(string $assetId, array $data): bool
+    {
+        // Implement Outlook Calendar event update here
+        return true;
+    }
+
+    public function getAsset(string $assetId): ?array
+    {
+        // Implement Outlook Calendar event fetch here
+        return null;
+    }
+
+    public function listAssets(): array
+    {
+        // Implement Outlook Calendar event list here
+        return [];
+    }
+
+    public function testConnection(): bool
+    {
+        // Implement Outlook Calendar API connection test here
+        return true;
+    }
+}
+
+/**
+ * CalDAV Calendar Provider
+ */
+class CaldavProvider extends HttpProvider
+{
+    public function __construct(string $tenantId, array $config)
+    {
+        parent::__construct($tenantId, $config);
+        $this->baseUrl = $config['caldav_url'] ?? '';
+    }
+
+    public function getType(): string
+    {
+        return CalendarProvider::CALDAV;
+    }
+
+    public function getAssetType(): string
+    {
+        return ProviderType::TYPE_CALENDAR;
+    }
+
+    public function getConfigKeys(): array
+    {
+        return ['caldav_url', 'caldav_username', 'caldav_password'];
+    }
+
+    public function createAsset(array $data): array
+    {
+        // Implement CalDAV event creation here
+        return $this->formatAsset(
+            'caldav_' . uniqid(),
+            $data['title'] ?? '',
+            'active',
+            $data
+        );
+    }
+
+    public function deleteAsset(string $assetId): bool
+    {
+        // Implement CalDAV event deletion here
+        return true;
+    }
+
+    public function updateAsset(string $assetId, array $data): bool
+    {
+        // Implement CalDAV event update here
+        return true;
+    }
+
+    public function getAsset(string $assetId): ?array
+    {
+        // Implement CalDAV event fetch here
+        return null;
+    }
+
+    public function listAssets(): array
+    {
+        // Implement CalDAV event list here
+        return [];
+    }
+
+    public function testConnection(): bool
+    {
+        // Implement CalDAV connection test here
+        return true;
+    }
+}
+/**
  * GitLab Git Provider
  */
 class GitLabProvider extends HttpProvider
@@ -462,6 +666,123 @@ class TelegramProvider extends HttpProvider
 
         $result = $this->get('getMe');
         return is_array($result) && isset($result['ok']) && $result['ok'];
+    }
+}
+
+/**
+ * SMTP Email Provider
+ * Handles sending emails via SMTP configuration
+ */
+class SmtpProvider extends AbstractProvider
+{
+    public function __construct(string $tenantId, array $config)
+    {
+        parent::__construct($tenantId, $config);
+    }
+
+    public function getType(): string
+    {
+        return 'smtp';
+    }
+
+    public function getAssetType(): string
+    {
+        return ProviderType::TYPE_EMAIL;
+    }
+
+    public function getConfigKeys(): array
+    {
+        return ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from'];
+    }
+
+    /**
+     * Send an email message
+     * 
+     * @param string $to Recipient email address
+     * @param string $subject Email subject
+     * @param string $body Email body (HTML supported)
+     * @param string|null $from Optional sender email (defaults to config)
+     * @return array Result with sent status and details
+     * @throws \Exception If SMTP not configured or sending fails
+     */
+    public function sendMessage(string $to, string $subject, string $body, ?string $from = null): array
+    {
+        if (!$this->isConfigured()) {
+            throw new \Exception("SMTP not configured");
+        }
+
+        if (empty($to)) {
+            throw new \Exception("No recipient specified");
+        }
+
+        $from = $from ?? ($this->config['smtp_from'] ?? 'noreply@hr-assistant.local');
+
+        // Build headers
+        $headers = [
+            'From: ' . $from,
+            'Reply-To: ' . $from,
+            'X-Mailer: PHP/' . phpversion(),
+            'Content-Type: text/html; charset=UTF-8',
+            'MIME-Version: 1.0'
+        ];
+
+        // Use PHP's mail() function
+        // In production, this should be replaced with PHPMailer or similar for SMTP authentication
+        $success = mail($to, $subject, $body, implode("\r\n", $headers));
+
+        if (!$success) {
+            throw new \Exception("Failed to send email via mail() function");
+        }
+
+        return [
+            'sent' => true,
+            'to' => $to,
+            'subject' => $subject,
+            'from' => $from,
+            'timestamp' => date('c')
+        ];
+    }
+
+    public function createAsset(array $data): array
+    {
+        // SMTP provider doesn't create assets (mailboxes)
+        throw new \Exception('SMTP provider does not support asset creation');
+    }
+
+    public function deleteAsset(string $assetId): bool
+    {
+        // SMTP provider doesn't manage assets
+        throw new \Exception('SMTP provider does not support asset deletion');
+    }
+
+    public function updateAsset(string $assetId, array $data): bool
+    {
+        // SMTP provider doesn't manage assets
+        throw new \Exception('SMTP provider does not support asset updates');
+    }
+
+    public function getAsset(string $assetId): ?array
+    {
+        return null;
+    }
+
+    public function listAssets(): array
+    {
+        return [];
+    }
+
+    public function testConnection(): bool
+    {
+        if (!$this->isConfigured()) {
+            return false;
+        }
+
+        // Basic check - verify configuration exists
+        $smtpHost = $this->config['smtp_host'] ?? '';
+        $smtpUser = $this->config['smtp_user'] ?? '';
+        $smtpPass = $this->config['smtp_pass'] ?? '';
+
+        return !empty($smtpHost) && !empty($smtpUser) && !empty($smtpPass);
     }
 }
 

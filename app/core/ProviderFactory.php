@@ -4,7 +4,7 @@ namespace App\Core;
 
 // Import provider type classes and implementations
 use App\Core\{EmailProvider, GitProvider, MessengerProvider, IamProvider, ProviderType};
-use App\Core\{MailcowProvider, GitLabProvider, TelegramProvider, KeycloakProvider, IProvider};
+use App\Core\{MailcowProvider, SmtpProvider, GitLabProvider, TelegramProvider, KeycloakProvider, IProvider};
 
 /**
  * Provider Factory
@@ -22,9 +22,13 @@ class ProviderFactory
     {
         self::$providers = [
             EmailProvider::MAILCOW => MailcowProvider::class,
+            EmailProvider::SMTP => SmtpProvider::class,
             GitProvider::GITLAB => GitLabProvider::class,
             MessengerProvider::TELEGRAM => TelegramProvider::class,
             IamProvider::KEYCLOAK => KeycloakProvider::class,
+            \App\Core\CalendarProvider::GOOGLE_CALENDAR => \App\Core\GoogleCalendarProvider::class,
+            \App\Core\CalendarProvider::OUTLOOK_CALENDAR => \App\Core\OutlookCalendarProvider::class,
+            \App\Core\CalendarProvider::CALDAV => \App\Core\CaldavProvider::class,
         ];
     }
 

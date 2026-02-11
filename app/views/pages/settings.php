@@ -128,7 +128,13 @@
                     <!-- Dynamic fields will be inserted here -->
                 </section>
             </div>
-            <footer style="margin-top: var(--spacing-md);">
+            <footer style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm); align-items: center;">
+                <button type="button" id="test-connection-btn" style="background: var(--color-info); display: none;" 
+                        data-test-url="<?php echo htmlspecialchars(\App\Core\UrlHelper::workspace('/settings/test-connection/')); ?>">
+                    <img src="/icons/refresh-cw.svg" alt="" width="18" height="18">
+                    Test Connection
+                </button>
+                <div id="test-result" style="flex: 1; padding: 0.5rem; border-radius: 4px; display: none;"></div>
                 <button type="submit">Add Provider Instance</button>
             </footer>
         </form>
@@ -195,6 +201,13 @@ if (typeSelect && providerSelect) {
 function showProviderConfig(provider, fields) {
     configFields.innerHTML = '';
     
+    // Show test connection button
+    const testBtn = document.getElementById('test-connection-btn');
+    if (testBtn) {
+        testBtn.style.display = 'flex';
+        testBtn.dataset.provider = provider;
+    }
+    
     Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
         const fieldDiv = document.createElement('div');
         
@@ -257,6 +270,77 @@ function showProviderConfig(provider, fields) {
 function hideProviderConfig() {
     providerConfig.style.display = 'none';
     configFields.innerHTML = '';
+    const testBtn = document.getElementById('test-connection-btn');
+    const testResult = document.getElementById('test-result');
+    if (testBtn) testBtn.style.display = 'none';
+    if (testResult) testResult.style.display = 'none';
+}
+
+// Test connection functionality
+const testConnectionBtn = document.getElementById('test-connection-btn');
+const testResult = document.getElementById('test-result');
+
+if (testConnectionBtn && testResult) {
+    testConnectionBtn.addEventListener('click', async function() {
+        const provider = this.dataset.provider;
+        if (!provider) return;
+        
+        // Gather config values from form
+        const configInputs = document.querySelectorAll('#config-fields input, #config-fields select, #config-fields textarea');
+        const config = {};
+        configInputs.forEach(input => {
+            const name = input.name.replace('config[', '').replace(']', '');
+            if (input.type === 'checkbox') {
+                config[name] = input.checked ? '1' : '0';
+            } else {
+                config[name] = input.value;
+            }
+        });
+        
+        // Show loading state
+        testConnectionBtn.disabled = true;
+        testConnectionBtn.innerHTML = '<img src="/icons/refresh-cw.svg" alt="" width="18" height="18" style="animation: spin 1s linear infinite;"> Testing...';
+        testResult.style.display = 'none';
+        
+        try {
+            const formData = new FormData();
+            formData.append('provider', provider);
+            Object.entries(config).forEach(([key, value]) => {
+                formData.append(`config[${key}]`, value);
+            });
+            
+            const testUrl = testConnectionBtn.dataset.testUrl;
+            const response = await fetch(testUrl, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            // Show result
+            testResult.style.display = 'block';
+            if (result.success) {
+                testResult.style.background = 'var(--color-success-bg, #f0fdf4)';
+                testResult.style.border = '1px solid var(--color-success, #22c55e)';
+                testResult.style.color = 'var(--color-success, #22c55e)';
+            } else {
+                testResult.style.background = 'var(--color-danger-bg, #fef2f2)';
+                testResult.style.border = '1px solid var(--color-danger, #dc2626)';
+                testResult.style.color = 'var(--color-danger, #dc2626)';
+            }
+            testResult.textContent = result.message;
+        } catch (error) {
+            testResult.style.display = 'block';
+            testResult.style.background = 'var(--color-danger-bg, #fef2f2)';
+            testResult.style.border = '1px solid var(--color-danger, #dc2626)';
+            testResult.style.color = 'var(--color-danger, #dc2626)';
+            testResult.textContent = 'Request failed: ' + error.message;
+        } finally {
+            // Reset button
+            testConnectionBtn.disabled = false;
+            testConnectionBtn.innerHTML = '<img src="/icons/refresh-cw.svg" alt="" width="18" height="18"> Test Connection';
+        }
+    });
 }
 </script>
 
@@ -267,4 +351,9 @@ function hideProviderConfig() {
 }
 
 /* Simplified settings page - provider tabs removed */
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 </style>

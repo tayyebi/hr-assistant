@@ -33,6 +33,22 @@ class HRAutoloader
     private static $legacyClasses = [];
 
     /**
+     * @var array Class map for files containing multiple classes
+     */
+    private static $classMap = [
+        'App\\Core\\IProvider' => 'app/core/Provider.php',
+        'App\\Core\\AbstractProvider' => 'app/core/Provider.php',
+        'App\\Core\\MailcowProvider' => 'app/core/Providers.php',
+        'App\\Core\\SmtpProvider' => 'app/core/Providers.php',
+        'App\\Core\\GitLabProvider' => 'app/core/Providers.php',
+        'App\\Core\\TelegramProvider' => 'app/core/Providers.php',
+        'App\\Core\\KeycloakProvider' => 'app/core/Providers.php',
+        'App\\Core\\GoogleCalendarProvider' => 'app/core/Providers.php',
+        'App\\Core\\OutlookCalendarProvider' => 'app/core/Providers.php',
+        'App\\Core\\CaldavProvider' => 'app/core/Providers.php',
+    ];
+
+    /**
      * @var string Base directory path for the application
      */
     private static $basePath;
@@ -77,7 +93,15 @@ class HRAutoloader
      */
     public static function autoload($className)
     {
-        // First try PSR-4 namespace mapping
+        // First check the class map for files with multiple classes
+        if (isset(self::$classMap[$className])) {
+            $file = self::$basePath . '/' . self::$classMap[$className];
+            if (self::loadFile($file)) {
+                return true;
+            }
+        }
+        
+        // Then try PSR-4 namespace mapping
         if (self::loadPsr4Class($className)) {
             return true;
         }

@@ -43,6 +43,11 @@ class ProviderSettings
             SecretsProvider::ONEPWD => self::getOnePasswordFields(),
             SecretsProvider::VAULT => self::getVaultFields(),
 
+            // Calendar Providers
+            \App\Core\CalendarProvider::GOOGLE_CALENDAR => self::getGoogleCalendarFields(),
+            \App\Core\CalendarProvider::OUTLOOK_CALENDAR => self::getOutlookCalendarFields(),
+            \App\Core\CalendarProvider::CALDAV => self::getCaldavFields(),
+
             default => []
         };
     }
@@ -53,6 +58,113 @@ class ProviderSettings
     public static function getProvidersMetadata(): array
     {
         return [
+            // ...existing code...
+            // Calendar
+            \App\Core\CalendarProvider::GOOGLE_CALENDAR => [
+                'name' => 'Google Calendar',
+                'type' => ProviderType::TYPE_CALENDAR,
+                'icon' => 'calendar',
+                'color' => '#fef9c3',
+                'description' => 'Google Workspace Calendar API',
+                'configurable' => true
+            ],
+            \App\Core\CalendarProvider::OUTLOOK_CALENDAR => [
+                'name' => 'Outlook Calendar',
+                'type' => ProviderType::TYPE_CALENDAR,
+                'icon' => 'calendar',
+                'color' => '#dbeafe',
+                'description' => 'Microsoft Outlook/Office 365 Calendar',
+                'configurable' => true
+            ],
+            \App\Core\CalendarProvider::CALDAV => [
+                'name' => 'CalDAV',
+                'type' => ProviderType::TYPE_CALENDAR,
+                'icon' => 'calendar',
+                'color' => '#bbf7d0',
+                'description' => 'Standard CalDAV calendar (Nextcloud, Zimbra, etc.)',
+                'configurable' => true
+            ],
+        ];
+    }
+
+    // ============================================
+    // CALENDAR PROVIDER FIELDS
+    // ============================================
+
+    private static function getGoogleCalendarFields(): array
+    {
+        return [
+            'google_service_account_json' => [
+                'label' => 'Service Account JSON',
+                'type' => 'textarea',
+                'required' => true,
+                'description' => 'Paste the full Google service account JSON key.'
+            ],
+            'google_calendar_id' => [
+                'label' => 'Calendar ID',
+                'type' => 'text',
+                'required' => false,
+                'placeholder' => 'primary',
+                'description' => 'Google Calendar ID (defaults to primary)'
+            ]
+        ];
+    }
+
+    private static function getOutlookCalendarFields(): array
+    {
+        return [
+            'outlook_tenant_id' => [
+                'label' => 'Tenant ID',
+                'type' => 'text',
+                'required' => true,
+                'description' => 'Azure AD Tenant ID'
+            ],
+            'outlook_client_id' => [
+                'label' => 'Client ID',
+                'type' => 'text',
+                'required' => true,
+                'description' => 'Azure AD Application (client) ID'
+            ],
+            'outlook_client_secret' => [
+                'label' => 'Client Secret',
+                'type' => 'password',
+                'required' => true,
+                'description' => 'Azure AD Application client secret'
+            ],
+            'outlook_calendar_id' => [
+                'label' => 'Calendar ID',
+                'type' => 'text',
+                'required' => false,
+                'placeholder' => 'primary',
+                'description' => 'Outlook Calendar ID (defaults to primary)'
+            ]
+        ];
+    }
+
+    private static function getCaldavFields(): array
+    {
+        return [
+            'caldav_url' => [
+                'label' => 'CalDAV URL',
+                'type' => 'text',
+                'required' => true,
+                'placeholder' => 'https://calendar.example.com/caldav/',
+                'description' => 'Base URL to your CalDAV server.'
+            ],
+            'caldav_username' => [
+                'label' => 'Username',
+                'type' => 'text',
+                'required' => true,
+                'description' => 'CalDAV account username.'
+            ],
+            'caldav_password' => [
+                'label' => 'Password',
+                'type' => 'password',
+                'required' => true,
+                'description' => 'CalDAV account password.'
+            ]
+        ];
+    }
             // Email
             EmailProvider::MAILCOW => [
                 'name' => 'Mailcow',
