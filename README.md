@@ -5,8 +5,9 @@
 # HR Assistant
 HR Department All in One Tool!
 
-## Features
+## Key Features
 
+- **Zero JavaScript**: Pure server-side rendering with CSS-based interactivity - no client-side JavaScript code
 - **Pure PHP Implementation**: Zero external dependencies - no Composer or third-party packages required
 - **Custom Autoloader**: High-performance class loading system replacing Composer
 - **Multi-tenant Support**: Manage multiple organizations from a single installation
@@ -87,7 +88,32 @@ hr-assistant/
 └── make.sh              # Management script
 ```
 
-## Database Schema
+## Zero-JavaScript Architecture
+
+This application is built as a **pure zero-JavaScript application**. All interactivity is achieved through:
+
+- **Server-side rendering**: PHP templates generate complete HTML
+- **CSS-based interactions**: Mobile menu toggle and modals use CSS only
+- **HTML forms**: All data mutations use standard HTTP form submission
+- **HTTP semantics**: GET for retrieval, POST for mutations, proper redirects
+
+### Why Zero JavaScript?
+
+✅ **No build step required** - no webpack, no npm, no bundler  
+✅ **Fast page loads** - JavaScript parsing/compilation eliminated  
+✅ **100% accessible** - semantic HTML, proper form semantics  
+✅ **SEO friendly** - content in HTML, fully crawlable  
+✅ **Reliable** - no client-side state, HTTP is idempotent  
+✅ **Cacheable** - GET requests properly cached  
+✅ **Progressive** - works without JavaScript  
+✅ **Secure** - no XSS via eval, no CSRF via AJAX  
+
+**Read more:** See [ZERO_JS_ARCHITECTURE.md](ZERO_JS_ARCHITECTURE.md) for detailed architecture documentation.
+
+## Architecture
+
+```
+hr-assistant/
 
 The application uses MySQL for data storage. Below is the Entity-Relationship Diagram showing the data model:
 
