@@ -22,16 +22,21 @@ class SettingsController
         $config = Config::get($tenantId);
         $providers = \App\Core\ProviderSettings::getProvidersMetadata();
         $providersConfig = $this->getEnabledProvidersConfig($tenantId, $config);
-        
+        $providerInstances = ProviderInstance::getAll($tenantId);
+        $messagingChannels = $this->getMessagingChannels($tenantId, $config, $providerInstances);
+        $providerErrors = $this->getProviderErrors($tenantId, $providerInstances);
+
         $message = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
-        
+
         View::render('settings', [
             'tenant' => $tenant,
             'user' => $user,
             'config' => $config,
             'providers' => $providers,
             'providersConfig' => $providersConfig,
+            'messagingChannels' => $messagingChannels,
+            'providerErrors' => $providerErrors,
             'message' => $message,
             'activeTab' => 'settings'
         ]);
@@ -47,6 +52,12 @@ class SettingsController
         $allFields = \App\Core\ProviderSettings::getAllFields();
         $config = Config::get($tenantId);
         
+        // Process messaging channels configuration
+        $messagingChannels = ['email', 'telegram', 'whatsapp', 'slack', 'teams'];
+        foreach ($messagingChannels as $channel) {
+            $config['messaging_' . $channel . '_enabled'] = isset($_POST['messaging_' . $channel . '_enabled']) ? '1' : '0';
+        }
+
         // Process POST data for all known provider fields
         foreach ($allFields as $provider => $fields) {
             foreach ($fields as $fieldKey => $field) {
@@ -201,5 +212,72 @@ class SettingsController
             $values[$fieldKey] = $config[$fieldKey] ?? ($field['value'] ?? '');
         }
         return $values;
+    }
+
+    /**
+     * Get messaging channels configuration for tenant
+     */
+    private function getMessagingChannels(string $tenantId, array $config, array $providerInstances): array
+    {
+        $channels = [
+            'email' => ['name' => 'Email', 'icon' => 'mail'],
+            'telegram' => ['name' => 'Telegram', 'icon' => 'message-circle'],
+            'whatsapp' => ['name' => 'WhatsApp', 'icon' => 'phone'],
+            'slack' => ['name' => 'Slack', 'icon' => 'hash'],
+            'teams' => ['name' => 'Microsoft Teams', 'icon' => 'users']
+        ];
+
+        // Check which channels have supporting provider instances
+        $supportedTypes = ['messenger', 'email'];
+        $hasProviders = [];
+        foreach ($providerInstances as $instance) {
+            if (in_array($instance['type'], $supportedTypes)) {
+                $provider = $instance['provider'];
+                if (strpos($provider, 'telegram') !== false) $hasProviders['telegram'] = true;
+                if (strpos($provider, 'whatsapp') !== false) $hasProviders['whatsapp'] = true;
+                if (strpos($provider, 'slack') !== false) $hasProviders['slack'] = true;
+                if (strpos($provider, 'teams') !== false) $hasProviders['teams'] = true;
+                if (in_array($provider, ['mailcow', 'exchange', 'imap'])) $hasProviders['email'] = true;
+            }
+        }
+
+        foreach ($channels as $key => &$channel) {
+            $channel['enabled'] = ($config['messaging_' . $key . '_enabled'] ?? '0') === '1';
+            $channel['hasProvider'] = $hasProviders[$key] ?? false;
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Get latest provider errors for tenant
+     */
+    private function getProviderErrors(string $tenantId, array $providerInstances): array
+    {
+        $errors = [];
+        
+        // For each provider instance, test connection and capture errors
+        foreach ($providerInstances as $instance) {
+            try {
+                $provider = \App\Core\ProviderFactory::create($instance['provider'], $instance['settings'] ?? []);
+                if (!$provider->testConnection()) {
+                    $errors[] = [
+                        'instance' => $instance['name'],
+                        'provider' => $instance['provider'],
+                        'error' => 'Connection test failed',
+                        'timestamp' => time()
+                    ];
+                }
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'instance' => $instance['name'],
+                    'provider' => $instance['provider'],
+                    'error' => $e->getMessage(),
+                    'timestamp' => time()
+                ];
+            }
+        }
+
+        return $errors;
     }
 }

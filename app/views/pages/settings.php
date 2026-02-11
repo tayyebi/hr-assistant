@@ -1,12 +1,24 @@
 <header>
     <div>
         <h2>Provider Configuration</h2>
-        <p>Manage integrations and create tenant-scoped provider instances to assign to employees.</p>
+        <p>Manage integrations, messaging channels, and create tenant-scoped provider instances to assign to employees.</p>
     </div>
 </header>
 
 <?php if (!empty($message)): ?>
     <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
+<?php endif; ?>
+
+<?php if (!empty($providerErrors)): ?>
+    <article style="border: 1px solid var(--color-danger); background-color: var(--color-danger-bg, #fef2f2); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+        <h4 style="margin-top: 0; color: var(--color-danger);">Provider Connection Issues</h4>
+        <?php foreach ($providerErrors as $error): ?>
+            <div style="margin-bottom: var(--spacing-sm);">
+                <strong><?php echo htmlspecialchars($error['instance']); ?></strong> (<?php echo htmlspecialchars($error['provider']); ?>):
+                <span style="color: var(--color-danger);"><?php echo htmlspecialchars($error['error']); ?></span>
+            </div>
+        <?php endforeach; ?>
+    </article>
 <?php endif; ?>
 
 <section>
@@ -26,6 +38,31 @@
             </article>
         <?php endforeach; ?>
     </div>
+</section>
+
+<hr style="margin: var(--spacing-lg) 0;">
+
+<section>
+    <h3>Messaging Channels</h3>
+    <p style="margin-top: 0; color: var(--text-muted);">Enable messaging channels available for employee communication. Channels require corresponding provider instances to function.</p>
+    
+    <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/'); ?>">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <?php foreach ($messagingChannels as $key => $channel): ?>
+                <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); <?php echo $channel['hasProvider'] ? '' : 'opacity: 0.5;'; ?>">
+                    <input type="checkbox" name="messaging_<?php echo htmlspecialchars($key); ?>_enabled" 
+                           <?php echo $channel['enabled'] ? 'checked' : ''; ?>
+                           <?php echo !$channel['hasProvider'] ? 'disabled' : ''; ?>>
+                    <?php \App\Core\Icon::render($channel['icon'], 16, 16); ?>
+                    <span><?php echo htmlspecialchars($channel['name']); ?></span>
+                    <?php if (!$channel['hasProvider']): ?>
+                        <small style="color: var(--text-muted);">(No provider)</small>
+                    <?php endif; ?>
+                </label>
+            <?php endforeach; ?>
+        </div>
+        <button type="submit">Save Messaging Channels</button>
+    </form>
 </section>
 
 <hr style="margin: var(--spacing-lg) 0;">

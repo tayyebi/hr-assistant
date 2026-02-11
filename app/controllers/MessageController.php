@@ -19,12 +19,28 @@ class MessageController
         $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
         
-        $employees = Employee::getAll($tenantId);
-        $reachableEmployees = array_filter($employees, fn($e) => !empty($e['telegram_chat_id']) || !empty($e['email']));
+        // Get employees with their available channels
+        $employees = Employee::getAllWithChannels($tenantId);
         
         $selectedEmpId = $_GET['employee'] ?? null;
-        $messages = $selectedEmpId ? Message::getByEmployee($tenantId, $selectedEmpId) : [];
-        $selectedEmployee = $selectedEmpId ? Employee::find($tenantId, $selectedEmpId) : null;
+        $selectedChannel = $_GET['channel'] ?? 'all';
+        
+        $messages = [];
+        $selectedEmployee = null;
+        $availableChannels = [];
+        
+        if ($selectedEmpId) {
+            $selectedEmployee = Employee::find($tenantId, $selectedEmpId);
+            
+            if ($selectedChannel === 'all') {
+                $messages = Message::getByEmployee($tenantId, $selectedEmpId);
+            } else {
+                $messages = Message::getByEmployeeChannel($tenantId, $selectedEmpId, $selectedChannel);
+            }
+            
+            // Get available channels for this employee
+            $availableChannels = Employee::getAvailableChannels($tenantId, $selectedEmpId);
+        }
         
         $unassigned = Message::getUnassigned($tenantId);
         
@@ -47,9 +63,10 @@ class MessageController
         View::render('messages', [
             'tenant' => $tenant,
             'user' => $user,
-            'employees' => $employees,
-            'reachableEmployees' => array_values($reachableEmployees),
+            'employees' => array_values($employees),
             'selectedEmployee' => $selectedEmployee,
+            'selectedChannel' => $selectedChannel,
+            'availableChannels' => $availableChannels,
             'messages' => $messages,
             'unassigned' => $unassigned,
             'deliveryJobs' => array_values($deliveryJobs),
@@ -168,17 +185,21 @@ class MessageController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        $messageId = $_POST['message_id'] ?? '';
+        $unassignedId = $_POST['unassigned_id'] ?? '';
         $employeeId = $_POST['employee_id'] ?? '';
+        $channel = $_POST['channel'] ?? null; // Optional channel override
         
-        if ($messageId && $employeeId) {
-            if (Message::assignToEmployee($tenantId, $messageId, $employeeId)) {
+        if ($unassignedId && $employeeId) {
+            $success = Message::assignToEmployee($tenantId, $unassignedId, $employeeId, $channel);
+            if ($success) {
                 $_SESSION['flash_message'] = 'Message assigned successfully.';
             } else {
                 $_SESSION['flash_message'] = 'Failed to assign message.';
             }
+        } else {
+            $_SESSION['flash_message'] = 'Employee and message are required.';
         }
         
-        View::redirect(View::workspaceUrl('/messages?view=inbox'));
+        View::redirect(View::workspaceUrl('/messages'));
     }
 }

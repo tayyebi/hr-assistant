@@ -30,6 +30,31 @@ class Message
         }
     }
 
+    /**
+     * Get messages for a specific employee and channel combination
+     */
+    public static function getByEmployeeChannel(string $tenantId, string $employeeId, string $channel): array
+    {
+        try {
+            return Database::fetchAll('SELECT * FROM messages WHERE tenant_id = ? AND employee_id = ? AND channel = ? ORDER BY timestamp DESC', [$tenantId, $employeeId, $channel]);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get all channels that have messages for a specific employee
+     */
+    public static function getChannelsForEmployee(string $tenantId, string $employeeId): array
+    {
+        try {
+            $rows = Database::fetchAll('SELECT DISTINCT channel FROM messages WHERE tenant_id = ? AND employee_id = ? ORDER BY channel', [$tenantId, $employeeId]);
+            return array_column($rows, 'channel');
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
     public static function create(string $tenantId, array $data): array
     {
         $message = [
@@ -97,7 +122,7 @@ class Message
         }
     }
 
-    public static function assignToEmployee(string $tenantId, string $unassignedId, string $employeeId): bool
+    public static function assignToEmployee(string $tenantId, string $unassignedId, string $employeeId, string $channel = null): bool
     {
         $employee = Employee::find($tenantId, $employeeId);
         if (!$employee) return false;
@@ -109,7 +134,7 @@ class Message
             self::create($tenantId, [
                 'employee_id' => $employeeId,
                 'sender' => 'employee',
-                'channel' => $msg['channel'],
+                'channel' => $channel ?? $msg['channel'], // Use specified channel or original message channel
                 'text' => $msg['text'],
                 'subject' => $msg['subject']
             ]);

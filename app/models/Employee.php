@@ -46,6 +46,60 @@ class Employee
         }
     }
 
+    /**
+     * Get available messaging channels for an employee based on their contact info and tenant settings
+     */
+    public static function getAvailableChannels(string $tenantId, string $employeeId): array
+    {
+        $employee = self::find($tenantId, $employeeId);
+        if (!$employee) return [];
+
+        $config = Config::get($tenantId);
+        $channels = [];
+
+        // Check email
+        if (!empty($employee['email']) && ($config['messaging_email_enabled'] ?? '0') === '1') {
+            $channels[] = 'email';
+        }
+
+        // Check telegram
+        if (!empty($employee['telegram_chat_id']) && ($config['messaging_telegram_enabled'] ?? '0') === '1') {
+            $channels[] = 'telegram';
+        }
+
+        // Add other channels based on future contact fields
+        // WhatsApp, Slack, Teams would need corresponding contact fields in employee table
+
+        return $channels;
+    }
+
+    /**
+     * Get all employees with their available channels for messaging
+     */
+    public static function getAllWithChannels(string $tenantId): array
+    {
+        $employees = self::getAll($tenantId);
+        $config = Config::get($tenantId);
+
+        foreach ($employees as &$employee) {
+            $employee['available_channels'] = [];
+
+            // Check which channels this employee can receive messages on
+            if (!empty($employee['email']) && ($config['messaging_email_enabled'] ?? '0') === '1') {
+                $employee['available_channels'][] = 'email';
+            }
+
+            if (!empty($employee['telegram_chat_id']) && ($config['messaging_telegram_enabled'] ?? '0') === '1') {
+                $employee['available_channels'][] = 'telegram';
+            }
+        }
+
+        // Filter to only employees with at least one available channel
+        return array_filter($employees, function($emp) {
+            return !empty($emp['available_channels']);
+        });
+    }
+
     public static function create(string $tenantId, array $data): array
     {
         $employee = [
