@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\{User, Config, Tenant};
-use App\Core\View;
+use App\Models\{User, Config, Tenant, ProviderInstance};
+use App\Core\{View, Icon, ProviderSettings, ProviderType};
 
 /**
  * Settings Controller

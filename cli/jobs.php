@@ -135,8 +135,26 @@ class JobProcessor
             throw new Exception("SMTP connection timeout (simulated)");
         }
         
-        // TODO: Implement actual email sending with PHPMailer
-        // For now, mark as sent (assumes SMTP config is valid)
+        // Implement actual email sending
+        try {
+            $headers = [
+                'From: ' . ($from ?? 'noreply@hr-assistant.local'),
+                'Reply-To: ' . ($from ?? 'noreply@hr-assistant.local'),
+                'X-Mailer: PHP/' . phpversion(),
+                'Content-Type: text/html; charset=UTF-8',
+                'MIME-Version: 1.0'
+            ];
+            
+            $success = mail($to, $subject, $body, implode("\r\n", $headers));
+            
+            if (!$success) {
+                throw new Exception("Failed to send email via mail() function");
+            }
+            
+        } catch (Exception $e) {
+            error_log("Email sending failed: " . $e->getMessage());
+            throw $e;
+        }
         
         return [
             'sent' => true,
@@ -173,13 +191,48 @@ class JobProcessor
             throw new Exception("Telegram API error (simulated)");
         }
         
-        // TODO: Implement actual Telegram API call
-        // For now, mark as sent (assumes bot token is valid)
+        // Implement actual Telegram API call
+        try {
+            $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
+            $data = [
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'HTML'
+            ];
+            
+            $options = [
+                'http' => [
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method' => 'POST',
+                    'content' => http_build_query($data),
+                    'timeout' => 30
+                ]
+            ];
+            
+            $context = stream_context_create($options);
+            $result = file_get_contents($url, false, $context);
+            
+            if ($result === false) {
+                throw new Exception("Failed to connect to Telegram API");
+            }
+            
+            $response = json_decode($result, true);
+            
+            if (!$response['ok']) {
+                throw new Exception("Telegram API error: " . ($response['description'] ?? 'Unknown error'));
+            }
+            
+            $messageId = $response['result']['message_id'] ?? mt_rand(10000, 99999);
+            
+        } catch (Exception $e) {
+            error_log("Telegram sending failed: " . $e->getMessage());
+            throw $e;
+        }
         
         return [
             'sent' => true,
             'chat_id' => $chatId,
-            'message_id' => mt_rand(10000, 99999),
+            'message_id' => $messageId,
             'timestamp' => date('c')
         ];
     }

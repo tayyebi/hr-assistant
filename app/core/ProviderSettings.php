@@ -172,7 +172,7 @@ class ProviderSettings
                 'label' => 'Mailcow URL',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'https://mail.example.com',
+                'placeholder' => 'https://mail.company.com',
                 'description' => 'Base URL of your Mailcow installation'
             ],
             'mailcow_api_key' => [
@@ -216,7 +216,7 @@ class ProviderSettings
                 'label' => 'IMAP Host',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'imap.example.com'
+                'placeholder' => 'imap.company.com'
             ],
             'imap_port' => [
                 'label' => 'IMAP Port',
@@ -243,7 +243,7 @@ class ProviderSettings
                 'label' => 'SMTP Host',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'smtp.example.com'
+                'placeholder' => 'smtp.company.com'
             ],
             'smtp_port' => [
                 'label' => 'SMTP Port',
@@ -280,7 +280,7 @@ class ProviderSettings
                 'label' => 'GitLab URL',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'https://gitlab.example.com',
+                'placeholder' => 'https://gitlab.company.com',
                 'description' => 'Base URL of your GitLab instance'
             ],
             'gitlab_token' => [
@@ -299,7 +299,7 @@ class ProviderSettings
                 'label' => 'Gitea URL',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'https://git.example.com',
+                'placeholder' => 'https://git.company.com',
                 'description' => 'Base URL of your Gitea instance'
             ],
             'gitea_token' => [
@@ -363,7 +363,7 @@ class ProviderSettings
                 'label' => 'Webhook URL',
                 'type' => 'text',
                 'required' => false,
-                'placeholder' => 'https://your-app.com/webhook/telegram',
+                'placeholder' => 'https://hr-assistant.company.com/webhook/telegram',
                 'description' => 'Only required for webhook mode'
             ]
         ];
@@ -401,7 +401,7 @@ class ProviderSettings
                 'label' => 'Bot Token',
                 'type' => 'password',
                 'required' => true,
-                'placeholder' => 'xoxb-...',
+                'placeholder' => 'xxxx-xxxx-xxxx-xxxx-xxxx',
                 'description' => 'Slack Bot User OAuth Token'
             ],
             'slack_signing_secret' => [
@@ -449,7 +449,7 @@ class ProviderSettings
                 'label' => 'Keycloak URL',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'https://auth.example.com',
+                'placeholder' => 'https://keycloak.company.com/auth',
                 'description' => 'Base URL of your Keycloak instance'
             ],
             'keycloak_realm' => [
@@ -481,7 +481,7 @@ class ProviderSettings
                 'label' => 'Organization URL',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'https://dev-123456.okta.com',
+                'placeholder' => 'https://company.okta.com',
                 'description' => 'Your Okta organization URL'
             ],
             'okta_api_token' => [
@@ -500,19 +500,21 @@ class ProviderSettings
                 'label' => 'Tenant ID',
                 'type' => 'text',
                 'required' => true,
-                'placeholder' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+                'placeholder' => '12345678-1234-5678-9abc-123456789abc',
                 'description' => 'Azure AD Tenant ID'
             ],
             'azure_client_id' => [
                 'label' => 'Client ID',
                 'type' => 'text',
                 'required' => true,
+                'placeholder' => 'abcdef12-3456-7890-abcd-ef1234567890',
                 'description' => 'Application (Client) ID'
             ],
             'azure_client_secret' => [
                 'label' => 'Client Secret',
                 'type' => 'password',
                 'required' => true,
+                'placeholder' => 'Enter application client secret',
                 'description' => 'Application Client Secret'
             ]
         ];
