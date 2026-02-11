@@ -39,7 +39,7 @@
                             <?php foreach ($providerInstances as $instance): ?>
                                 <tr>
                                     <td>
-                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                        <div class="is-flex is-align-items-center gap-05">
                                             <span class="icon is-small">
                                                 <?php \App\Core\Icon::render('clock', 16, 16); ?>
                                             </span>

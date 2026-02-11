@@ -47,7 +47,7 @@
                             <?php foreach ($iamInstances as $instance): ?>
                                 <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'class="is-selected"' : ''; ?>>
                                     <td>
-                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                        <div class="is-flex is-align-items-center gap-05">
                                             <span class="icon is-small">
                                                 <?php \App\Core\Icon::render('lock', 16, 16); ?>
                                             </span>
@@ -85,7 +85,7 @@
                     <p class="card-header-title">Overview</p>
                 </header>
                 <div class="card-content">
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="flex-col-gap">
                         <div class="box has-background-grey-light">
                             <p class="heading is-6">Total Providers</p>
                             <p class="title is-4"><?php echo count($iamInstances); ?></p>
@@ -113,13 +113,13 @@
     </div>
 
     <?php if ($selectedInstance): ?>
-        <section style="margin-top: 2rem;">
+        <section class="mt-2">
             <div class="level">
                 <div class="level-left">
                     <div class="level-item">
                         <div>
                             <h3 class="title is-4">
-                                <span class="icon is-small" style="vertical-align: middle;">
+                                <span class="icon is-small" class="align-middle">
                                     <?php \App\Core\Icon::render('lock', 24, 24); ?>
                                 </span>
                                 <?php echo htmlspecialchars($selectedInstance['name']); ?>
@@ -210,9 +210,9 @@
                                             <?php foreach ($instanceEmployees as $empData): ?>
                                                 <tr>
                                                     <td>
-                                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                                        <div class="is-flex is-align-items-center gap-05">
                                                             <div class="image is-28x28">
-                                                                <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%;">
+                                                                <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" class="w-100-h-100-rounded">
                                                                     <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
                                                                 </div>
                                                             </div>
@@ -223,7 +223,7 @@
                                                         <code><?php echo htmlspecialchars($empData['username']); ?></code>
                                                     </td>
                                                     <td>
-                                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/unassign'); ?>" style="display: inline;">
+                                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/unassign'); ?>" class="display-inline">
                                                             <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
                                                             <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($empData['employee']['id']); ?>">
                                                             <button type="submit" class="button is-small is-danger is-ghost">
@@ -258,14 +258,14 @@
                                     No users found or unable to connect to the provider.
                                 </p>
                             <?php else: ?>
-                                <div style="max-height: 350px; overflow-y: auto;">
-                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                <div class="max-h-350 overflow-y-auto">
+                                    <ul class="list-none p-0 m-0">
                                         <?php foreach (array_slice($iamUsers, 0, 20) as $iamUser): ?>
-                                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb; display: flex; align-items: center; gap: 0.5rem;">
+                                            <li class="py-05 border-bottom-light display-flex items-center gap-05">
                                                 <span class="icon is-small">
                                                     <?php \App\Core\Icon::render('user', 14, 14); ?>
                                                 </span>
-                                                <div style="flex: 1;">
+                                                <div class="flex-1">
                                                     <span class="is-size-7"><?php echo htmlspecialchars($iamUser['username'] ?? $iamUser['email'] ?? 'Unknown'); ?></span>
                                                     <?php if (!empty($iamUser['full_name'])): ?>
                                                         <small class="has-text-grey-light is-block">
@@ -290,7 +290,7 @@
 
             <!-- Groups -->
             <?php if (!empty($iamGroups)): ?>
-                <div class="card" style="margin-top: 2rem;">
+                <div class="card mt-2">
                     <header class="card-header">
                         <p class="card-header-title">Groups / Roles</p>
                     </header>
@@ -303,7 +303,7 @@
                                     </span>
                                     <span><?php echo htmlspecialchars($group['name'] ?? 'Unknown'); ?></span>
                                     <?php if (isset($group['members_count'])): ?>
-                                        <small style="margin-left: 0.25rem;">(<?php echo $group['members_count']; ?>)</small>
+                                        <small class="ml-025">(<?php echo $group['members_count']; ?>)</small>
                                     <?php endif; ?>
                                 </span>
                             <?php endforeach; ?>

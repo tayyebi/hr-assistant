@@ -31,13 +31,13 @@
         ?>
         <div class="column is-one-quarter-desktop is-one-third-tablet is-full-mobile">
             <div class="box has-background-grey-light">
-                <div class="is-flex is-align-items-center" style="gap: 1rem; margin-bottom: 0.5rem;">
-                    <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 40px; height: 40px; border-radius: 6px;">
+                <div class="is-flex is-align-items-center" class="gap-1 mb-05">
+                    <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" class="w-40 h-40 rounded-sm">
                         <?php \App\Core\Icon::render($stat['icon'], 20, 20); ?>
                     </div>
                     <div>
-                        <p class="is-size-7 has-text-grey-dark" style="margin: 0;"><?php echo $stat['label']; ?></p>
-                        <p class="title is-4" style="margin: 0; line-height: 1.2;"><?php echo $stat['value']; ?></p>
+                        <p class="is-size-7 has-text-grey-dark" class="m-0"><?php echo $stat['label']; ?></p>
+                        <p class="title is-4" class="m-0 lh-tight"><?php echo $stat['value']; ?></p>
                     </div>
                 </div>
             </div>
@@ -110,33 +110,33 @@
         <div class="column is-one-third-desktop is-half-tablet is-full-mobile">
             <div class="card">
                 <div class="card-content">
-                    <div class="is-flex" style="gap: 1rem; margin-bottom: 1.5rem;">
-                        <div class="is-flex is-align-items-center is-justify-content-center <?php echo $service['color']; ?>" style="width: 50px; height: 50px; border-radius: 6px; flex-shrink: 0; min-width: 50px;">
+                    <div class="is-flex" class="gap-1 mb-1-5">
+                        <div class="is-flex is-align-items-center is-justify-content-center <?php echo $service['color']; ?>" class="w-50 h-50 rounded-sm flex-shrink-0 min-w-50">
                             <?php \App\Core\Icon::render($service['icon'], 28, 28); ?>
                         </div>
-                        <div style="flex: 1;">
-                            <h4 class="title is-5" style="margin-bottom: 0.25rem;"><?php echo $service['title']; ?></h4>
-                            <p class="is-size-7 has-text-grey-dark" style="margin: 0;"><?php echo $service['desc']; ?></p>
+                        <div class="flex-1">
+                            <h4 class="title is-5" class="mb-025"><?php echo $service['title']; ?></h4>
+                            <p class="is-size-7 has-text-grey-dark" class="m-0"><?php echo $service['desc']; ?></p>
                         </div>
                     </div>
                     
-                    <div class="box has-background-grey-light" style="margin-bottom: 1rem;">
-                        <p style="margin: 0; font-size: 0.9rem;">
+                    <div class="box has-background-grey-light" class="mb-1">
+                        <p class="m-0 is-size-7">
                             <strong><?php echo $count; ?></strong>
                             <?php echo $count === 1 ? 'instance' : 'instances'; ?> configured
                         </p>
                     </div>
 
                     <?php if (!empty($instances)): ?>
-                        <div class="box has-background-grey-light" style="margin-bottom: 1rem; font-size: 0.85rem;">
+                        <div class="box has-background-grey-light" class="mb-1 is-size-7">
                             <?php foreach (array_slice($instances, 0, 2) as $inst): ?>
-                                <div class="is-flex is-align-items-center" style="gap: 0.5rem; padding: 0.4rem 0;">
+                                <div class="is-flex is-align-items-center" class="gap-05 py-025">
                                     <span class="indicator-dot active"></span>
                                     <span><?php echo htmlspecialchars($inst['name']); ?></span>
                                 </div>
                             <?php endforeach; ?>
                             <?php if (count($instances) > 2): ?>
-                                <div class="has-text-grey-dark" style="padding: 0.4rem 0;">+<?php echo count($instances) - 2; ?> more</div>
+                                <div class="has-text-grey-dark" class="py-025">+<?php echo count($instances) - 2; ?> more</div>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -162,13 +162,13 @@
 <!-- Setup Modal -->
 <div class="modal" id="setupModal">
     <div class="modal-background"></div>
-    <div class="modal-card" style="max-width: 500px;">
+    <div class="modal-card" class="max-w-500">
         <header class="modal-card-head">
             <p class="modal-card-title">Add Provider Instance</p>
             <a href="#" class="delete"></a>
         </header>
         
-        <form id="setupForm" style="display: none;">
+        <form id="setupForm" class="display-none">
             <section class="modal-card-body">
                 <div class="field">
                     <label class="label">Instance Name *</label>
@@ -205,7 +205,7 @@
             <footer class="modal-card-foot">
                 <div class="field is-grouped">
                     <div class="control">
-                        <button type="button" id="testBtn" class="button is-warning" style="display: none;">Test Connection</button>
+                        <button type="button" id="testBtn" class="button is-warning" class="display-none">Test Connection</button>
                     </div>
                     <div class="control">
                         <button type="submit" class="button is-info">Add Provider</button>
@@ -215,7 +215,7 @@
                     </div>
                 </div>
 
-                <div id="formMessage" class="notification" style="display: none; margin-top: 1rem; width: 100%;"></div>
+                <div id="formMessage" class="notification" class="display-none mt-1 w-full"></div>
             </footer>
         </form>
     </div>
@@ -235,7 +235,7 @@
                     <?php foreach ($messagingChannels as $key => $ch): ?>
                         <div class="column is-one-third-desktop is-half-tablet is-full-mobile">
                             <label class="provider-checkbox-label <?php echo $ch['hasProvider'] ? '' : 'disabled'; ?>">
-                                <div style="margin-top: 2px;">
+                                <div class="mt-025">
                                     <input type="checkbox" name="messaging_<?php echo htmlspecialchars($key); ?>_enabled" 
                                            <?php echo $ch['enabled'] ? 'checked' : ''; ?>
                                            <?php echo !$ch['hasProvider'] ? 'disabled' : ''; ?>>
@@ -281,25 +281,25 @@
             <div class="column is-one-quarter-desktop is-half-tablet is-full-mobile">
                 <div>
                     <strong>Identity (IAM)</strong>
-                    <p class="is-size-7 has-text-grey-dark mt-2" style="margin-bottom: 0;">Set up SSO and centralized user management</p>
+                    <p class="is-size-7 has-text-grey-dark mt-2" class="mb-0">Set up SSO and centralized user management</p>
                 </div>
             </div>
             <div class="column is-one-quarter-desktop is-half-tablet is-full-mobile">
                 <div>
                     <strong>Repositories</strong>
-                    <p class="is-size-7 has-text-grey-dark mt-2" style="margin-bottom: 0;">Link GitHub, GitLab, or other Git platforms</p>
+                    <p class="is-size-7 has-text-grey-dark mt-2" class="mb-0">Link GitHub, GitLab, or other Git platforms</p>
                 </div>
             </div>
             <div class="column is-one-quarter-desktop is-half-tablet is-full-mobile">
                 <div>
                     <strong>Calendars</strong>
-                    <p class="is-size-7 has-text-grey-dark mt-2" style="margin-bottom: 0;">Connect Google Calendar, Outlook, or CalDAV</p>
+                    <p class="is-size-7 has-text-grey-dark mt-2" class="mb-0">Connect Google Calendar, Outlook, or CalDAV</p>
                 </div>
             </div>
             <div class="column is-one-quarter-desktop is-half-tablet is-full-mobile">
                 <div>
                     <strong>Secrets Management</strong>
-                    <p class="is-size-7 has-text-grey-dark mt-2" style="margin-bottom: 0;">Integrate password vaults and secret stores</p>
+                    <p class="is-size-7 has-text-grey-dark mt-2" class="mb-0">Integrate password vaults and secret stores</p>
                 </div>
             </div>
         </div>

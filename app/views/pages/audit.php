@@ -50,7 +50,7 @@
                     </div>
                     
                     <h4 class="title is-6">Audit Logging Implementation:</h4>
-                    <div class="box has-background-success-light" style="border-left: 4px solid #48c774;">
+                    <div class="box has-background-success-light" class="border-left-success-thick">
                         <p><strong>✅ Completed Features:</strong></p>
                         <ul>
                             <li>✅ AuditController with filtering and search</li>

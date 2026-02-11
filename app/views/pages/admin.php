@@ -16,9 +16,9 @@
         </div>
         <div class="navbar-end">
             <div class="navbar-item">
-                <div class="is-flex is-align-items-center" style="gap: 1rem;">
+                <div class="is-flex is-align-items-center gap-05 text-inherit">
                     <small><?php echo htmlspecialchars($user['email']); ?></small>
-                    <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>" class="is-flex is-align-items-center" style="gap: 0.5rem; color: inherit;">
+                    <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>" class="is-flex is-align-items-center gap-05 text-inherit">
                         <span class="icon is-small">
                             <?php \App\Core\Icon::render('logout', 16, 16); ?>
                         </span>
@@ -52,20 +52,20 @@
                                 <?php foreach ($tenants as $tenant): 
                                     $isActive = ($tenant['status'] ?? 'active') === 'active';
                                 ?>
-                                    <div class="box" style="<?php echo !$isActive ? 'opacity: 0.6;' : ''; ?>">
+                                    <div class="box" class="<?php echo !$isActive ? 'opacity-60' : ''; ?>">
                                         <div class="is-flex is-justify-content-space-between is-align-items-center">
-                                            <div style="flex: 1;">
-                                                <div class="is-flex is-align-items-center" style="gap: 0.75rem; margin-bottom: 0.5rem;">
+                                            <div class="flex-1">
+                                                <div class="is-flex is-align-items-center gap-075 mb-05">
                                                     <strong><?php echo htmlspecialchars($tenant['name']); ?></strong>
                                                     <span class="tag <?php echo $isActive ? 'is-success' : 'is-grey'; ?>">
                                                         <?php echo htmlspecialchars($tenant['status'] ?? 'active'); ?>
                                                     </span>
                                                 </div>
-                                                <p class="has-text-grey-light is-size-7" style="font-family: monospace; margin: 0;">
+                                                <p class="has-text-grey-light is-size-7 font-mono m-0">
                                                     <?php echo htmlspecialchars($tenant['id']); ?>
                                                 </p>
                                             </div>
-                                            <div class="is-flex" style="gap: 0.5rem;">
+                                            <div class="is-flex gap-05">
                                                 <?php if ($isActive): ?>
                                                     <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard', $tenant['id']); ?>" 
                                                        class="button is-small is-info is-light"
@@ -85,7 +85,7 @@
                                                     </span>
                                                 </button>
                                                 <?php if ($isActive): ?>
-                                                    <form method="POST" action="/admin/tenants/deactivate" style="margin: 0; display: inline;">
+                                                    <form method="POST" action="/admin/tenants/deactivate" class="m-0 display-inline">
                                                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
                                                         <button type="submit" 
                                                                 class="button is-small is-warning"
@@ -97,7 +97,7 @@
                                                         </button>
                                                     </form>
                                                 <?php else: ?>
-                                                    <form method="POST" action="/admin/tenants/activate" style="margin: 0; display: inline;">
+                                                    <form method="POST" action="/admin/tenants/activate" class="m-0 display-inline">
                                                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
                                                         <button type="submit" 
                                                                 class="button is-small is-success"

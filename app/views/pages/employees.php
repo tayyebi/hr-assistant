@@ -44,7 +44,7 @@
                     <th>Role</th>
                     <th>Accounts</th>
                     <th>Hired Date</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th class="text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -58,7 +58,7 @@
                     <?php foreach ($employees as $emp): ?>
                         <tr>
                             <td>
-                                <div class="level is-mobile" style="margin: 0;">
+                                <div class="level is-mobile m-0">
                                     <div class="level-left">
                                         <div class="level-item">
                                             <div class="avatar">
@@ -82,13 +82,13 @@
                                 <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars($emp['hired_date']); ?></td>
-                            <td style="text-align: right;">
+                            <td class="text-right">
                                 <a href="<?php echo \App\Core\UrlHelper::workspace('/employees/edit/' . htmlspecialchars($emp['id'])); ?>" class="button is-ghost is-small">
                                     <span class="icon is-small">
                                         <?php Icon::render('edit', 16, 16); ?>
                                     </span>
                                 </a>
-                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/delete/'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/delete/'); ?>" class="display-inline">
                                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($emp['id']); ?>">
                                     <button type="submit" class="button is-ghost is-small">
                                         <span class="icon is-small has-text-danger">

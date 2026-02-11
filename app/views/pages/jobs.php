@@ -34,7 +34,7 @@
                 <th>Target</th>
                 <th>Result / Message</th>
                 <th>Time</th>
-                <th style="text-align: right;">Actions</th>
+                <th class="text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -79,9 +79,9 @@
                         <td class="is-size-7 has-text-grey-light">
                             <?php echo date('H:i:s', strtotime($job['updated_at'])); ?>
                         </td>
-                        <td style="text-align: right;">
+                        <td class="text-right">
                             <?php if ($job['status'] === 'failed'): ?>
-                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/jobs/retry/'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/jobs/retry/'); ?>" class="display-inline">
                                     <input type="hidden" name="job_id" value="<?php echo htmlspecialchars($job['id']); ?>">
                                     <button type="submit" class="button is-small is-info">
                                         <span class="icon is-small">

@@ -43,7 +43,7 @@
                         </div>
                         
                         <h4 class="mt-5">🚀 API Documentation Implementation:</h4>
-                        <div class="box has-background-success-light" style="border-left: 4px solid #10b981;">
+                        <div class="box has-background-success-light" class="border-left-primary-thick">
                             <p><strong>✅ Completed Features:</strong></p>
                             <ul>
                                 <li>✅ ApiController with versioned endpoints</li>

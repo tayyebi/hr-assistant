@@ -13,7 +13,7 @@
         <div class="column is-two-thirds-desktop is-full-mobile">
             <div class="card">
                 <div class="card-header">
-                    <div class="level is-mobile" style="width: 100%;">
+                    <div class="level is-mobile" class="w-full">
                         <div class="level-left">
                             <h3 class="title is-5 mb-0">
                                 <span class="icon-text">
@@ -90,7 +90,7 @@
                     </h3>
                 </div>
 
-                <div class="card-content" style="max-height: 400px; overflow-y: auto;">
+                <div class="card-content" class="max-h-400 overflow-y-auto">
                     <?php if (empty($upcomingBirthdays)): ?>
                         <p class="has-text-grey-light has-text-centered">No upcoming events.</p>
                     <?php else: ?>

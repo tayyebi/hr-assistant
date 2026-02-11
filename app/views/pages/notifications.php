@@ -18,7 +18,7 @@
                     <p class="has-text-grey-light">Real-time notifications, announcements, and reminders.</p>
                     
                     <!-- Overview Stats -->
-                    <div class="columns is-multiline" style="margin-top: 1rem;">
+                    <div class="columns is-multiline mt-1">
                         <div class="column is-half-tablet is-one-quarter-desktop">
                             <div class="box has-background-grey-light">
                                 <p class="heading is-6">Overview</p>
@@ -35,7 +35,7 @@
                     </div>
                     
                     <!-- Create Notification Form -->
-                    <div style="margin-top: 2rem;">
+                    <div class="mt-2">
                         <h4 class="title is-5">Send Notification</h4>
                         <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/create/'); ?>">
                             <div class="columns is-multiline">
@@ -110,15 +110,15 @@
                     </div>
                     
                     <!-- Notifications List -->
-                    <div style="margin-top: 2rem;">
+                    <div class="mt-2">
                         <h4 class="title is-5">Recent Notifications</h4>
                         <?php if (empty($notifications)): ?>
                             <p class="has-text-grey-light">No notifications yet. Create your first notification above!</p>
                         <?php else: ?>
-                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="flex-col-gap">
                                 <?php foreach ($notifications as $notification): ?>
-                                    <div class="box <?php echo !$notification['is_read'] ? 'has-border-left' : ''; ?>" style="<?php echo !$notification['is_read'] ? 'border-left: 3px solid #3273dc; opacity: 1;' : 'opacity: 0.7;'; ?>">
-                                        <div class="level" style="margin-bottom: 0.5rem;">
+                                    <div class="box <?php echo !$notification['is_read'] ? 'has-border-left' : ''; ?>" class="<?php echo !$notification['is_read'] ? 'border-left-primary' : 'opacity-70'; ?>">
+                                        <div class="level mb-05">
                                             <div class="level-left">
                                                 <div class="level-item">
                                                     <h5 class="title is-6"><?php echo htmlspecialchars($notification['title']); ?></h5>
@@ -136,7 +136,7 @@
                                         <div class="is-flex is-justify-content-space-between is-align-items-center">
                                             <small class="has-text-grey-light">From: <?php echo htmlspecialchars($notification['from_user_name'] ?? 'System'); ?> • <?php echo date('M j, Y g:i A', strtotime($notification['created_at'])); ?></small>
                                             <?php if (!$notification['is_read']): ?>
-                                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/mark-read/'); ?>" style="display: inline;">
+                                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/mark-read/'); ?>" class="display-inline">
                                                     <input type="hidden" name="notification_id" value="<?php echo htmlspecialchars($notification['id']); ?>">
                                                     <button type="submit" class="button is-small is-light">Mark Read</button>
                                                 </form>

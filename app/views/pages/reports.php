@@ -18,7 +18,7 @@
                     <p class="has-text-grey-light">Comprehensive reporting and business intelligence.</p>
                     
                     <!-- Report Overview -->
-                    <div class="columns is-multiline" style="margin-top: 1rem;">
+                    <div class="columns is-multiline mt-1">
                         <div class="column is-half-tablet is-one-quarter-desktop">
                             <div class="box has-background-grey-light">
                                 <p class="heading is-6">Employees</p>
@@ -53,7 +53,7 @@
                     </div>
                     
                     <!-- Report Generation -->
-                    <div style="margin-top: 2rem;">
+                    <div class="mt-2">
                         <h4 class="title is-5">Generate Report</h4>
                         <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/reports/generate'); ?>">
                             <div class="columns is-multiline">
@@ -100,7 +100,7 @@
                     </div>
                     
                     <!-- Report Results -->
-                    <div id="report-results" style="display: none; margin-top: 2rem;">
+                    <div id="report-results" class="display-none mt-2">
                         <h4 class="title is-5">Report Results</h4>
                         <div id="report-content" class="box has-background-grey-light"></div>
                     </div>
@@ -118,9 +118,9 @@
                     <p>Charts and visualizations will display here</p>
                     <p>Data updates automatically</p>
                     
-                    <div style="margin-top: 1rem; text-align: left;">
+                    <div class="mt-1 text-left">
                         <h5 class="title is-6">Available Report Types:</h5>
-                        <ul style="margin-left: 1rem;">
+                        <ul class="ml-1rem">
                             <li>Performance Analytics</li>
                             <li>Asset Utilization</li>
                             <li>Communication Metrics</li>

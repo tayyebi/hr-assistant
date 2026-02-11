@@ -47,7 +47,7 @@
                             <?php foreach ($gitInstances as $instance): ?>
                                 <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'class="is-selected"' : ''; ?>>
                                     <td>
-                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                        <div class="gap-05">
                                             <span class="icon is-small">
                                                 <?php \App\Core\Icon::render('git-branch', 16, 16); ?>
                                             </span>
@@ -97,17 +97,17 @@
                     <?php if (empty($allLinkedEmployees)): ?>
                         <p class="has-text-grey-light">No employees linked to Git accounts.</p>
                     <?php else: ?>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
+                        <ul class="list-none p-0 m-0">
                             <?php foreach (array_slice($allLinkedEmployees, 0, 10) as $empData): ?>
-                                <li style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb;">
+                                <li class="display-flex items-center gap-075 py-05 border-bottom-light">
                                     <div class="image is-32x32">
-                                        <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%; font-size: 0.75rem;">
+                                        <div class="w-100-h-100-rounded is-size-7">
                                             <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
                                         </div>
                                     </div>
-                                    <div style="flex: 1;">
-                                        <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($empData['employee']['full_name']); ?></strong>
-                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-grey-light);">@<?php echo htmlspecialchars($empData['username']); ?></p>
+                                    <div class="flex-1">
+                                        <strong class="is-size-7"><?php echo htmlspecialchars($empData['employee']['full_name']); ?></strong>
+                                        <p class="m-0 is-size-7 has-text-grey-light">@<?php echo htmlspecialchars($empData['username']); ?></p>
                                     </div>
                                 </li>
                             <?php endforeach; ?>
@@ -119,13 +119,13 @@
     </div>
 
     <?php if ($selectedInstance): ?>
-        <section style="margin-top: 2rem;">
+        <section class="mt-2">
             <div class="level">
                 <div class="level-left">
                     <div class="level-item">
                         <div>
                             <h3 class="title is-4">
-                                <span class="icon is-small" style="vertical-align: middle;">
+                                <span class="align-middle">
                                     <?php \App\Core\Icon::render('git-branch', 24, 24); ?>
                                 </span>
                                 <?php echo htmlspecialchars($selectedInstance['name']); ?>
@@ -154,7 +154,7 @@
                                     No repositories found or unable to connect to the provider.
                                 </p>
                             <?php else: ?>
-                                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                <div class="max-h-400 overflow-y-auto">
                                     <table class="table is-striped is-fullwidth">
                                         <thead>
                                             <tr>
@@ -169,7 +169,7 @@
                                                     <td>
                                                         <strong><?php echo htmlspecialchars($repo['name'] ?? $repo['path'] ?? 'Unknown'); ?></strong>
                                                         <?php if (!empty($repo['description'])): ?>
-                                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-grey-light);">
+                                                            <p class="m-0 is-size-7 has-text-grey-light">
                                                                 <?php echo htmlspecialchars(substr($repo['description'], 0, 60)); ?>
                                                             </p>
                                                         <?php endif; ?>
@@ -179,7 +179,7 @@
                                                             <?php echo htmlspecialchars($repo['visibility'] ?? 'private'); ?>
                                                         </span>
                                                     </td>
-                                                    <td style="font-size: 0.75rem; color: var(--text-grey-light);">
+                                                    <td class="is-size-7 has-text-grey-light">
                                                         <?php echo htmlspecialchars($repo['last_activity'] ?? 'N/A'); ?>
                                                     </td>
                                                 </tr>
@@ -204,16 +204,16 @@
                                     No recent activity available.
                                 </p>
                             <?php else: ?>
-                                <div style="max-height: 400px; overflow-y: auto;">
+                                <div class="max-h-400 overflow-y-auto">
                                     <?php foreach ($recentActivity as $activity): ?>
-                                        <div style="padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb;">
-                                            <div class="is-flex is-align-items-flex-start" style="gap: 0.5rem;">
-                                                <span class="icon is-small" style="margin-top: 3px;">
+                                        <div class="py-05 border-bottom-light">
+                                            <div class="gap-05">
+                                                <span class="mt-025">
                                                     <?php \App\Core\Icon::render('git-commit', 14, 14); ?>
                                                 </span>
                                                 <div>
-                                                    <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($activity['author'] ?? 'Unknown'); ?></strong>
-                                                    <p style="margin: 0; font-size: 0.8rem;">
+                                                    <strong class="is-size-7"><?php echo htmlspecialchars($activity['author'] ?? 'Unknown'); ?></strong>
+                                                    <p class="m-0 is-size-7">
                                                         <?php echo htmlspecialchars($activity['message'] ?? ''); ?>
                                                     </p>
                                                     <small class="has-text-grey-light">
@@ -232,7 +232,7 @@
             </div>
 
             <!-- Access Management -->
-            <div class="card" style="margin-top: 2rem;">
+            <div class="mt-2">
                 <header class="card-header">
                     <p class="card-header-title">Access Management</p>
                 </header>
@@ -259,9 +259,9 @@
                                 <?php foreach ($instanceEmployees as $empData): ?>
                                     <tr>
                                         <td>
-                                            <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                            <div class="gap-05">
                                                 <div class="image is-28x28">
-                                                    <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%;">
+                                                    <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" class="w-100-h-100-rounded">
                                                         <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
                                                     </div>
                                                 </div>
