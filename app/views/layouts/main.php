@@ -77,9 +77,6 @@
 
         <footer>
             <article>
-                <p><strong>System Status</strong></p>
-                <p>● Backend Sync Active</p>
-                <p>● Services Connected</p>
                 <small>
                     <?php 
                         $workspaceContext = \App\Core\View::getWorkspaceContext();

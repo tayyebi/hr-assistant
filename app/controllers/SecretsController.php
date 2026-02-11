@@ -58,7 +58,7 @@ class SecretsController
             
             if ($selectedInstance) {
                 try {
-                    $provider = ProviderFactory::create($selectedInstance['provider'], $selectedInstance['settings'] ?? []);
+                    $provider = ProviderFactory::create($tenantId, $selectedInstance['provider'], $selectedInstance['settings'] ?? []);
                     
                     if (method_exists($provider, 'listGroups')) {
                         $groups = $provider->listGroups();
@@ -89,6 +89,64 @@ class SecretsController
             'message' => $message,
             'activeTab' => 'secrets'
         ]);
+    }
+
+    /**
+     * Create a new secrets provider instance
+     */
+    public function createProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $result = \App\Core\ProviderFormRenderer::createInstance($tenantId, [
+            'type' => $_POST['type'] ?? \App\Core\ProviderType::TYPE_SECRETS,
+            'provider' => $_POST['provider'] ?? '',
+            'name' => $_POST['name'] ?? '',
+            'config' => $_POST['config'] ?? []
+        ]);
+
+        if (!$result['success']) {
+            $_SESSION['flash_message'] = $result['message'];
+        } else {
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        View::redirect(View::workspaceUrl('/secrets'));
+    }
+
+    /**
+     * Delete a secrets provider instance
+     */
+    public function deleteProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $id = $_POST['id'] ?? '';
+
+        if (!empty($id)) {
+            $result = \App\Core\ProviderFormRenderer::deleteInstance($tenantId, $id);
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        
+        View::redirect(View::workspaceUrl('/secrets'));
+    }
+
+    /**
+     * Test secrets provider connection (AJAX endpoint)
+     */
+    public function testConnection(): void
+    {
+        AuthController::requireTenantAdmin();
+        header('Content-Type: application/json');
+
+        $tenantId = User::getTenantId();
+        $provider = $_POST['provider'] ?? '';
+        $config = $_POST['config'] ?? [];
+
+        $result = \App\Core\ProviderFormRenderer::testConnection($tenantId, $provider, $config);
+        echo json_encode($result);
+        exit;
     }
 
     /**
@@ -182,7 +240,7 @@ class SecretsController
         }
         
         try {
-            $provider = ProviderFactory::create($instance['provider'], $instance['settings'] ?? []);
+            $provider = ProviderFactory::create($tenantId, $instance['provider'], $instance['settings'] ?? []);
             
             if (method_exists($provider, 'getUserAccess')) {
                 $access = $provider->getUserAccess($username);

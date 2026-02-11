@@ -59,7 +59,7 @@ class RepositoryController
             if ($selectedInstance) {
                 // Try to fetch repositories from the provider
                 try {
-                    $provider = ProviderFactory::create($selectedInstance['provider'], $selectedInstance['settings'] ?? []);
+                    $provider = ProviderFactory::create($tenantId, $selectedInstance['provider'], $selectedInstance['settings'] ?? []);
                     
                     if (method_exists($provider, 'listRepositories')) {
                         $repositories = $provider->listRepositories();
@@ -94,6 +94,64 @@ class RepositoryController
     }
 
     /**
+     * Create a new git provider instance
+     */
+    public function createProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $result = \App\Core\ProviderFormRenderer::createInstance($tenantId, [
+            'type' => $_POST['type'] ?? \App\Core\ProviderType::TYPE_GIT,
+            'provider' => $_POST['provider'] ?? '',
+            'name' => $_POST['name'] ?? '',
+            'config' => $_POST['config'] ?? []
+        ]);
+
+        if (!$result['success']) {
+            $_SESSION['flash_message'] = $result['message'];
+        } else {
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        View::redirect(View::workspaceUrl('/repositories'));
+    }
+
+    /**
+     * Delete a git provider instance
+     */
+    public function deleteProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $id = $_POST['id'] ?? '';
+
+        if (!empty($id)) {
+            $result = \App\Core\ProviderFormRenderer::deleteInstance($tenantId, $id);
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        
+        View::redirect(View::workspaceUrl('/repositories'));
+    }
+
+    /**
+     * Test git provider connection (AJAX endpoint)
+     */
+    public function testConnection(): void
+    {
+        AuthController::requireTenantAdmin();
+        header('Content-Type: application/json');
+
+        $tenantId = User::getTenantId();
+        $provider = $_POST['provider'] ?? '';
+        $config = $_POST['config'] ?? [];
+
+        $result = \App\Core\ProviderFormRenderer::testConnection($tenantId, $provider, $config);
+        echo json_encode($result);
+        exit;
+    }
+
+    /**
      * Get repository access levels (API endpoint)
      */
     public function getAccess(): void
@@ -116,7 +174,7 @@ class RepositoryController
         }
         
         try {
-            $provider = ProviderFactory::create($instance['provider'], $instance['settings'] ?? []);
+            $provider = ProviderFactory::create($tenantId, $instance['provider'], $instance['settings'] ?? []);
             
             if (method_exists($provider, 'getRepositoryAccess')) {
                 $access = $provider->getRepositoryAccess($repoPath);
@@ -154,7 +212,7 @@ class RepositoryController
         }
         
         try {
-            $provider = ProviderFactory::create($instance['provider'], $instance['settings'] ?? []);
+            $provider = ProviderFactory::create($tenantId, $instance['provider'], $instance['settings'] ?? []);
             
             if (method_exists($provider, 'setRepositoryAccess')) {
                 $result = $provider->setRepositoryAccess($repoPath, $username, $accessLevel);

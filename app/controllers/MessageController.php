@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\{User, Message, Employee, ProviderInstance};
-use App\Core\{View, ProviderType};
+use App\Core\{View, ProviderType, ProviderFormRenderer};
 
 /**
  * Message Controller
@@ -82,6 +82,64 @@ class MessageController
             'activeTab' => 'messages',
             'messagingInstances' => array_values($messagingInstances)
         ]);
+    }
+
+    /**
+     * Create a new messaging provider instance
+     */
+    public function createProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $result = ProviderFormRenderer::createInstance($tenantId, [
+            'type' => $_POST['type'] ?? ProviderType::TYPE_EMAIL,
+            'provider' => $_POST['provider'] ?? '',
+            'name' => $_POST['name'] ?? '',
+            'config' => $_POST['config'] ?? []
+        ]);
+
+        if (!$result['success']) {
+            $_SESSION['flash_message'] = $result['message'];
+        } else {
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        View::redirect(View::workspaceUrl('/messages'));
+    }
+
+    /**
+     * Delete a messaging provider instance
+     */
+    public function deleteProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+
+        $tenantId = User::getTenantId();
+        $id = $_POST['id'] ?? '';
+
+        if (!empty($id)) {
+            $result = ProviderFormRenderer::deleteInstance($tenantId, $id);
+            $_SESSION['flash_message'] = $result['message'];
+        }
+        
+        View::redirect(View::workspaceUrl('/messages'));
+    }
+
+    /**
+     * Test messaging provider connection (AJAX endpoint)
+     */
+    public function testConnection(): void
+    {
+        AuthController::requireTenantAdmin();
+        header('Content-Type: application/json');
+
+        $tenantId = User::getTenantId();
+        $provider = $_POST['provider'] ?? '';
+        $config = $_POST['config'] ?? [];
+
+        $result = ProviderFormRenderer::testConnection($tenantId, $provider, $config);
+        echo json_encode($result);
+        exit;
     }
 
     public function send(): void

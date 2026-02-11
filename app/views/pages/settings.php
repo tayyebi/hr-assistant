@@ -1,359 +1,207 @@
 <header>
-    <div>
-        <h2>Provider Configuration</h2>
-        <p>Manage integrations, messaging channels, and create tenant-scoped provider instances to assign to employees.</p>
-    </div>
+    <h2>Workspace Settings</h2>
+    <p>Manage integrations, communication channels, and system preferences.</p>
 </header>
 
 <?php if (!empty($message)): ?>
     <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
 <?php endif; ?>
 
-<?php if (!empty($providerErrors)): ?>
-    <article style="border: 1px solid var(--color-danger); background-color: var(--color-danger-bg, #fef2f2); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-        <h4 style="margin-top: 0; color: var(--color-danger);">Provider Connection Issues</h4>
-        <?php foreach ($providerErrors as $error): ?>
-            <div style="margin-bottom: var(--spacing-sm);">
-                <strong><?php echo htmlspecialchars($error['instance']); ?></strong> (<?php echo htmlspecialchars($error['provider']); ?>):
-                <span style="color: var(--color-danger);"><?php echo htmlspecialchars($error['error']); ?></span>
-            </div>
-        <?php endforeach; ?>
-    </article>
-<?php endif; ?>
-
-<section>
-    <h3>Available Providers</h3>
-    <p style="margin-top: 0; color: var(--text-muted);">Choose a provider type and create a named instance (e.g., "GitLab - Engineering"). Instances are tenant-scoped and can be assigned to employees.</p>
-
-    <div id="providers-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-        <?php foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
-            <article data-provider="<?php echo htmlspecialchars($pKey); ?>" data-type="<?php echo htmlspecialchars($pMeta['type']); ?>" style="border: 1px solid var(--color-border); padding: var(--spacing-lg); border-radius: var(--radius-md); display:flex; gap: var(--spacing-md); align-items:center; cursor: pointer;">"
-                <div style="padding: var(--spacing-sm); background-color: <?php echo htmlspecialchars($pMeta['color']); ?>; border-radius: var(--radius-md); opacity: 0.85;">
-                    <?php \App\Core\Icon::render($pMeta['icon'], 20, 20); ?>
+<!-- Quick Status Overview -->
+<section style="margin-bottom: var(--spacing-xl);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-md);">
+        <?php 
+            $providerInstances = \App\Models\ProviderInstance::getAll($tenant['id']);
+            $stats = [
+                ['label' => 'Connected Services', 'value' => count($providerInstances), 'icon' => 'zap'],
+                ['label' => 'Identity Providers', 'value' => count(array_filter($providerInstances, fn($p) => $p['type'] === 'iam')), 'icon' => 'lock'],
+                ['label' => 'Repository Access', 'value' => count(array_filter($providerInstances, fn($p) => $p['type'] === 'git')), 'icon' => 'git-branch'],
+                ['label' => 'Communication', 'value' => count(array_filter($providerInstances, fn($p) => in_array($p['type'], ['email', 'messenger']))), 'icon' => 'mail'],
+            ];
+            foreach ($stats as $stat):
+        ?>
+        <article style="background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); padding: var(--spacing-lg); border-radius: var(--radius); border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
+                <div style="width: 40px; height: 40px; background: var(--color-info); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: white;">
+                    <?php \App\Core\Icon::render($stat['icon'], 20, 20); ?>
                 </div>
                 <div>
-                    <strong><?php echo htmlspecialchars($pMeta['name']); ?></strong>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);"><?php echo htmlspecialchars($pMeta['description']); ?></div>
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);"><?php echo $stat['label']; ?></p>
+                    <p style="margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--text-primary);"><?php echo $stat['value']; ?></p>
                 </div>
-            </article>
+            </div>
+        </article>
         <?php endforeach; ?>
     </div>
 </section>
 
-<hr style="margin: var(--spacing-lg) 0;">
+<!-- Provider Management Section -->
+<section style="margin-bottom: var(--spacing-xl);">
+    <header style="margin-bottom: var(--spacing-lg);">
+        <h3 style="margin: 0 0 0.5rem 0;">🔌 Connected Services</h3>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Manage integrations for identity, repositories, calendars, and messaging.</p>
+    </header>
 
-<section>
-    <h3>Messaging Channels</h3>
-    <p style="margin-top: 0; color: var(--text-muted);">Enable messaging channels available for employee communication. Channels require corresponding provider instances to function.</p>
-    
-    <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/'); ?>">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-            <?php foreach ($messagingChannels as $key => $channel): ?>
-                <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); <?php echo $channel['hasProvider'] ? '' : 'opacity: 0.5;'; ?>">
-                    <input type="checkbox" name="messaging_<?php echo htmlspecialchars($key); ?>_enabled" 
-                           <?php echo $channel['enabled'] ? 'checked' : ''; ?>
-                           <?php echo !$channel['hasProvider'] ? 'disabled' : ''; ?>>
-                    <?php \App\Core\Icon::render($channel['icon'], 16, 16); ?>
-                    <span><?php echo htmlspecialchars($channel['name']); ?></span>
-                    <?php if (!$channel['hasProvider']): ?>
-                        <small style="color: var(--text-muted);">(No provider)</small>
-                    <?php endif; ?>
-                </label>
-            <?php endforeach; ?>
-        </div>
-        <button type="submit">Save Messaging Channels</button>
-    </form>
-</section>
-
-<hr style="margin: var(--spacing-lg) 0;">
-
-<section>
-    <h3>Provider Instances (Tenant-level)</h3>
-    <p style="margin-top: 0; color: var(--text-muted);">Create named instances of providers (e.g., "GitLab - Engineering") that can be assigned to employees.</p>
-
-    <article style="margin-bottom: var(--spacing-md);">
-        <h4>Existing Instances</h4>
-        <?php $instances = \App\Models\ProviderInstance::getAll($tenant['id']); ?>
-        <?php if (empty($instances)): ?>
-            <p style="color: var(--text-muted);">No provider instances configured.</p>
-        <?php else: ?>
-            <ul>
-                <?php foreach ($instances as $inst): ?>
-                    <li>
-                        <strong><?php echo htmlspecialchars($inst['name']); ?></strong>
-                        <small style="margin-left: var(--spacing-sm); color: var(--text-muted);">(<?php echo htmlspecialchars($inst['type']); ?> / <?php echo htmlspecialchars($inst['provider']); ?>)</small>
-                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/providers/delete/'); ?>" style="display:inline; margin-left: var(--spacing-md);">
-                            <input type="hidden" name="id" value="<?php echo htmlspecialchars($inst['id']); ?>">
-                            <button type="submit" data-variant="ghost" data-size="icon">Delete</button>
-                        </form>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </article>
-
-    <article>
-        <h4>Create Provider Instance</h4>
-        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/providers/'); ?>" id="provider-form">
-            <section data-grid="3">
-                <div>
-                    <label>Type</label>
-                    <select name="type" required>
-                        <option value="">Select type</option>
-                        <option value="<?php echo ProviderType::TYPE_EMAIL; ?>">Email</option>
-                        <option value="<?php echo ProviderType::TYPE_GIT; ?>">Git</option>
-                        <option value="<?php echo ProviderType::TYPE_MESSENGER; ?>">Messaging</option>
-                        <option value="<?php echo ProviderType::TYPE_IAM; ?>">Identity</option>
-                    </select>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg);">
+        <?php
+            $services = [
+                [
+                    'title' => 'Identity Management',
+                    'desc' => 'SSO, LDAP, SAML',
+                    'icon' => 'lock',
+                    'color' => '#dbeafe',
+                    'iconColor' => '#0369a1',
+                    'type' => 'iam',
+                    'url' => '/identity/',
+                ],
+                [
+                    'title' => 'Code Repositories',
+                    'desc' => 'Git hosting, access control',
+                    'icon' => 'git-branch',
+                    'color' => '#fce7f3',
+                    'iconColor' => '#be185d',
+                    'type' => 'git',
+                    'url' => '/repositories/',
+                ],
+                [
+                    'title' => 'Calendar Services',
+                    'desc' => 'Google, Outlook, CalDAV',
+                    'icon' => 'calendar',
+                    'color' => '#dcfce7',
+                    'iconColor' => '#15803d',
+                    'type' => 'calendar',
+                    'url' => '/calendars/',
+                ],
+                [
+                    'title' => 'Password Management',
+                    'desc' => 'Vault, Bitwarden, 1Password',
+                    'icon' => 'key',
+                    'color' => '#f3e8ff',
+                    'iconColor' => '#7c3aed',
+                    'type' => 'secrets',
+                    'url' => '/secrets/',
+                ],
+                [
+                    'title' => 'Messaging & Email',
+                    'desc' => 'SMTP, Telegram, Slack',
+                    'icon' => 'mail',
+                    'color' => '#fef08a',
+                    'iconColor' => '#ca8a04',
+                    'type' => ['email', 'messenger'],
+                    'url' => '/messages/',
+                ],
+            ];
+            foreach ($services as $service):
+                $typeFilter = is_array($service['type']) ? $service['type'] : [$service['type']];
+                $instances = array_filter($providerInstances, fn($p) => in_array($p['type'], $typeFilter));
+                $count = count($instances);
+        ?>
+        <article style="border: 2px solid var(--border-color); border-radius: var(--radius); padding: var(--spacing-lg); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--color-info)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.1)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'">
+            <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, <?php echo $service['color']; ?> 0%, rgba(255,255,255,0.5)); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <?php \App\Core\Icon::render($service['icon'], 28, 28, 'color: ' . $service['iconColor'] . ';'); ?>
                 </div>
-                <div>
-                    <label>Provider</label>
-                    <select name="provider" required id="provider-select" disabled>
-                        <option value="">Choose provider</option>
-                        <?php foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
-                            <option value="<?php echo htmlspecialchars($pKey); ?>" data-type="<?php echo htmlspecialchars($pMeta['type']); ?>"><?php echo htmlspecialchars($pMeta['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-size: 1.1rem;"><?php echo $service['title']; ?></h4>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.85rem;"><?php echo $service['desc']; ?></p>
                 </div>
-                <div>
-                    <label>Name</label>
-                    <input type="text" name="name" placeholder="e.g. GitLab - Engineering" required>
-                </div>
-            </section>
-            
-            <!-- Provider-specific configuration fields -->
-            <div id="provider-config" style="margin-top: var(--spacing-md); display: none;">
-                <h5>Provider Configuration</h5>
-                <section data-grid="2" id="config-fields">
-                    <!-- Dynamic fields will be inserted here -->
-                </section>
             </div>
-            <footer style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm); align-items: center;">
-                <button type="button" id="test-connection-btn" style="background: var(--color-info); display: none;" 
-                        data-test-url="<?php echo htmlspecialchars(\App\Core\UrlHelper::workspace('/settings/test-connection/')); ?>">
-                    <img src="/icons/refresh-cw.svg" alt="" width="18" height="18">
-                    Test Connection
-                </button>
-                <div id="test-result" style="flex: 1; padding: 0.5rem; border-radius: 4px; display: none;"></div>
-                <button type="submit">Add Provider Instance</button>
-            </footer>
-        </form>
-    </article>
+            
+            <div style="padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius); margin-bottom: var(--spacing-md);">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                    <strong style="color: var(--text-primary);"><?php echo $count; ?></strong>
+                    <?php echo $count === 1 ? 'instance' : 'instances'; ?> configured
+                </p>
+            </div>
+
+            <?php if (!empty($instances)): ?>
+                <div style="padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius); margin-bottom: var(--spacing-md); font-size: 0.85rem;">
+                    <?php foreach (array_slice($instances, 0, 2) as $inst): ?>
+                        <div style="padding: 0.4rem 0; display: flex; align-items: center; gap: var(--spacing-sm); color: var(--text-muted);">
+                            <span style="width: 8px; height: 8px; background: var(--color-success); border-radius: 50%;"></span>
+                            <?php echo htmlspecialchars($inst['name']); ?>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if (count($instances) > 2): ?>
+                        <div style="padding: 0.4rem 0; color: var(--text-muted);">+<?php echo count($instances) - 2; ?> more</div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <a href="<?php echo \App\Core\UrlHelper::workspace($service['url']); ?>" style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--color-info); color: white; border-radius: var(--radius); text-decoration: none; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                Manage <?php echo $count > 0 ? 'Instances' : 'Setup'; ?>
+                <?php \App\Core\Icon::render('arrow-right', 18, 18); ?>
+            </a>
+        </article>
+        <?php endforeach; ?>
+    </div>
 </section>
 
-<script>
-// Provider instance form: filter provider list based on selected type and show config fields
-const typeSelect = document.querySelector('select[name="type"]');
-const providerSelect = document.getElementById('provider-select');
-const providerConfig = document.getElementById('provider-config');
-const configFields = document.getElementById('config-fields');
+<!-- Communication Channels -->
+<section style="margin-bottom: var(--spacing-xl);">
+    <header style="margin-bottom: var(--spacing-lg);">
+        <h3 style="margin: 0 0 0.5rem 0;">💬 Communication Channels</h3>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Control which channels are available for team communication.</p>
+    </header>
 
-// Provider field definitions loaded from PHP
-const providerFieldsData = <?php 
-echo json_encode(array_reduce(
-    array_keys(\App\Core\ProviderSettings::getProvidersMetadata()),
-    function($carry, $provider) {
-        $carry[$provider] = \App\Core\ProviderSettings::getFields($provider);
-        return $carry;
-    },
-    []
-));
-?>;
+    <?php if (!empty($messagingChannels)): ?>
+        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/'); ?>" style="background: var(--bg-secondary); padding: var(--spacing-lg); border-radius: var(--radius); border: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                <?php foreach ($messagingChannels as $key => $ch): ?>
+                    <label style="display: flex; align-items: flex-start; gap: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-primary); border-radius: var(--radius); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease; opacity: <?php echo $ch['hasProvider'] ? '1' : '0.6'; ?>" onmouseover="this.style.borderColor='var(--color-info)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                        <div style="margin-top: 2px;">
+                            <input type="checkbox" name="messaging_<?php echo htmlspecialchars($key); ?>_enabled" 
+                                   <?php echo $ch['enabled'] ? 'checked' : ''; ?>
+                                   <?php echo !$ch['hasProvider'] ? 'disabled' : ''; ?>
+                                   style="cursor: pointer;">
+                        </div>
+                        <div>
+                            <div style="font-weight: 500; color: var(--text-primary);">
+                                <?php echo htmlspecialchars($ch['name']); ?>
+                            </div>
+                            <?php if (!$ch['hasProvider']): ?>
+                                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Provider not configured yet</p>
+                            <?php else: ?>
+                                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--color-success);">✓ Provider connected</p>
+                            <?php endif; ?>
+                        </div>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" style="padding: var(--spacing-md) var(--spacing-lg); background: var(--color-info); color: white; border: none; border-radius: var(--radius); font-weight: 500; cursor: pointer;">
+                    Save Communication Preferences
+                </button>
+                <p style="margin: 0; padding: var(--spacing-md); color: var(--text-muted); font-size: 0.9rem; align-self: center;">
+                    Changes take effect immediately
+                </p>
+            </div>
+        </form>
+    <?php endif; ?>
+</section>
 
-if (typeSelect && providerSelect) {
-    typeSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        providerSelect.disabled = !val;
-        
-        // Filter provider options
-        for (const opt of providerSelect.querySelectorAll('option[data-type]')) {
-            opt.style.display = (opt.dataset.type === val) ? 'block' : 'none';
-        }
-        providerSelect.value = '';
-        hideProviderConfig();
-    });
-    
-    providerSelect.addEventListener('change', (e) => {
-        const selectedProvider = e.target.value;
-        
-        if (selectedProvider && providerFieldsData[selectedProvider]) {
-            showProviderConfig(selectedProvider, providerFieldsData[selectedProvider]);
-        } else {
-            hideProviderConfig();
-        }
-    });
-
-    // Click on provider card to prefill the create form
-    document.querySelectorAll('#providers-grid article[data-provider]').forEach(card => {
-        card.addEventListener('click', () => {
-            const prov = card.dataset.provider;
-            const type = card.dataset.type;
-            typeSelect.value = type;
-            typeSelect.dispatchEvent(new Event('change'));
-            providerSelect.value = prov;
-            providerSelect.dispatchEvent(new Event('change'));
-            document.querySelector('input[name="name"]').focus();
-            document.querySelector('input[name="name"]').scrollIntoView({behavior: 'smooth', block: 'center'});
-        });
-    });
-}
-
-function showProviderConfig(provider, fields) {
-    configFields.innerHTML = '';
-    
-    // Show test connection button
-    const testBtn = document.getElementById('test-connection-btn');
-    if (testBtn) {
-        testBtn.style.display = 'flex';
-        testBtn.dataset.provider = provider;
-    }
-    
-    Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
-        const fieldDiv = document.createElement('div');
-        
-        // Create label
-        const label = document.createElement('label');
-        label.textContent = fieldConfig.label;
-        if (fieldConfig.required) {
-            const required = document.createElement('span');
-            required.style.color = 'var(--danger, #dc2626)';
-            required.textContent = ' *';
-            label.appendChild(required);
-        }
-        fieldDiv.appendChild(label);
-        
-        // Create input field
-        let input;
-        if (fieldConfig.type === 'textarea') {
-            input = document.createElement('textarea');
-            input.rows = 3;
-        } else if (fieldConfig.type === 'select' && fieldConfig.options) {
-            input = document.createElement('select');
-            Object.entries(fieldConfig.options).forEach(([value, text]) => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = text;
-                input.appendChild(option);
-            });
-        } else if (fieldConfig.type === 'checkbox') {
-            input = document.createElement('input');
-            input.type = 'checkbox';
-            input.value = '1';
-        } else {
-            input = document.createElement('input');
-            input.type = fieldConfig.type || 'text';
-        }
-        
-        input.name = `config[${fieldName}]`;
-        if (fieldConfig.required) input.required = true;
-        if (fieldConfig.placeholder) input.placeholder = fieldConfig.placeholder;
-        if (fieldConfig.value) input.value = fieldConfig.value;
-        
-        fieldDiv.appendChild(input);
-        
-        // Add description if provided
-        if (fieldConfig.description) {
-            const desc = document.createElement('small');
-            desc.style.color = 'var(--text-muted, #6b7280)';
-            desc.style.display = 'block';
-            desc.style.marginTop = '0.25rem';
-            desc.textContent = fieldConfig.description;
-            fieldDiv.appendChild(desc);
-        }
-        
-        configFields.appendChild(fieldDiv);
-    });
-    
-    providerConfig.style.display = 'block';
-}
-
-function hideProviderConfig() {
-    providerConfig.style.display = 'none';
-    configFields.innerHTML = '';
-    const testBtn = document.getElementById('test-connection-btn');
-    const testResult = document.getElementById('test-result');
-    if (testBtn) testBtn.style.display = 'none';
-    if (testResult) testResult.style.display = 'none';
-}
-
-// Test connection functionality
-const testConnectionBtn = document.getElementById('test-connection-btn');
-const testResult = document.getElementById('test-result');
-
-if (testConnectionBtn && testResult) {
-    testConnectionBtn.addEventListener('click', async function() {
-        const provider = this.dataset.provider;
-        if (!provider) return;
-        
-        // Gather config values from form
-        const configInputs = document.querySelectorAll('#config-fields input, #config-fields select, #config-fields textarea');
-        const config = {};
-        configInputs.forEach(input => {
-            const name = input.name.replace('config[', '').replace(']', '');
-            if (input.type === 'checkbox') {
-                config[name] = input.checked ? '1' : '0';
-            } else {
-                config[name] = input.value;
-            }
-        });
-        
-        // Show loading state
-        testConnectionBtn.disabled = true;
-        testConnectionBtn.innerHTML = '<img src="/icons/refresh-cw.svg" alt="" width="18" height="18" style="animation: spin 1s linear infinite;"> Testing...';
-        testResult.style.display = 'none';
-        
-        try {
-            const formData = new FormData();
-            formData.append('provider', provider);
-            Object.entries(config).forEach(([key, value]) => {
-                formData.append(`config[${key}]`, value);
-            });
-            
-            const testUrl = testConnectionBtn.dataset.testUrl;
-            const response = await fetch(testUrl, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            // Show result
-            testResult.style.display = 'block';
-            if (result.success) {
-                testResult.style.background = 'var(--color-success-bg, #f0fdf4)';
-                testResult.style.border = '1px solid var(--color-success, #22c55e)';
-                testResult.style.color = 'var(--color-success, #22c55e)';
-            } else {
-                testResult.style.background = 'var(--color-danger-bg, #fef2f2)';
-                testResult.style.border = '1px solid var(--color-danger, #dc2626)';
-                testResult.style.color = 'var(--color-danger, #dc2626)';
-            }
-            testResult.textContent = result.message;
-        } catch (error) {
-            testResult.style.display = 'block';
-            testResult.style.background = 'var(--color-danger-bg, #fef2f2)';
-            testResult.style.border = '1px solid var(--color-danger, #dc2626)';
-            testResult.style.color = 'var(--color-danger, #dc2626)';
-            testResult.textContent = 'Request failed: ' + error.message;
-        } finally {
-            // Reset button
-            testConnectionBtn.disabled = false;
-            testConnectionBtn.innerHTML = '<img src="/icons/refresh-cw.svg" alt="" width="18" height="18"> Test Connection';
-        }
-    });
-}
-</script>
-
-<style>
-[role="tablist"] {
-    position: sticky;
-    top: 0;
-}
-
-/* Simplified settings page - provider tabs removed */
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-</style>
+<!-- Help & Support -->
+<section style="background: var(--bg-secondary); padding: var(--spacing-lg); border-radius: var(--radius); border: 1px solid var(--border-color);">
+    <h3 style="margin-top: 0;">Need Help?</h3>
+    <p style="color: var(--text-muted); margin-bottom: var(--spacing-md);">
+        Each service can be configured in its respective module. Start by clicking "Setup" on any service card above to add your first provider instance.
+    </p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
+        <div>
+            <strong style="display: block; margin-bottom: 0.5rem;">Identity (IAM)</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Set up SSO and centralized user management</p>
+        </div>
+        <div>
+            <strong style="display: block; margin-bottom: 0.5rem;">Repositories</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Link GitHub, GitLab, or other Git platforms</p>
+        </div>
+        <div>
+            <strong style="display: block; margin-bottom: 0.5rem;">Calendars</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Connect Google Calendar, Outlook, or CalDAV</p>
+        </div>
+        <div>
+            <strong style="display: block; margin-bottom: 0.5rem;">Secrets Management</strong>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Integrate password vaults and secret stores</p>
+        </div>
+    </div>
+</section>

@@ -52,33 +52,47 @@ $router->addWorkspace('GET', '/messages', 'App\\Controllers\\MessageController',
 $router->addWorkspace('POST', '/messages/send', 'App\\Controllers\\MessageController', 'send');
 $router->addWorkspace('POST', '/messages/assign', 'App\\Controllers\\MessageController', 'assign');
 $router->addWorkspace('POST', '/messages/retry', 'App\\Controllers\\MessageController', 'retryDelivery');
+$router->addWorkspace('POST', '/messages/providers', 'App\\Controllers\\MessageController', 'createProvider');
+$router->addWorkspace('POST', '/messages/providers/delete', 'App\\Controllers\\MessageController', 'deleteProvider');
+$router->addWorkspace('POST', '/messages/test-connection', 'App\\Controllers\\MessageController', 'testConnection');
 
 // Job routes
 $router->addWorkspace('GET', '/jobs', 'App\\Controllers\\JobController', 'index');
 $router->addWorkspace('POST', '/jobs/retry', 'App\\Controllers\\JobController', 'retry');
 
-// Settings routes
+// Settings routes (now read-only, provider management moved to controllers)
 $router->addWorkspace('GET', '/settings', 'App\\Controllers\\SettingsController', 'index');
 $router->addWorkspace('POST', '/settings', 'App\\Controllers\\SettingsController', 'save');
-$router->addWorkspace('POST', '/settings/providers', 'App\\Controllers\\SettingsController', 'createProviderInstance');
-$router->addWorkspace('POST', '/settings/providers/delete', 'App\\Controllers\\SettingsController', 'deleteProviderInstance');
-$router->addWorkspace('POST', '/settings/test-connection', 'App\\Controllers\\SettingsController', 'testProviderConnection');
 
-// Repository routes
+// Repository routes with provider management
 $router->addWorkspace('GET', '/repositories', 'App\\Controllers\\RepositoryController', 'index');
-$router->addWorkspace('GET', '/calendars', 'App\\Controllers\\CalendarController', 'index');
+$router->addWorkspace('POST', '/repositories/providers', 'App\\Controllers\\RepositoryController', 'createProvider');
+$router->addWorkspace('POST', '/repositories/providers/delete', 'App\\Controllers\\RepositoryController', 'deleteProvider');
+$router->addWorkspace('POST', '/repositories/test-connection', 'App\\Controllers\\RepositoryController', 'testConnection');
 $router->addWorkspace('GET', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'getAccess');
 $router->addWorkspace('POST', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'setAccess');
 $router->addWorkspace('GET', '/api/repositories/commits', 'App\\Controllers\\RepositoryController', 'getCommits');
 
-// Secrets routes
+// Calendar routes with provider management
+$router->addWorkspace('GET', '/calendars', 'App\\Controllers\\CalendarController', 'index');
+$router->addWorkspace('POST', '/calendars/providers', 'App\\Controllers\\CalendarController', 'createProvider');
+$router->addWorkspace('POST', '/calendars/providers/delete', 'App\\Controllers\\CalendarController', 'deleteProvider');
+$router->addWorkspace('POST', '/calendars/test-connection', 'App\\Controllers\\CalendarController', 'testConnection');
+
+// Secrets routes with provider management
 $router->addWorkspace('GET', '/secrets', 'App\\Controllers\\SecretsController', 'index');
+$router->addWorkspace('POST', '/secrets/providers', 'App\\Controllers\\SecretsController', 'createProvider');
+$router->addWorkspace('POST', '/secrets/providers/delete', 'App\\Controllers\\SecretsController', 'deleteProvider');
+$router->addWorkspace('POST', '/secrets/test-connection', 'App\\Controllers\\SecretsController', 'testConnection');
 $router->addWorkspace('POST', '/secrets/assign', 'App\\Controllers\\SecretsController', 'assignEmployee');
 $router->addWorkspace('POST', '/secrets/unassign', 'App\\Controllers\\SecretsController', 'unassignEmployee');
 $router->addWorkspace('GET', '/api/secrets/access', 'App\\Controllers\\SecretsController', 'getUserAccess');
 
-// Identity routes
+// Identity routes with provider management
 $router->addWorkspace('GET', '/identity', 'App\\Controllers\\IdentityController', 'index');
+$router->addWorkspace('POST', '/identity/providers', 'App\\Controllers\\IdentityController', 'createProvider');
+$router->addWorkspace('POST', '/identity/providers/delete', 'App\\Controllers\\IdentityController', 'deleteProvider');
+$router->addWorkspace('POST', '/identity/test-connection', 'App\\Controllers\\IdentityController', 'testConnection');
 $router->addWorkspace('POST', '/identity/assign', 'App\\Controllers\\IdentityController', 'assignEmployee');
 $router->addWorkspace('POST', '/identity/unassign', 'App\\Controllers\\IdentityController', 'unassignEmployee');
 $router->addWorkspace('POST', '/identity/sync', 'App\\Controllers\\IdentityController', 'syncUsers');

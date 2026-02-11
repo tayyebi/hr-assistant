@@ -1,10 +1,3 @@
-<?php
-$this->title = 'Calendars';
-$this->layout('layouts/main', [
-    'activeTab' => 'calendars'
-]);
-?>
-
 <header>
     <div>
         <h2>Calendars</h2>

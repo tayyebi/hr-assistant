@@ -3,11 +3,11 @@
 namespace App\Controllers;
 
 use App\Models\{User, Config, Tenant, ProviderInstance};
-use App\Core\{View, Icon, ProviderSettings, ProviderType};
+use App\Core\{View, Icon, ProviderSettings, ProviderType, ProviderFormRenderer};
 
 /**
  * Settings Controller
- * Manages provider configuration
+ * Manages general workspace settings. Provider management is delegated to individual controllers.
  */
 class SettingsController
 {
@@ -20,11 +20,7 @@ class SettingsController
         $user = User::getCurrentUser();
         
         $config = Config::get($tenantId);
-        $providers = \App\Core\ProviderSettings::getProvidersMetadata();
-        $providersConfig = $this->getEnabledProvidersConfig($tenantId, $config);
-        $providerInstances = ProviderInstance::getAll($tenantId);
-        $messagingChannels = $this->getMessagingChannels($tenantId, $config, $providerInstances);
-        $providerErrors = $this->getProviderErrors($tenantId, $providerInstances);
+        $messagingChannels = $this->getMessagingChannels($tenantId, $config);
 
         $message = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
@@ -33,10 +29,7 @@ class SettingsController
             'tenant' => $tenant,
             'user' => $user,
             'config' => $config,
-            'providers' => $providers,
-            'providersConfig' => $providersConfig,
             'messagingChannels' => $messagingChannels,
-            'providerErrors' => $providerErrors,
             'message' => $message,
             'activeTab' => 'settings'
         ]);
@@ -47,9 +40,6 @@ class SettingsController
         AuthController::requireTenantAdmin();
         
         $tenantId = User::getTenantId();
-        
-        // Get all allowed configuration fields
-        $allFields = \App\Core\ProviderSettings::getAllFields();
         $config = Config::get($tenantId);
         
         // Process messaging channels configuration
@@ -57,209 +47,20 @@ class SettingsController
         foreach ($messagingChannels as $channel) {
             $config['messaging_' . $channel . '_enabled'] = isset($_POST['messaging_' . $channel . '_enabled']) ? '1' : '0';
         }
-
-        // Process POST data for all known provider fields
-        foreach ($allFields as $provider => $fields) {
-            foreach ($fields as $fieldKey => $field) {
-                if (isset($_POST[$fieldKey])) {
-                    if ($field['type'] === 'checkbox') {
-                        $config[$fieldKey] = isset($_POST[$fieldKey]) ? '1' : '0';
-                    } else {
-                        $config[$fieldKey] = $_POST[$fieldKey];
-                    }
-                }
-            }
-        }
         
         // Save updated configuration
         Config::save($tenantId, $config);
         
         // Set success message
-        $_SESSION['flash_message'] = 'Configuration saved successfully!';
+        $_SESSION['flash_message'] = 'Messaging channels updated successfully!';
         header('Location: ' . View::workspaceUrl('/settings/'));
         exit();
     }
 
     /**
-     * Create a provider instance for this tenant
-     */
-    public function createProviderInstance(): void
-    {
-        AuthController::requireTenantAdmin();
-
-        $tenantId = User::getTenantId();
-        $type = $_POST['type'] ?? '';
-        $provider = $_POST['provider'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $config = $_POST['config'] ?? [];
-
-        if (empty($type) || empty($provider) || empty($name)) {
-            $_SESSION['flash_message'] = 'Type, provider and name are required for provider instance.';
-            View::redirect(View::workspaceUrl('/settings/'));
-            return;
-        }
-
-        // Validate provider belongs to type
-        $providers = \App\Core\ProviderSettings::getProvidersMetadata();
-        if (!isset($providers[$provider]) || ($providers[$provider]['type'] ?? '') !== $type) {
-            $_SESSION['flash_message'] = 'Provider does not match selected type.';
-            View::redirect(View::workspaceUrl('/settings/'));
-            return;
-        }
-
-        // Validate and process configuration fields
-        $providerFields = \App\Core\ProviderSettings::getFields($provider);
-        $processedSettings = [];
-        $validationErrors = [];
-
-        foreach ($providerFields as $fieldName => $fieldConfig) {
-            $value = $config[$fieldName] ?? '';
-            
-            // Check required fields
-            if (($fieldConfig['required'] ?? false) && empty($value)) {
-                $validationErrors[] = "Field '{$fieldConfig['label']}' is required.";
-                continue;
-            }
-            
-            // Process value based on field type
-            switch ($fieldConfig['type'] ?? 'text') {
-                case 'checkbox':
-                    $processedSettings[$fieldName] = !empty($value) ? true : false;
-                    break;
-                case 'number':
-                    if (!empty($value)) {
-                        $processedSettings[$fieldName] = (int) $value;
-                    }
-                    break;
-                default:
-                    if (!empty($value)) {
-                        $processedSettings[$fieldName] = $value;
-                    }
-                    break;
-            }
-        }
-
-        // If there are validation errors, return with error message
-        if (!empty($validationErrors)) {
-            $_SESSION['flash_message'] = 'Validation failed: ' . implode(' ', $validationErrors);
-            View::redirect(View::workspaceUrl('/settings'));
-            return;
-        }
-
-        \App\Models\ProviderInstance::create($tenantId, [
-            'type' => $type,
-            'provider' => $provider,
-            'name' => $name,
-            'settings' => $processedSettings
-        ]);
-
-        $_SESSION['flash_message'] = 'Provider instance created successfully.';
-        View::redirect(View::workspaceUrl('/settings'));
-    }
-
-    public function deleteProviderInstance(): void
-    {
-        AuthController::requireTenantAdmin();
-
-        $tenantId = User::getTenantId();
-        $id = $_POST['id'] ?? '';
-        if (!empty($id)) {
-            \App\Models\ProviderInstance::delete($tenantId, $id);
-            $_SESSION['flash_message'] = 'Provider instance removed.';
-        }
-        View::redirect(View::workspaceUrl('/settings'));
-    }
-
-    /**
-     * Test provider connection (AJAX endpoint)
-     */
-    public function testProviderConnection(): void
-    {
-        AuthController::requireTenantAdmin();
-        header('Content-Type: application/json');
-
-        $tenantId = User::getTenantId();
-        $provider = $_POST['provider'] ?? '';
-        $config = $_POST['config'] ?? [];
-
-        if (empty($provider)) {
-            echo json_encode(['success' => false, 'message' => 'Provider is required']);
-            exit;
-        }
-
-        try {
-            // Create provider instance
-            $providerInstance = \App\Core\ProviderFactory::create($tenantId, $provider, $config);
-            
-            // Test connection
-            if ($providerInstance->testConnection()) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Connection successful! Provider is properly configured.'
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Connection test failed. Please verify your configuration.'
-                ]);
-            }
-        } catch (\Exception $e) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Connection error: ' . $e->getMessage()
-            ]);
-        }
-        exit;
-    }
-
-    /**
-     * Get configuration for enabled providers
-     */
-    private function getEnabledProvidersConfig(string $tenantId, array $config): array
-    {
-        $enabled = [];
-        $allFields = \App\Core\ProviderSettings::getAllFields();
-
-        foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $provider => $metadata) {
-            $fields = $allFields[$provider] ?? [];
-            $hasConfig = false;
-
-            // Check if any field for this provider has a value
-            foreach ($fields as $fieldKey => $field) {
-                if (!empty($config[$fieldKey])) {
-                    $hasConfig = true;
-                    break;
-                }
-            }
-
-            if ($hasConfig) {
-                $enabled[$provider] = [
-                    'metadata' => $metadata,
-                    'fields' => $fields,
-                    'values' => $this->getProviderValues($provider, $config, $fields)
-                ];
-            }
-        }
-
-        return $enabled;
-    }
-
-    /**
-     * Get current values for provider fields
-     */
-    private function getProviderValues(string $provider, array $config, array $fields): array
-    {
-        $values = [];
-        foreach ($fields as $fieldKey => $field) {
-            $values[$fieldKey] = $config[$fieldKey] ?? ($field['value'] ?? '');
-        }
-        return $values;
-    }
-
-    /**
      * Get messaging channels configuration for tenant
      */
-    private function getMessagingChannels(string $tenantId, array $config, array $providerInstances): array
+    private function getMessagingChannels(string $tenantId, array $config): array
     {
         $channels = [
             'email' => ['name' => 'Email', 'icon' => 'mail'],
@@ -270,6 +71,7 @@ class SettingsController
         ];
 
         // Check which channels have supporting provider instances
+        $providerInstances = ProviderInstance::getAll($tenantId);
         $supportedTypes = ['messenger', 'email'];
         $hasProviders = [];
         foreach ($providerInstances as $instance) {
@@ -290,36 +92,5 @@ class SettingsController
 
         return $channels;
     }
-
-    /**
-     * Get latest provider errors for tenant
-     */
-    private function getProviderErrors(string $tenantId, array $providerInstances): array
-    {
-        $errors = [];
-        
-        // For each provider instance, test connection and capture errors
-        foreach ($providerInstances as $instance) {
-            try {
-                $provider = \App\Core\ProviderFactory::create($tenantId, $instance['provider'], $instance['settings'] ?? []);
-                if (!$provider->testConnection()) {
-                    $errors[] = [
-                        'instance' => $instance['name'],
-                        'provider' => $instance['provider'],
-                        'error' => 'Connection test failed',
-                        'timestamp' => time()
-                    ];
-                }
-            } catch (\Exception $e) {
-                $errors[] = [
-                    'instance' => $instance['name'],
-                    'provider' => $instance['provider'],
-                    'error' => $e->getMessage(),
-                    'timestamp' => time()
-                ];
-            }
-        }
-
-        return $errors;
-    }
 }
+
