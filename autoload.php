@@ -82,6 +82,13 @@ class HRAutoloader
             return true;
         }
         
+        // Try to map bare class name to namespaced equivalent
+        if (strpos($className, '\\') === false) {
+            if (self::loadBareClassName($className)) {
+                return true;
+            }
+        }
+        
         // Fallback to legacy class mapping
         if (self::loadLegacyClass($className)) {
             return true;
@@ -116,6 +123,56 @@ class HRAutoloader
     {
         // Define mapping from namespaced classes to their backward compatible aliases
         $aliases = [
+            // Core class aliases (App namespace)
+            'App\\Core\\Database' => 'Database',
+            'App\\Core\\View' => 'View',
+            'App\\Core\\Router' => 'Router',
+            'App\\Core\\Icon' => 'Icon',
+            'App\\Core\\HttpClient' => 'HttpClient',
+            'App\\Core\\HttpProvider' => 'HttpProvider',
+            'App\\Core\\Provider' => 'Provider',
+            'App\\Core\\ProviderFactory' => 'ProviderFactory',
+            'App\\Core\\ProviderSettings' => 'ProviderSettings',
+            'App\\Core\\Providers' => 'Providers',
+            'App\\Core\\ProviderType' => 'ProviderType',
+            'App\\Core\\EmailProvider' => 'EmailProvider',
+            'App\\Core\\GitProvider' => 'GitProvider',
+            'App\\Core\\MessengerProvider' => 'MessengerProvider',
+            'App\\Core\\IamProvider' => 'IamProvider',
+            'App\\Core\\MailcowProvider' => 'MailcowProvider',
+            'App\\Core\\GitLabProvider' => 'GitLabProvider',
+            'App\\Core\\TelegramProvider' => 'TelegramProvider',
+            'App\\Core\\KeycloakProvider' => 'KeycloakProvider',
+            'App\\Core\\AssetManager' => 'AssetManager',
+            'App\\Core\\ExcelStorage' => 'ExcelStorage',
+            
+            // Model class aliases (App namespace)
+            'App\\Models\\User' => 'User',
+            'App\\Models\\Employee' => 'Employee',
+            'App\\Models\\Tenant' => 'Tenant',
+            'App\\Models\\Team' => 'Team',
+            'App\\Models\\Asset' => 'Asset',
+            'App\\Models\\Job' => 'Job',
+            'App\\Models\\Message' => 'Message',
+            'App\\Models\\Config' => 'Config',
+            'App\\Models\\ProviderInstance' => 'ProviderInstance',
+            
+            // Controller class aliases (App namespace)
+            'App\\Controllers\\AuthController' => 'AuthController',
+            'App\\Controllers\\DashboardController' => 'DashboardController',
+            'App\\Controllers\\EmployeeController' => 'EmployeeController',
+            'App\\Controllers\\TeamController' => 'TeamController',
+            'App\\Controllers\\AssetController' => 'AssetController',
+            'App\\Controllers\\JobController' => 'JobController',
+            'App\\Controllers\\MessageController' => 'MessageController',
+            'App\\Controllers\\SettingsController' => 'SettingsController',
+            'App\\Controllers\\SystemAdminController' => 'SystemAdminController',
+            'App\\Controllers\\NotificationController' => 'NotificationController',
+            'App\\Controllers\\ReportsController' => 'ReportsController',
+            'App\\Controllers\\AuditController' => 'AuditController',
+            'App\\Controllers\\ApiController' => 'ApiController',
+            
+            // Legacy HRAssistant namespace mappings for backward compatibility
             // Core class aliases
             'HRAssistant\\Core\\Database' => 'Database',
             'HRAssistant\\Core\\View' => 'View',
@@ -185,6 +242,50 @@ class HRAutoloader
                     self::createBackwardCompatibilityAlias($className);
                     return true;
                 }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Try to load a bare class name by mapping it to its full namespace
+     * 
+     * @param string $className
+     * @return bool
+     */
+    private static function loadBareClassName($className)
+    {
+        // Define mappings for bare class names to their full namespace equivalents
+        $possibleMappings = [];
+        
+        // Try controllers
+        if (preg_match('/Controller$/', $className)) {
+            $possibleMappings[] = "App\\Controllers\\{$className}";
+            $possibleMappings[] = "HRAssistant\\Controllers\\{$className}";
+        }
+        
+        // Try models
+        if (preg_match('/^[A-Z][a-z]+$/', $className) && !preg_match('/Controller$/', $className)) {
+            $possibleMappings[] = "App\\Models\\{$className}";
+            $possibleMappings[] = "HRAssistant\\Models\\{$className}";
+        }
+        
+        // Try core classes
+        $coreClasses = ['Router', 'View', 'Database', 'Icon', 'HttpClient', 'AssetManager', 'Provider', 'ProviderFactory'];
+        if (in_array($className, $coreClasses)) {
+            $possibleMappings[] = "App\\Core\\{$className}";
+            $possibleMappings[] = "HRAssistant\\Core\\{$className}";
+        }
+        
+        // Try to load each possible mapping
+        foreach ($possibleMappings as $fullClassName) {
+            if (self::loadPsr4Class($fullClassName)) {
+                // Create an alias for the bare class name
+                if (!class_exists($className, false)) {
+                    class_alias($fullClassName, $className);
+                }
+                return true;
             }
         }
         

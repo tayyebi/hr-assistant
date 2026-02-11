@@ -2,6 +2,10 @@
 
 namespace App\Core;
 
+// Import provider type classes and implementations
+use App\Core\{EmailProvider, GitProvider, MessengerProvider, IamProvider, ProviderType};
+use App\Core\{MailcowProvider, GitLabProvider, TelegramProvider, KeycloakProvider, IProvider};
+
 /**
  * Provider Factory
  * Creates and manages provider instances

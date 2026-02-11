@@ -2,6 +2,9 @@
 
 namespace App\Core;
 
+// Import provider type classes
+use App\Core\{EmailProvider, GitProvider, MessengerProvider, IamProvider};
+
 /**
  * Mailcow Email Provider
  */

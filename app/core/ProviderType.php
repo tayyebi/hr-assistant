@@ -2,18 +2,31 @@
 
 namespace App\Core;
 
-/**
- * Email Provider Types
- */
-class EmailProvider
-{
-    const MAILCOW = 'mailcow';
-    const EXCHANGE = 'exchange';
-    const IMAP = 'imap';
+// Import the separate provider classes
+use App\Core\{EmailProvider, GitProvider, MessengerProvider, IamProvider};
 
+/**
+ * Provider Type Constants and Utilities
+ */
+class ProviderType
+{
+    // Asset type constants
+    const TYPE_EMAIL = 'email';
+    const TYPE_GIT = 'git';
+    const TYPE_MESSENGER = 'messenger';
+    const TYPE_IAM = 'iam';
+
+    /**
+     * Get all available provider types
+     */
     public static function getAll(): array
     {
-        return [self::MAILCOW, self::EXCHANGE, self::IMAP];
+        return array_merge(
+            \App\Core\EmailProvider::getAll(),
+            \App\Core\GitProvider::getAll(),
+            \App\Core\MessengerProvider::getAll(),
+            \App\Core\IamProvider::getAll()
+        );
     }
 
     public static function getName(string $provider): string
