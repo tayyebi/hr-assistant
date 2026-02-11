@@ -63,6 +63,8 @@ $router->addWorkspace('POST', '/jobs/retry', 'App\\Controllers\\JobController', 
 // Settings routes (now read-only, provider management moved to controllers)
 $router->addWorkspace('GET', '/settings', 'App\\Controllers\\SettingsController', 'index');
 $router->addWorkspace('POST', '/settings', 'App\\Controllers\\SettingsController', 'save');
+$router->addWorkspace('POST', '/api/provider/create', 'App\\Controllers\\SettingsController', 'createProvider');
+$router->addWorkspace('POST', '/api/provider/test-connection', 'App\\Controllers\\SettingsController', 'testConnection');
 
 // Repository routes with provider management
 $router->addWorkspace('GET', '/repositories', 'App\\Controllers\\RepositoryController', 'index');

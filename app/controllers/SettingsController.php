@@ -58,6 +58,47 @@ class SettingsController
     }
 
     /**
+     * API endpoint to create a provider instance
+     */
+    public function createProvider(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        header('Content-Type: application/json');
+        
+        $tenantId = User::getTenantId();
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        $result = ProviderFormRenderer::createInstance($tenantId, [
+            'type' => $input['type'] ?? '',
+            'provider' => $input['provider'] ?? '',
+            'name' => $input['name'] ?? '',
+            'config' => $input['config'] ?? []
+        ]);
+        
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
+     * API endpoint to test provider connection
+     */
+    public function testConnection(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        header('Content-Type: application/json');
+        
+        $tenantId = User::getTenantId();
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        $result = ProviderFormRenderer::testConnection($tenantId, $input['provider'] ?? '', $input['config'] ?? []);
+        
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
      * Get messaging channels configuration for tenant
      */
     private function getMessagingChannels(string $tenantId, array $config): array
