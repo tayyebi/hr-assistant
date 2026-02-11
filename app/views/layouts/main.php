@@ -46,21 +46,37 @@
         </div>
     </div>
 
-    <div style="display: flex; margin-top: 3.25rem; min-height: calc(100vh - 3.25rem);">
+    <div class="layout-main">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar-container is-hidden-touch">
-                <nav class="menu" style="padding: 1rem;">
-                    <p class="menu-label">
-                        <strong>HR Assistant</strong>
-                        <br>
-                        <small>
-                            <?php 
-                                $workspaceContext = \App\Core\View::getWorkspaceContext();
-                                echo htmlspecialchars($workspaceContext['isWorkspace'] ? $workspaceContext['tenantName'] : 'System Admin');
-                            ?>
-                        </small>
-                    </p>
-                    <ul class="menu-list">
+        <aside class="sidebar-container is-hidden-mobile">
+            <nav class="menu sidebar-menu sidebar-nav-padding" aria-label="Main sidebar">
+                <!-- User Profile -->
+                <div class="sidebar-profile mb-3">
+                    <div class="avatar lg mb-1 mx-auto">
+                        <?php echo strtoupper($user['email'][0] ?? 'U'); ?>
+                    </div>
+                    <div class="has-text-centered">
+                        <strong><?php echo htmlspecialchars($user['full_name'] ?? $user['email']); ?></strong><br>
+                        <span class="text-small text-muted"><?php echo htmlspecialchars($user['email']); ?></span>
+                    </div>
+                </div>
+                <p class="menu-label">
+                    <strong>HR Assistant</strong>
+                    <br>
+                    <small>
+                        <?php 
+                            $workspaceContext = \App\Core\View::getWorkspaceContext();
+                            echo htmlspecialchars($workspaceContext['isWorkspace'] ? $workspaceContext['tenantName'] : 'System Admin');
+                        ?>
+                    </small>
+                </p>
+                <!-- Quick Actions -->
+                <div class="sidebar-actions mb-3">
+                    <a href="<?php echo \App\Core\UrlHelper::workspace('/employees/create'); ?>" class="button is-primary is-small w-full mb-1">+ Add Employee</a>
+                    <a href="<?php echo \App\Core\UrlHelper::workspace('/teams'); ?>" class="button is-light is-small w-full">Manage Teams</a>
+                </div>
+                <!-- Collapsible Navigation -->
+                <ul class="menu-list sidebar-collapsible" id="sidebarNav">
                         <li>
                             <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard'); ?>" class="<?php echo ($activeTab ?? '') === 'dashboard' ? 'is-active' : ''; ?>">
                                 <span class="icon-text">
@@ -182,9 +198,24 @@
 
         <!-- Mobile Sidebar Menu -->
         <div class="sidebar-mobile is-hidden-desktop">
-                <nav class="menu" style="padding: 1rem;">
-                    <p class="menu-label">Navigation</p>
-                    <ul class="menu-list">
+            <nav class="menu sidebar-menu sidebar-nav-padding" aria-label="Mobile sidebar">
+                <!-- User Profile -->
+                <div class="sidebar-profile mb-3">
+                    <div class="avatar lg mb-1 mx-auto">
+                        <?php echo strtoupper($user['email'][0] ?? 'U'); ?>
+                    </div>
+                    <div class="has-text-centered">
+                        <strong><?php echo htmlspecialchars($user['full_name'] ?? $user['email']); ?></strong><br>
+                        <span class="text-small text-muted"><?php echo htmlspecialchars($user['email']); ?></span>
+                    </div>
+                </div>
+                <p class="menu-label">Navigation</p>
+                <!-- Quick Actions -->
+                <div class="sidebar-actions mb-3">
+                    <a href="<?php echo \App\Core\UrlHelper::workspace('/employees/create'); ?>" class="button is-primary is-small w-full mb-1">+ Add Employee</a>
+                    <a href="<?php echo \App\Core\UrlHelper::workspace('/teams'); ?>" class="button is-light is-small w-full">Manage Teams</a>
+                </div>
+                <ul class="menu-list sidebar-collapsible" id="sidebarNavMobile">
                         <li>
                             <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard'); ?>" class="<?php echo ($activeTab ?? '') === 'dashboard' ? 'is-active' : ''; ?>">
                                 <span class="icon-text">
@@ -305,8 +336,8 @@
         </div>
 
         <!-- Main Content -->
-        <div style="flex: 1; overflow-y: auto;">
-            <main style="padding: 2rem;">
+        <div class="main-content-flex">
+            <main class="main-content-padding">
                 <?php echo $content; ?>
             </main>
         </div>

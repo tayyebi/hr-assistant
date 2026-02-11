@@ -1,3 +1,96 @@
+/* Layout main flex container */
+.layout-main {
+    display: flex;
+    margin-top: 3.25rem;
+    min-height: calc(100vh - 3.25rem);
+}
+
+/* Sidebar nav padding */
+.sidebar-nav-padding {
+    padding: 1rem;
+}
+
+/* Main content flex and scroll */
+.main-content-flex {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Main content padding */
+.main-content-padding {
+    padding: 2rem;
+}
+/* Sidebar profile and actions */
+.sidebar-profile {
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.sidebar-profile .avatar {
+    margin-bottom: 0.5rem;
+}
+.sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.sidebar-actions .button {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+/* Collapsible sidebar sections (future-proof, for JS-less expand/collapse) */
+.sidebar-collapsible > li {
+    transition: background 0.2s;
+}
+.sidebar-collapsible > li > a {
+    cursor: pointer;
+    user-select: none;
+}
+.sidebar-collapsible > li > a:after {
+    content: '';
+    float: right;
+    border: solid #cbd5e1;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 3px;
+    margin-left: 8px;
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+    opacity: 0.5;
+}
+.sidebar-collapsible > li.open > a:after {
+    transform: rotate(-135deg);
+    opacity: 1;
+}
+.sidebar-collapsible > li ul {
+    display: none;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+.sidebar-collapsible > li.open ul {
+    display: block;
+}
+
+@media (max-width: 1024px) {
+    .sidebar-container {
+        display: none;
+    }
+    .sidebar-mobile {
+        display: block;
+        z-index: 100;
+        background: #f8f9fa;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+        width: 80vw;
+        max-width: 320px;
+        left: 0;
+        top: 3.25rem;
+        bottom: 0;
+        position: fixed;
+        transition: transform 0.2s;
+    }
+}
 /**
  * HR Assistant - Custom Overrides for Bulma CSS
  * Mobile-first responsive design with Bulma framework
