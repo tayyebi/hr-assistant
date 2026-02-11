@@ -27,36 +27,36 @@
         </header>
 
         <nav>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/dashboard'); ?>" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard'); ?>" <?php echo ($activeTab ?? '') === 'dashboard' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('dashboard', 20, 20); ?>
                 Dashboard
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/employees'); ?>" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/employees'); ?>" <?php echo ($activeTab ?? '') === 'employees' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('employees', 20, 20); ?>
                 Employees
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/teams'); ?>" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/teams'); ?>" <?php echo ($activeTab ?? '') === 'teams' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('teams', 20, 20); ?>
                 Teams
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/messages'); ?>" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/messages'); ?>" <?php echo ($activeTab ?? '') === 'messages' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('messages', 20, 20); ?>
                 Direct Messages
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('server', 20, 20); ?>
                 Digital Assets
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('layers', 20, 20); ?>
                 System Jobs
             </a>
-            <a href="<?php echo \App\Core\View::workspaceUrl('/settings'); ?>" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" <?php echo ($activeTab ?? '') === 'settings' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('settings', 20, 20); ?>
                 Settings
             </a>
             <?php if (\App\Models\User::isSystemAdmin()): ?>
-                <a href="/admin" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.5rem;">
+                <a href="<?php echo \App\Core\UrlHelper::url('/admin'); ?>" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.5rem;">
                     <?php \App\Core\Icon::render('admin', 20, 20); ?>
                     System Admin
                 </a>
@@ -77,7 +77,7 @@
             </article>
             <article>
                 <p><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
-                <a href="/logout">
+                <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>">
                     <?php \App\Core\Icon::render('logout', 16, 16); ?>
                     Logout
                 </a>

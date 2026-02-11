@@ -27,7 +27,7 @@
             <!-- Create Notification Form -->
             <div style="margin-bottom: var(--spacing-lg);">
                 <h4>📝 Send Notification</h4>
-                <form method="POST" action="<?php echo View::workspaceUrl('/notifications/create/'); ?>">
+                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/create/'); ?>">
                     <div data-grid="2">
                         <div>
                             <label>Title</label>
@@ -104,7 +104,7 @@
 
 <script>
 function markAsRead(notificationId) {
-    fetch('<?php echo View::workspaceUrl("/notifications/mark-read/"); ?>', {
+    fetch('<?php echo \App\Core\UrlHelper::workspace("/notifications/mark-read/"); ?>', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

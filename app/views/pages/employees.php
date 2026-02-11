@@ -14,7 +14,7 @@
 <?php endif; ?>
 
 <!-- Search -->
-<form method="GET" action="<?php echo View::workspaceUrl('/employees/'); ?>" style="margin-bottom: var(--spacing-lg);">
+<form method="GET" action="<?php echo \App\Core\UrlHelper::workspace('/employees/'); ?>" style="margin-bottom: var(--spacing-lg);">
     <search>
         <?php Icon::render('search', 20, 20); ?>
         <input type="search" name="search" placeholder="Search by name or email..." value="<?php echo htmlspecialchars($search); ?>">
@@ -82,7 +82,7 @@
                                     onclick="editEmployee(this)">
                                 <?php Icon::render('edit', 16, 16); ?>
                             </button>
-                            <form method="POST" action="<?php echo View::workspaceUrl('/employees/delete/'); ?>" style="display: inline;">
+                            <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/delete/'); ?>" style="display: inline;">
                                 <input type="hidden" name="id" value="<?php echo htmlspecialchars($emp['id']); ?>">
                                 <button type="submit" data-variant="ghost" data-size="icon" onclick="return confirm('Are you sure you want to remove this employee?')">
                                     <?php Icon::render('trash', 16, 16, 'color: var(--color-danger);'); ?>
@@ -106,7 +106,7 @@
             </button>
         </header>
 
-        <form method="POST" action="<?php echo View::workspaceUrl('/employees/'); ?>" data-employee-form>
+        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/'); ?>" data-employee-form>
             <input type="hidden" name="id">
             
             <section data-grid="2">

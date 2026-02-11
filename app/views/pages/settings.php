@@ -14,10 +14,10 @@
     <p style="margin-top: 0; color: var(--text-muted);">Choose a provider type and create a named instance (e.g., "GitLab - Engineering"). Instances are tenant-scoped and can be assigned to employees.</p>
 
     <div id="providers-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-        <?php foreach (ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
-            <article data-provider="<?php echo htmlspecialchars($pKey); ?>" data-type="<?php echo htmlspecialchars($pMeta['type']); ?>" style="border: 1px solid var(--color-border); padding: var(--spacing-lg); border-radius: var(--radius-md); display:flex; gap: var(--spacing-md); align-items:center; cursor: pointer;">
+        <?php foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
+            <article data-provider="<?php echo htmlspecialchars($pKey); ?>" data-type="<?php echo htmlspecialchars($pMeta['type']); ?>" style="border: 1px solid var(--color-border); padding: var(--spacing-lg); border-radius: var(--radius-md); display:flex; gap: var(--spacing-md); align-items:center; cursor: pointer;">"
                 <div style="padding: var(--spacing-sm); background-color: <?php echo htmlspecialchars($pMeta['color']); ?>; border-radius: var(--radius-md); opacity: 0.85;">
-                    <?php Icon::render($pMeta['icon'], 20, 20); ?>
+                    <?php \App\Core\Icon::render($pMeta['icon'], 20, 20); ?>
                 </div>
                 <div>
                     <strong><?php echo htmlspecialchars($pMeta['name']); ?></strong>
@@ -36,7 +36,7 @@
 
     <article style="margin-bottom: var(--spacing-md);">
         <h4>Existing Instances</h4>
-        <?php $instances = ProviderInstance::getAll($tenant['id']); ?>
+        <?php $instances = \App\Models\ProviderInstance::getAll($tenant['id']); ?>
         <?php if (empty($instances)): ?>
             <p style="color: var(--text-muted);">No provider instances configured.</p>
         <?php else: ?>
@@ -45,7 +45,7 @@
                     <li>
                         <strong><?php echo htmlspecialchars($inst['name']); ?></strong>
                         <small style="margin-left: var(--spacing-sm); color: var(--text-muted);">(<?php echo htmlspecialchars($inst['type']); ?> / <?php echo htmlspecialchars($inst['provider']); ?>)</small>
-                        <form method="POST" action="<?php echo View::workspaceUrl('/settings/providers/delete/'); ?>" style="display:inline; margin-left: var(--spacing-md);">
+                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/providers/delete/'); ?>" style="display:inline; margin-left: var(--spacing-md);">
                             <input type="hidden" name="id" value="<?php echo htmlspecialchars($inst['id']); ?>">
                             <button type="submit" data-variant="ghost" data-size="icon">Delete</button>
                         </form>
@@ -57,7 +57,7 @@
 
     <article>
         <h4>Create Provider Instance</h4>
-        <form method="POST" action="<?php echo View::workspaceUrl('/settings/providers/'); ?>" id="provider-form">
+        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/settings/providers/'); ?>" id="provider-form">
             <section data-grid="3">
                 <div>
                     <label>Type</label>
@@ -73,7 +73,7 @@
                     <label>Provider</label>
                     <select name="provider" required id="provider-select" disabled>
                         <option value="">Choose provider</option>
-                        <?php foreach (ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
+                        <?php foreach (\App\Core\ProviderSettings::getProvidersMetadata() as $pKey => $pMeta): ?>
                             <option value="<?php echo htmlspecialchars($pKey); ?>" data-type="<?php echo htmlspecialchars($pMeta['type']); ?>"><?php echo htmlspecialchars($pMeta['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -108,9 +108,9 @@ const configFields = document.getElementById('config-fields');
 // Provider field definitions loaded from PHP
 const providerFieldsData = <?php 
 echo json_encode(array_reduce(
-    array_keys(ProviderSettings::getProvidersMetadata()),
+    array_keys(\App\Core\ProviderSettings::getProvidersMetadata()),
     function($carry, $provider) {
-        $carry[$provider] = ProviderSettings::getFields($provider);
+        $carry[$provider] = \App\Core\ProviderSettings::getFields($provider);
         return $carry;
     },
     []

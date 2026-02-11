@@ -15,13 +15,13 @@
         <div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
             <menu role="tablist" style="margin: 0; border: none;">
                 <li>
-                    <a href="/messages?view=chats" <?php echo $view === 'chats' ? 'data-active="true"' : ''; ?>>
+                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'chats']); ?>" <?php echo $view === 'chats' ? 'data-active="true"' : ''; ?>>
                         <?php Icon::render('messages', 14, 14); ?>
                         Chats
                     </a>
                 </li>
                 <li>
-                    <a href="/messages?view=inbox" <?php echo $view === 'inbox' ? 'data-active="true"' : ''; ?>>
+                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'inbox']); ?>" <?php echo $view === 'inbox' ? 'data-active="true"' : ''; ?>>
                         <?php Icon::render('inbox', 14, 14); ?>
                         Inbox (<?php echo count($unassigned); ?>)
                     </a>
@@ -32,7 +32,7 @@
         <?php if ($view === 'chats'): ?>
             <div style="overflow-y: auto;">
                 <?php foreach ($reachableEmployees as $emp): ?>
-                    <a href="/messages?employee=<?php echo urlencode($emp['id']); ?>" 
+                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $emp['id']]); ?>" 
                        style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); text-decoration: none; color: inherit; <?php echo ($selectedEmployee && $selectedEmployee['id'] === $emp['id']) ? 'background-color: var(--color-primary-light);' : ''; ?>">
                         <figure data-avatar>
                             <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
@@ -68,7 +68,7 @@
                                 <?php endif; ?>
                                 <?php echo htmlspecialchars(substr($msg['text'], 0, 100)); ?>...
                             </p>
-                            <form method="POST" action="<?php echo View::workspaceUrl('/messages/assign/'); ?>" style="display: flex; gap: var(--spacing-sm);">
+                            <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/assign/'); ?>" style="display: flex; gap: var(--spacing-sm);">
                                 <input type="hidden" name="message_id" value="<?php echo htmlspecialchars($msg['id']); ?>">
                                 <select name="employee_id" style="flex: 1; font-size: 0.75rem;">
                                     <option value="">Assign to...</option>
@@ -120,7 +120,7 @@
             </main>
 
             <footer>
-                <form method="POST" action="<?php echo View::workspaceUrl('/messages/send/'); ?>">
+                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/send/'); ?>">
                     <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($selectedEmployee['id']); ?>">
                     <input type="hidden" name="channel" value="<?php echo $channel; ?>">
                     

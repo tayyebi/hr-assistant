@@ -84,6 +84,20 @@ class ProviderType
     }
 
     /**
+     * Get display name for a provider type
+     */
+    public static function getTypeName(string $type): string
+    {
+        return match($type) {
+            self::TYPE_EMAIL => 'Email Services',
+            self::TYPE_GIT => 'Git & Code Services',
+            self::TYPE_MESSENGER => 'Messaging Services',
+            self::TYPE_IAM => 'Identity & Access Management',
+            default => ucfirst($type) . ' Services'
+        };
+    }
+
+    /**
      * Check if a provider type is valid
      */
     public static function isValid(string $provider): bool

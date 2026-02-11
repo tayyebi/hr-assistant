@@ -3,7 +3,7 @@
         <h2>System Jobs</h2>
         <p>Monitor background tasks and service synchronization.</p>
     </div>
-    <a href="/jobs" style="text-decoration: none;">
+    <a href="<?php echo \App\Core\UrlHelper::workspace('/jobs'); ?>" style="text-decoration: none;">
         <button data-variant="secondary">
             <?php Icon::render('refresh', 18, 18); ?>
             Refresh
@@ -65,7 +65,7 @@
                         </td>
                         <td style="text-align: right;">
                             <?php if ($job['status'] === 'failed'): ?>
-                                <form method="POST" action="<?php echo View::workspaceUrl('/jobs/retry/'); ?>" style="display: inline;">
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/jobs/retry/'); ?>" style="display: inline;">
                                     <input type="hidden" name="job_id" value="<?php echo htmlspecialchars($job['id']); ?>">
                                     <button type="submit" data-size="sm">
                                         <?php Icon::render('play', 12, 12); ?>

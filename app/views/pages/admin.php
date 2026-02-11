@@ -15,7 +15,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: var(--spacing-md);">
             <span style="font-size: 0.875rem; color: var(--text-secondary);"><?php echo htmlspecialchars($user['email']); ?></span>
-            <a href="/logout" style="display: flex; align-items: center; gap: var(--spacing-sm); color: var(--color-danger);">
+            <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>" style="display: flex; align-items: center; gap: var(--spacing-sm); color: var(--color-danger);">
                 <img src="/icons/logout.svg" alt="" width="16" height="16" style="filter: invert(33%) sepia(93%) saturate(2467%) hue-rotate(341deg) brightness(91%) contrast(91%);">
                 Logout
             </a>
@@ -43,7 +43,7 @@
                                     <?php echo htmlspecialchars($tenant['id']); ?>
                                 </p>
                             </div>
-                            <a href="/workspace/<?php echo htmlspecialchars($tenant['id']); ?>/dashboard" 
+                            <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard', $tenant['id']); ?>" 
                                style="padding: 0.25rem 0.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 4px; font-size: 0.8rem;">
                                 Open Workspace
                             </a>

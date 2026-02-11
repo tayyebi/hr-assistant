@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\{User, Asset, Employee, Config};
-use App\Core\{View, ProviderFactory};
+use App\Core\{View, ProviderFactory, Icon};
 
 /**
  * Asset Controller
@@ -25,9 +25,11 @@ class AssetController
         $employees = Employee::getAll($tenantId);
         $assetManager = new \App\Core\AssetManager($tenantId);
         
-        // Get available assets grouped by instance
+        // Get provider instances grouped by type
         $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
         $instanceAssets = [];
+        $providersByType = [];
+        
         foreach ($providerInstances as $inst) {
             try {
                 $provider = ProviderFactory::create($tenantId, $inst['provider'], $inst['settings'] ?? []);
@@ -40,6 +42,37 @@ class AssetController
                 'instance' => $inst,
                 'assets' => $assets,
             ];
+            
+            // Group instances by their type for tab generation
+            if (!isset($providersByType[$inst['type']])) {
+                $providersByType[$inst['type']] = [];
+            }
+            $providersByType[$inst['type']][] = $inst;
+        }
+        
+        // Get provider metadata for tab configuration
+        $providerMetadata = \App\Core\ProviderSettings::getProvidersMetadata();
+        
+        // Create type metadata for tabs
+        $typeMetadata = [];
+        foreach ($providersByType as $type => $instances) {
+            // Get metadata from any provider in this type
+            $sampleProvider = null;
+            foreach ($instances as $inst) {
+                if (isset($providerMetadata[$inst['provider']])) {
+                    $sampleProvider = $providerMetadata[$inst['provider']];
+                    break;
+                }
+            }
+            
+            if ($sampleProvider) {
+                $typeMetadata[$type] = [
+                    'name' => \App\Core\ProviderType::getTypeName($type),
+                    'icon' => $sampleProvider['icon'],
+                    'color' => $sampleProvider['color'],
+                    'instances' => $instances
+                ];
+            }
         }
         
         // Get all assigned assets
@@ -52,8 +85,6 @@ class AssetController
         $messageType = $_SESSION['flash_message_type'] ?? 'success';
         unset($_SESSION['flash_message']);
         unset($_SESSION['flash_message_type']);
-        
-        $activeService = $_GET['service'] ?? 'mailcow';
 
         View::render('assets', [
             'tenant' => $tenant,
@@ -61,10 +92,11 @@ class AssetController
             'employees' => $employees,
             'instanceAssets' => $instanceAssets,
             'providerInstances' => $providerInstances,
+            'providersByType' => $providersByType,
+            'typeMetadata' => $typeMetadata,
             'assignedAssets' => $assignedAssets,
             'message' => $message,
             'messageType' => $messageType,
-            'activeService' => $activeService,
             'activeTab' => 'assets'
         ]);
     }

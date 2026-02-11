@@ -63,8 +63,8 @@
                     </div>
                     <footer style="margin-top: var(--spacing-md);">
                         <button type="submit">Generate Report</button>
-                        <a href="<?php echo View::workspaceUrl('/reports/export/?format=csv'); ?>" style="margin-left: var(--spacing-sm);">Export CSV</a>
-                        <a href="<?php echo View::workspaceUrl('/reports/export/?format=pdf'); ?>" style="margin-left: var(--spacing-sm);">Export PDF</a>
+                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/reports/export/'), ['format' => 'csv']); ?>" style="margin-left: var(--spacing-sm);">Export CSV</a>
+                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/reports/export/'), ['format' => 'pdf']); ?>" style="margin-left: var(--spacing-sm);">Export PDF</a>
                     </footer>
                 </form>
             </div>
@@ -104,7 +104,7 @@ function generateReport(event) {
     const form = event.target;
     const formData = new FormData(form);
     
-    fetch('<?php echo View::workspaceUrl("/reports/generate/"); ?>', {
+    fetch('<?php echo \App\Core\UrlHelper::workspace("/reports/generate/"); ?>', {
         method: 'POST',
         body: formData
     })
