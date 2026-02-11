@@ -49,6 +49,35 @@ class TeamController
         View::redirect(View::workspaceUrl('/teams'));
     }
 
+    public function update(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        $tenantId = User::getTenantId();
+        $teamId = $_POST['team_id'] ?? '';
+        
+        Team::update($tenantId, $teamId, [
+            'name' => $_POST['name'] ?? '',
+            'description' => $_POST['description'] ?? ''
+        ]);
+        
+        $_SESSION['flash_message'] = 'Team updated successfully.';
+        View::redirect(View::workspaceUrl('/teams'));
+    }
+
+    public function delete(): void
+    {
+        AuthController::requireTenantAdmin();
+        
+        $tenantId = User::getTenantId();
+        $teamId = $_POST['team_id'] ?? '';
+        
+        Team::delete($tenantId, $teamId);
+        
+        $_SESSION['flash_message'] = 'Team deleted successfully.';
+        View::redirect(View::workspaceUrl('/teams'));
+    }
+
     public function addMember(): void
     {
         AuthController::requireTenantAdmin();

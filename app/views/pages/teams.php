@@ -27,9 +27,20 @@
                         <h3><?php echo htmlspecialchars($team['name']); ?></h3>
                         <p style="margin: 0; font-size: 0.875rem;"><?php echo htmlspecialchars($team['description']); ?></p>
                     </div>
-                    <button data-variant="ghost" data-size="icon" onclick="openAliasModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars($team['name']); ?>')">
-                        <?php Icon::render('mail', 18, 18); ?>
-                    </button>
+                    <div style="display: flex; gap: var(--spacing-xs);">
+                        <button data-variant="ghost" data-size="icon" onclick="openEditModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars(addslashes($team['name'])); ?>', '<?php echo htmlspecialchars(addslashes($team['description'])); ?>')" title="Edit Team">
+                            <?php Icon::render('edit', 18, 18); ?>
+                        </button>
+                        <button data-variant="ghost" data-size="icon" onclick="openAliasModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars($team['name']); ?>')" title="Manage Aliases">
+                            <?php Icon::render('mail', 18, 18); ?>
+                        </button>
+                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/delete'); ?>" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this team? This action cannot be undone.');">
+                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
+                            <button type="submit" data-variant="ghost" data-size="icon" title="Delete Team">
+                                <?php Icon::render('trash', 18, 18); ?>
+                            </button>
+                        </form>
+                    </div>
                 </header>
 
                 <?php if (!empty($team['email_aliases'])): ?>
@@ -156,11 +167,48 @@
     </article>
 </dialog>
 
+<!-- Edit Team Modal -->
+<dialog data-edit-team>
+    <article>
+        <header>
+            <h3>Edit Team</h3>
+            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
+                <?php Icon::render('close', 24, 24); ?>
+            </button>
+        </header>
+
+        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/update'); ?>">
+            <input type="hidden" name="team_id">
+            <div>
+                <label>Team Name</label>
+                <input type="text" name="name" required placeholder="e.g. Marketing Team">
+            </div>
+            <div>
+                <label>Description</label>
+                <input type="text" name="description" placeholder="Team description">
+            </div>
+
+            <footer>
+                <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
+                <button type="submit">Save Changes</button>
+            </footer>
+        </form>
+    </article>
+</dialog>
+
 <script>
 function openAliasModal(teamId, teamName) {
     const dialog = document.querySelector('dialog[data-add-alias]');
     dialog.querySelector('[name="team_id"]').value = teamId;
     dialog.querySelector('h3').textContent = 'Add Email Alias for ' + teamName;
+    dialog.showModal();
+}
+
+function openEditModal(teamId, teamName, teamDescription) {
+    const dialog = document.querySelector('dialog[data-edit-team]');
+    dialog.querySelector('[name="team_id"]').value = teamId;
+    dialog.querySelector('[name="name"]').value = teamName;
+    dialog.querySelector('[name="description"]').value = teamDescription;
     dialog.showModal();
 }
 </script>

@@ -36,6 +36,8 @@ $router->addWorkspace('POST', '/employees/delete', 'App\\Controllers\\EmployeeCo
 // Team routes
 $router->addWorkspace('GET', '/teams', 'App\\Controllers\\TeamController', 'index');
 $router->addWorkspace('POST', '/teams', 'App\\Controllers\\TeamController', 'store');
+$router->addWorkspace('POST', '/teams/update', 'App\\Controllers\\TeamController', 'update');
+$router->addWorkspace('POST', '/teams/delete', 'App\\Controllers\\TeamController', 'delete');
 $router->addWorkspace('POST', '/teams/add-member', 'App\\Controllers\\TeamController', 'addMember');
 $router->addWorkspace('POST', '/teams/remove-member', 'App\\Controllers\\TeamController', 'removeMember');
 $router->addWorkspace('POST', '/teams/add-alias', 'App\\Controllers\\TeamController', 'addAlias');
