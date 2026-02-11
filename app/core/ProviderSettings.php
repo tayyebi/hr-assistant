@@ -58,7 +58,31 @@ class ProviderSettings
     public static function getProvidersMetadata(): array
     {
         return [
-            // ...existing code...
+            // Email
+            EmailProvider::MAILCOW => [
+                'name' => 'Mailcow',
+                'type' => ProviderType::TYPE_EMAIL,
+                'icon' => 'mail',
+                'color' => '#fed7aa',
+                'description' => 'Email hosting and management',
+                'configurable' => true
+            ],
+            EmailProvider::EXCHANGE => [
+                'name' => 'Microsoft Exchange',
+                'type' => ProviderType::TYPE_EMAIL,
+                'icon' => 'mail',
+                'color' => '#dbeafe',
+                'description' => 'Office 365 Exchange Online',
+                'configurable' => true
+            ],
+            EmailProvider::IMAP => [
+                'name' => 'IMAP',
+                'type' => ProviderType::TYPE_EMAIL,
+                'icon' => 'mail',
+                'color' => '#fef3c7',
+                'description' => 'Generic IMAP/SMTP',
+                'configurable' => true
+            ],
             // Calendar
             \App\Core\CalendarProvider::GOOGLE_CALENDAR => [
                 'name' => 'Google Calendar',
@@ -163,153 +187,6 @@ class ProviderSettings
                 'required' => true,
                 'description' => 'CalDAV account password.'
             ]
-        ];
-    }
-            // Email
-            EmailProvider::MAILCOW => [
-                'name' => 'Mailcow',
-                'type' => ProviderType::TYPE_EMAIL,
-                'icon' => 'mail',
-                'color' => '#fed7aa',
-                'description' => 'Email hosting and management',
-                'configurable' => true
-            ],
-            EmailProvider::EXCHANGE => [
-                'name' => 'Microsoft Exchange',
-                'type' => ProviderType::TYPE_EMAIL,
-                'icon' => 'mail',
-                'color' => '#dbeafe',
-                'description' => 'Office 365 Exchange Online',
-                'configurable' => true
-            ],
-            EmailProvider::IMAP => [
-                'name' => 'IMAP',
-                'type' => ProviderType::TYPE_EMAIL,
-                'icon' => 'mail',
-                'color' => '#fef3c7',
-                'description' => 'Generic IMAP/SMTP',
-                'configurable' => true
-            ],
-
-            // Git
-            GitProvider::GITLAB => [
-                'name' => 'GitLab',
-                'type' => ProviderType::TYPE_GIT,
-                'icon' => 'git-branch',
-                'color' => '#fecaca',
-                'description' => 'GitLab repository management',
-                'configurable' => true
-            ],
-            GitProvider::GITEA => [
-                'name' => 'Gitea',
-                'type' => ProviderType::TYPE_GIT,
-                'icon' => 'git-branch',
-                'color' => '#fed7aa',
-                'description' => 'Gitea self-hosted git service',
-                'configurable' => true
-            ],
-            GitProvider::GITHUB => [
-                'name' => 'GitHub',
-                'type' => ProviderType::TYPE_GIT,
-                'icon' => 'git-branch',
-                'color' => '#d1d5db',
-                'description' => 'GitHub.com or Enterprise',
-                'configurable' => true
-            ],
-
-            // Messenger
-            MessengerProvider::TELEGRAM => [
-                'name' => 'Telegram',
-                'type' => ProviderType::TYPE_MESSENGER,
-                'icon' => 'messages',
-                'color' => '#bfdbfe',
-                'description' => 'Telegram Bot API',
-                'configurable' => true
-            ],
-            MessengerProvider::WHATSAPP => [
-                'name' => 'WhatsApp',
-                'type' => ProviderType::TYPE_MESSENGER,
-                'icon' => 'messages',
-                'color' => '#bbf7d0',
-                'description' => 'WhatsApp Business API',
-                'configurable' => true
-            ],
-            MessengerProvider::SLACK => [
-                'name' => 'Slack',
-                'type' => ProviderType::TYPE_MESSENGER,
-                'icon' => 'messages',
-                'color' => '#e9d5ff',
-                'description' => 'Slack Workspace API',
-                'configurable' => true
-            ],
-            MessengerProvider::TEAMS => [
-                'name' => 'Microsoft Teams',
-                'type' => ProviderType::TYPE_MESSENGER,
-                'icon' => 'messages',
-                'color' => '#dbeafe',
-                'description' => 'Teams Bot Framework',
-                'configurable' => true
-            ],
-
-            // IAM
-            IamProvider::KEYCLOAK => [
-                'name' => 'Keycloak',
-                'type' => ProviderType::TYPE_IAM,
-                'icon' => 'lock',
-                'color' => '#c7d2fe',
-                'description' => 'Keycloak identity provider',
-                'configurable' => true
-            ],
-            IamProvider::OKTA => [
-                'name' => 'Okta',
-                'type' => ProviderType::TYPE_IAM,
-                'icon' => 'lock',
-                'color' => '#f3e8ff',
-                'description' => 'Okta identity management',
-                'configurable' => true
-            ],
-            IamProvider::AZURE_AD => [
-                'name' => 'Azure AD',
-                'type' => ProviderType::TYPE_IAM,
-                'icon' => 'lock',
-                'color' => '#dbeafe',
-                'description' => 'Microsoft Azure Active Directory',
-                'configurable' => true
-            ],
-
-            // Secrets
-            SecretsProvider::PASSBOLT => [
-                'name' => 'Passbolt',
-                'type' => ProviderType::TYPE_SECRETS,
-                'icon' => 'key',
-                'color' => '#fecdd3',
-                'description' => 'Open source team password manager',
-                'configurable' => true
-            ],
-            SecretsProvider::BITWARDEN => [
-                'name' => 'Bitwarden',
-                'type' => ProviderType::TYPE_SECRETS,
-                'icon' => 'key',
-                'color' => '#bfdbfe',
-                'description' => 'Open source password management',
-                'configurable' => true
-            ],
-            SecretsProvider::ONEPWD => [
-                'name' => '1Password',
-                'type' => ProviderType::TYPE_SECRETS,
-                'icon' => 'key',
-                'color' => '#d1d5db',
-                'description' => 'Enterprise password manager',
-                'configurable' => true
-            ],
-            SecretsProvider::VAULT => [
-                'name' => 'HashiCorp Vault',
-                'type' => ProviderType::TYPE_SECRETS,
-                'icon' => 'key',
-                'color' => '#fef3c7',
-                'description' => 'Secrets management platform',
-                'configurable' => true
-            ],
         ];
     }
 
