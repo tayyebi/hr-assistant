@@ -1,314 +1,371 @@
-<header>
-    <div>
-        <h2>Identity Management</h2>
-        <p>Manage IAM provider access (Keycloak, Okta, Azure AD, etc.).</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Identity Management</h2>
+            <p class="subtitle">Manage IAM provider access (Keycloak, Okta, Azure AD, etc.).</p>
+        </div>
     </div>
-</header>
+</div>
 
 <?php if (!empty($message)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
+    <div class="notification is-success">
+        <a href="#" class="delete"></a>
+        <?php echo htmlspecialchars($message); ?>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($iamInstances)): ?>
-    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
-        <?php \App\Core\Icon::render('lock', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php \App\Core\Icon::render('lock', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <h3>No Identity Providers Configured</h3>
         <p>Add an identity provider (Keycloak, Okta, Azure AD) in Settings to manage user identities.</p>
-        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" class="button is-primary">
             Go to Settings
         </a>
-    </section>
+    </div>
 <?php else: ?>
-    <section data-grid="3-1">
+    <div class="columns is-multiline">
         <!-- Provider Instances List -->
-        <article>
-            <header>
-                <h3>Identity Providers</h3>
-            </header>
-            
-            <div data-table>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>Instance Name</th>
-                            <th>Linked Employees</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($iamInstances as $instance): ?>
-                            <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'style="background: var(--bg-tertiary);"' : ''; ?>>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('lock', 16, 16); ?>
-                                        <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
-                                    </div>
-                                </td>
-                                <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
-                                <td>
-                                    <?php 
-                                    $linkedCount = count($iamAccounts[$instance['id']]['employees'] ?? []);
-                                    if ($linkedCount > 0): ?>
-                                        <mark data-status="active"><?php echo $linkedCount; ?> linked</mark>
-                                    <?php else: ?>
-                                        <span style="color: var(--text-muted);">None</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/identity'), ['instance' => $instance['id']]); ?>" 
-                                       data-button data-variant="ghost" data-size="sm">
-                                        View Details
-                                    </a>
-                                </td>
+        <div class="column is-three-quarters-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Identity Providers</p>
+                </header>
+                <div class="table-container card-content">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Instance Name</th>
+                                <th>Linked Employees</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($iamInstances as $instance): ?>
+                                <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'class="is-selected"' : ''; ?>>
+                                    <td>
+                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                            <span class="icon is-small">
+                                                <?php \App\Core\Icon::render('lock', 16, 16); ?>
+                                            </span>
+                                            <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
+                                        </div>
+                                    </td>
+                                    <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
+                                    <td>
+                                        <?php 
+                                        $linkedCount = count($iamAccounts[$instance['id']]['employees'] ?? []);
+                                        if ($linkedCount > 0): ?>
+                                            <span class="tag is-success"><?php echo $linkedCount; ?> linked</span>
+                                        <?php else: ?>
+                                            <span class="has-text-grey-light">None</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/identity'), ['instance' => $instance['id']]); ?>" 
+                                           class="button is-small is-ghost">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </article>
+        </div>
 
         <!-- Quick Stats -->
-        <article>
-            <header>
-                <h3>Overview</h3>
-            </header>
-            
-            <section data-grid="1" style="gap: var(--spacing-md);">
-                <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <h4 style="margin: 0; font-size: 0.875rem; color: var(--text-muted);">Total Providers</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: 700;"><?php echo count($iamInstances); ?></p>
-                </div>
-                <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <h4 style="margin: 0; font-size: 0.875rem; color: var(--text-muted);">Linked Identities</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: 700;">
-                        <?php 
-                        $totalLinked = 0;
-                        foreach ($iamAccounts as $data) {
-                            $totalLinked += count($data['employees']);
-                        }
-                        echo $totalLinked;
-                        ?>
-                    </p>
-                </div>
-                <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <h4 style="margin: 0; font-size: 0.875rem; color: var(--text-muted);">Total Employees</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: 700;"><?php echo count($employees); ?></p>
-                </div>
-            </section>
-        </article>
-    </section>
-
-    <?php if ($selectedInstance): ?>
-        <section style="margin-top: var(--spacing-xl);">
-            <header style="margin-bottom: var(--spacing-lg); display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3>
-                        <?php \App\Core\Icon::render('lock', 24, 24, 'vertical-align: middle; margin-right: var(--spacing-sm);'); ?>
-                        <?php echo htmlspecialchars($selectedInstance['name']); ?>
-                    </h3>
-                    <p style="color: var(--text-muted);">
-                        <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
-                    </p>
-                </div>
-                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/sync'); ?>">
-                    <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
-                    <button type="submit" data-variant="secondary">
-                        <?php \App\Core\Icon::render('refresh-cw', 16, 16); ?>
-                        Sync Users
-                    </button>
-                </form>
-            </header>
-
-            <?php if ($syncStatus): ?>
-                <article style="margin-bottom: var(--spacing-lg); background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md);">
-                    <div style="display: flex; gap: var(--spacing-lg); flex-wrap: wrap;">
-                        <div>
-                            <small style="color: var(--text-muted);">Last Sync</small>
-                            <p style="margin: 0;"><?php echo htmlspecialchars($syncStatus['last_sync'] ?? 'Never'); ?></p>
+        <div class="column is-one-quarter-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Overview</p>
+                </header>
+                <div class="card-content">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="box has-background-grey-light">
+                            <p class="heading is-6">Total Providers</p>
+                            <p class="title is-4"><?php echo count($iamInstances); ?></p>
                         </div>
-                        <div>
-                            <small style="color: var(--text-muted);">Status</small>
-                            <p style="margin: 0;">
-                                <mark data-status="<?php echo ($syncStatus['status'] ?? 'unknown') === 'success' ? 'active' : 'pending'; ?>">
-                                    <?php echo htmlspecialchars($syncStatus['status'] ?? 'Unknown'); ?>
-                                </mark>
+                        <div class="box has-background-grey-light">
+                            <p class="heading is-6">Linked Identities</p>
+                            <p class="title is-4">
+                                <?php 
+                                $totalLinked = 0;
+                                foreach ($iamAccounts as $data) {
+                                    $totalLinked += count($data['employees']);
+                                }
+                                echo $totalLinked;
+                                ?>
                             </p>
                         </div>
-                        <div>
-                            <small style="color: var(--text-muted);">Users Synced</small>
-                            <p style="margin: 0;"><?php echo $syncStatus['users_count'] ?? 0; ?></p>
+                        <div class="box has-background-grey-light">
+                            <p class="heading is-6">Total Employees</p>
+                            <p class="title is-4"><?php echo count($employees); ?></p>
                         </div>
                     </div>
-                </article>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($selectedInstance): ?>
+        <section style="margin-top: 2rem;">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h3 class="title is-4">
+                                <span class="icon is-small" style="vertical-align: middle;">
+                                    <?php \App\Core\Icon::render('lock', 24, 24); ?>
+                                </span>
+                                <?php echo htmlspecialchars($selectedInstance['name']); ?>
+                            </h3>
+                            <p class="subtitle">
+                                <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/sync'); ?>">
+                            <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
+                            <button type="submit" class="button is-info">
+                                <span class="icon is-small">
+                                    <?php \App\Core\Icon::render('refresh-cw', 16, 16); ?>
+                                </span>
+                                <span>Sync Users</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <?php if ($syncStatus): ?>
+                <div class="box has-background-grey-light">
+                    <div class="level">
+                        <div class="level-item">
+                            <div>
+                                <p class="heading is-6">Last Sync</p>
+                                <p><?php echo htmlspecialchars($syncStatus['last_sync'] ?? 'Never'); ?></p>
+                            </div>
+                        </div>
+                        <div class="level-item">
+                            <div>
+                                <p class="heading is-6">Status</p>
+                                <p>
+                                    <span class="tag <?php echo ($syncStatus['status'] ?? 'unknown') === 'success' ? 'is-success' : 'is-warning'; ?>">
+                                        <?php echo htmlspecialchars($syncStatus['status'] ?? 'Unknown'); ?>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="level-item">
+                            <div>
+                                <p class="heading is-6">Users Synced</p>
+                                <p><?php echo $syncStatus['users_count'] ?? 0; ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             <?php endif; ?>
 
-            <section data-grid="2">
+            <div class="columns is-multiline">
                 <!-- Linked Employees -->
-                <article>
-                    <header>
-                        <h4>Linked Employees</h4>
-                        <button onclick="document.getElementById('link-employee-dialog').showModal()" data-size="sm">
-                            <?php \App\Core\Icon::render('plus', 14, 14); ?>
-                            Link Employee
-                        </button>
-                    </header>
-                    
-                    <?php $instanceEmployees = $iamAccounts[$selectedInstance['id']]['employees'] ?? []; ?>
-                    
-                    <?php if (empty($instanceEmployees)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No employees linked to this identity provider.
-                        </p>
-                    <?php else: ?>
-                        <div data-table>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th>
-                                        <th>IAM Username</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($instanceEmployees as $empData): ?>
-                                        <tr>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                                    <figure data-avatar style="width: 28px; height: 28px; font-size: 0.7rem;">
-                                                        <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
-                                                    </figure>
-                                                    <?php echo htmlspecialchars($empData['employee']['full_name']); ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <code><?php echo htmlspecialchars($empData['username']); ?></code>
-                                            </td>
-                                            <td>
-                                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/unassign'); ?>" style="display: inline;">
-                                                    <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
-                                                    <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($empData['employee']['id']); ?>">
-                                                    <button type="submit" data-variant="ghost" data-size="sm" onclick="return confirm('Remove this employee from the identity provider?')">
-                                                        <?php \App\Core\Icon::render('trash', 14, 14, 'color: var(--color-danger);'); ?>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Linked Employees</p>
+                            <div class="card-header-icon">
+                                <button class="button is-small is-primary">
+                                    <span class="icon is-small">
+                                        <?php \App\Core\Icon::render('plus', 14, 14); ?>
+                                    </span>
+                                    <span>Link Employee</span>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <?php $instanceEmployees = $iamAccounts[$selectedInstance['id']]['employees'] ?? []; ?>
+                            
+                            <?php if (empty($instanceEmployees)): ?>
+                                <p class="has-text-grey-light">
+                                    No employees linked to this identity provider.
+                                </p>
+                            <?php else: ?>
+                                <div class="table-container">
+                                    <table class="table is-striped is-fullwidth">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>IAM Username</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($instanceEmployees as $empData): ?>
+                                                <tr>
+                                                    <td>
+                                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                                            <div class="image is-28x28">
+                                                                <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%;">
+                                                                    <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
+                                                                </div>
+                                                            </div>
+                                                            <?php echo htmlspecialchars($empData['employee']['full_name']); ?>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <code><?php echo htmlspecialchars($empData['username']); ?></code>
+                                                    </td>
+                                                    <td>
+                                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/unassign'); ?>" style="display: inline;">
+                                                            <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
+                                                            <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($empData['employee']['id']); ?>">
+                                                            <button type="submit" class="button is-small is-danger is-ghost">
+                                                                <span class="icon is-small">
+                                                                    <?php \App\Core\Icon::render('trash', 14, 14); ?>
+                                                                </span>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
-                </article>
+                    </div>
+                </div>
 
                 <!-- IAM Users from Provider -->
-                <article>
-                    <header>
-                        <h4>Users in Provider</h4>
-                        <mark><?php echo count($iamUsers); ?> users</mark>
-                    </header>
-                    
-                    <?php if (empty($iamUsers)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No users found or unable to connect to the provider.
-                        </p>
-                    <?php else: ?>
-                        <div style="max-height: 350px; overflow-y: auto;">
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <?php foreach (array_slice($iamUsers, 0, 20) as $iamUser): ?>
-                                    <li style="padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('user', 14, 14); ?>
-                                        <div style="flex: 1;">
-                                            <span style="font-size: 0.875rem;"><?php echo htmlspecialchars($iamUser['username'] ?? $iamUser['email'] ?? 'Unknown'); ?></span>
-                                            <?php if (!empty($iamUser['full_name'])): ?>
-                                                <small style="display: block; color: var(--text-muted);">
-                                                    <?php echo htmlspecialchars($iamUser['full_name']); ?>
-                                                </small>
-                                            <?php endif; ?>
-                                        </div>
-                                        <?php if (isset($iamUser['enabled'])): ?>
-                                            <mark data-status="<?php echo $iamUser['enabled'] ? 'active' : 'inactive'; ?>" style="font-size: 0.7rem;">
-                                                <?php echo $iamUser['enabled'] ? 'Active' : 'Disabled'; ?>
-                                            </mark>
-                                        <?php endif; ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Users in Provider</p>
+                            <div class="card-header-icon">
+                                <span class="tag"><?php echo count($iamUsers); ?> users</span>
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <?php if (empty($iamUsers)): ?>
+                                <p class="has-text-grey-light">
+                                    No users found or unable to connect to the provider.
+                                </p>
+                            <?php else: ?>
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                        <?php foreach (array_slice($iamUsers, 0, 20) as $iamUser): ?>
+                                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb; display: flex; align-items: center; gap: 0.5rem;">
+                                                <span class="icon is-small">
+                                                    <?php \App\Core\Icon::render('user', 14, 14); ?>
+                                                </span>
+                                                <div style="flex: 1;">
+                                                    <span class="is-size-7"><?php echo htmlspecialchars($iamUser['username'] ?? $iamUser['email'] ?? 'Unknown'); ?></span>
+                                                    <?php if (!empty($iamUser['full_name'])): ?>
+                                                        <small class="has-text-grey-light is-block">
+                                                            <?php echo htmlspecialchars($iamUser['full_name']); ?>
+                                                        </small>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <?php if (isset($iamUser['enabled'])): ?>
+                                                    <span class="tag is-small <?php echo $iamUser['enabled'] ? 'is-success' : 'is-warning'; ?>">
+                                                        <?php echo $iamUser['enabled'] ? 'Active' : 'Disabled'; ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
-                </article>
-            </section>
+                    </div>
+                </div>
+            </div>
 
             <!-- Groups -->
             <?php if (!empty($iamGroups)): ?>
-                <article style="margin-top: var(--spacing-lg);">
-                    <header>
-                        <h4>Groups / Roles</h4>
+                <div class="card" style="margin-top: 2rem;">
+                    <header class="card-header">
+                        <p class="card-header-title">Groups / Roles</p>
                     </header>
-                    
-                    <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm);">
-                        <?php foreach ($iamGroups as $group): ?>
-                            <div style="padding: var(--spacing-sm) var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md); display: flex; align-items: center; gap: var(--spacing-sm);">
-                                <?php \App\Core\Icon::render('users', 14, 14); ?>
-                                <span><?php echo htmlspecialchars($group['name'] ?? 'Unknown'); ?></span>
-                                <?php if (isset($group['members_count'])): ?>
-                                    <small style="color: var(--text-muted);">(<?php echo $group['members_count']; ?>)</small>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
+                    <div class="card-content">
+                        <div class="tags">
+                            <?php foreach ($iamGroups as $group): ?>
+                                <span class="tag is-light">
+                                    <span class="icon is-small">
+                                        <?php \App\Core\Icon::render('users', 14, 14); ?>
+                                    </span>
+                                    <span><?php echo htmlspecialchars($group['name'] ?? 'Unknown'); ?></span>
+                                    <?php if (isset($group['members_count'])): ?>
+                                        <small style="margin-left: 0.25rem;">(<?php echo $group['members_count']; ?>)</small>
+                                    <?php endif; ?>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
-                </article>
+                </div>
             <?php endif; ?>
         </section>
 
         <!-- Link Employee Dialog -->
-        <dialog id="link-employee-dialog">
-            <article>
-                <header>
-                    <h3>Link Employee to <?php echo htmlspecialchars($selectedInstance['name']); ?></h3>
-                    <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                        <?php \App\Core\Icon::render('close', 24, 24); ?>
-                    </button>
+        <div class="modal" id="link-employee-dialog">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Link Employee to <?php echo htmlspecialchars($selectedInstance['name']); ?></p>
+                    <button class="delete" aria-label="close"></button>
                 </header>
 
                 <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/identity/assign'); ?>">
-                    <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
-                    
-                    <section>
-                        <div style="margin-bottom: var(--spacing-md);">
-                            <label>Employee</label>
-                            <select name="employee_id" required>
-                                <option value="">Select employee...</option>
-                                <?php foreach ($employees as $emp): ?>
-                                    <?php 
-                                    $alreadyLinked = false;
-                                    foreach ($instanceEmployees as $linked) {
-                                        if ($linked['employee']['id'] === $emp['id']) {
-                                            $alreadyLinked = true;
-                                            break;
-                                        }
-                                    }
-                                    if ($alreadyLinked) continue;
-                                    ?>
-                                    <option value="<?php echo htmlspecialchars($emp['id']); ?>">
-                                        <?php echo htmlspecialchars($emp['full_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                    <section class="modal-card-body">
+                        <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
+                        
+                        <div class="field">
+                            <label class="label">Employee</label>
+                            <div class="control">
+                                <span class="select is-fullwidth">
+                                    <select name="employee_id" required>
+                                        <option value="">Select employee...</option>
+                                        <?php foreach ($employees as $emp): ?>
+                                            <?php 
+                                            $alreadyLinked = false;
+                                            foreach ($instanceEmployees as $linked) {
+                                                if ($linked['employee']['id'] === $emp['id']) {
+                                                    $alreadyLinked = true;
+                                                    break;
+                                                }
+                                            }
+                                            if ($alreadyLinked) continue;
+                                            ?>
+                                            <option value="<?php echo htmlspecialchars($emp['id']); ?>">
+                                                <?php echo htmlspecialchars($emp['full_name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </span>
+                            </div>
                         </div>
                         
-                        <div>
-                            <label>Username in <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?></label>
-                            <input type="text" name="username" placeholder="e.g. john.doe" required>
+                        <div class="field">
+                            <label class="label">Username in <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?></label>
+                            <div class="control">
+                                <input class="input" type="text" name="username" placeholder="e.g. john.doe" required>
+                            </div>
                         </div>
                     </section>
 
-                    <footer>
-                        <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                        <button type="submit">Link Employee</button>
+                    <footer class="modal-card-foot">
+                        <button type="button" class="button">Cancel</button>
+                        <button type="submit" class="button is-primary">Link Employee</button>
                     </footer>
                 </form>
-            </article>
-        </dialog>
+            </div>
+        </div>
     <?php endif; ?>
 <?php endif; ?>

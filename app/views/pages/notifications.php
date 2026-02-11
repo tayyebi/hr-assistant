@@ -1,124 +1,155 @@
-<header>
-    <div>
-        <h2>🔔 Notifications Center</h2>
-        <p>Manage system alerts, announcements, and user notifications.</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Notifications Center</h2>
+            <p class="subtitle">Manage system alerts, announcements, and user notifications.</p>
+        </div>
     </div>
-</header>
+</div>
 
-<main>
-    <section data-grid="1">
-        <article>
-            <h3>📬 Notifications System</h3>
-            <p style="color: var(--text-muted);">Real-time notifications, announcements, and reminders.</p>
-            
-            <!-- Overview Stats -->
-            <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div style="padding: var(--spacing-md); background: var(--surface-variant); border-radius: 8px; flex: 1;">
-                    <h4 style="margin: 0 0 var(--spacing-xs) 0;">📊 Overview</h4>
-                    <p style="margin: 0; color: var(--text-muted);">Unread: <?php echo $unreadCount ?? 0; ?></p>
-                </div>
-                
-                <div style="padding: var(--spacing-md); background: var(--surface-variant); border-radius: 8px; flex: 1;">
-                    <h4 style="margin: 0 0 var(--spacing-xs) 0;">📅 Recent Activity</h4>
-                    <p style="margin: 0; color: var(--text-muted);">Last 24 hours</p>
-                </div>
-            </div>
-            
-            <!-- Create Notification Form -->
-            <div style="margin-bottom: var(--spacing-lg);">
-                <h4>📝 Send Notification</h4>
-                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/create/'); ?>">
-                    <div data-grid="2">
-                        <div>
-                            <label>Title</label>
-                            <input type="text" name="title" placeholder="Notification title" required>
+<main class="section">
+    <div class="columns">
+        <div class="column is-12">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Notifications System</p>
+                </header>
+                <div class="card-content">
+                    <p class="has-text-grey-light">Real-time notifications, announcements, and reminders.</p>
+                    
+                    <!-- Overview Stats -->
+                    <div class="columns is-multiline" style="margin-top: 1rem;">
+                        <div class="column is-half-tablet is-one-quarter-desktop">
+                            <div class="box has-background-grey-light">
+                                <p class="heading is-6">Overview</p>
+                                <p class="has-text-grey-light">Unread: <?php echo $unreadCount ?? 0; ?></p>
+                            </div>
                         </div>
-                        <div>
-                            <label>Type</label>
-                            <select name="type" required>
-                                <option value="announcement">📢 Announcement</option>
-                                <option value="alert">⚠️ Alert</option>
-                                <option value="info">ℹ️ Information</option>
-                                <option value="reminder">⏰ Reminder</option>
-                            </select>
-                        </div>
-                        <div style="grid-column: span 2;">
-                            <label>Message</label>
-                            <textarea name="message" rows="3" placeholder="Notification message" required></textarea>
-                        </div>
-                        <div>
-                            <label>Priority</label>
-                            <select name="priority">
-                                <option value="normal">Normal</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Audience</label>
-                            <select name="target_audience">
-                                <option value="all">All Users</option>
-                                <option value="employees">Employees Only</option>
-                                <option value="admins">Admins Only</option>
-                            </select>
+                        
+                        <div class="column is-half-tablet is-one-quarter-desktop">
+                            <div class="box has-background-grey-light">
+                                <p class="heading is-6">Recent Activity</p>
+                                <p class="has-text-grey-light">Last 24 hours</p>
+                            </div>
                         </div>
                     </div>
-                    <footer style="margin-top: var(--spacing-md);">
-                        <button type="submit">Send Notification</button>
-                    </footer>
-                </form>
-            </div>
-            
-            <!-- Notifications List -->
-            <div>
-                <h4>📋 Recent Notifications</h4>
-                <?php if (empty($notifications)): ?>
-                    <p style="color: var(--text-muted);">No notifications yet. Create your first notification above!</p>
-                <?php else: ?>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-                        <?php foreach ($notifications as $notification): ?>
-                            <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: 8px; <?php echo $notification['is_read'] ? 'opacity: 0.7;' : 'border-left: 3px solid var(--primary-color);'; ?>">
-                                <div style="display: flex; justify-content: between; align-items: start; gap: var(--spacing-md);">
-                                    <div style="flex: 1;">
-                                        <h5 style="margin: 0 0 var(--spacing-xs) 0;"><?php echo htmlspecialchars($notification['title']); ?></h5>
-                                        <p style="margin: 0 0 var(--spacing-xs) 0; color: var(--text-muted);"><?php echo htmlspecialchars($notification['message']); ?></p>
-                                        <small style="color: var(--text-muted);">From: <?php echo htmlspecialchars($notification['from_user_name'] ?? 'System'); ?> • <?php echo date('M j, Y g:i A', strtotime($notification['created_at'])); ?></small>
+                    
+                    <!-- Create Notification Form -->
+                    <div style="margin-top: 2rem;">
+                        <h4 class="title is-5">Send Notification</h4>
+                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/create/'); ?>">
+                            <div class="columns is-multiline">
+                                <div class="column is-half-tablet">
+                                    <div class="field">
+                                        <label class="label">Title</label>
+                                        <div class="control">
+                                            <input class="input" type="text" name="title" placeholder="Notification title" required>
+                                        </div>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <span style="padding: 2px 8px; background: var(--surface-variant); border-radius: 12px; font-size: 0.8em;">
-                                            <?php echo ucfirst($notification['type']); ?>
-                                        </span>
-                                        <?php if (!$notification['is_read']): ?>
-                                            <button onclick="markAsRead('<?php echo $notification['id']; ?>')" style="padding: 4px 8px; font-size: 0.8em;">Mark Read</button>
-                                        <?php endif; ?>
+                                </div>
+                                <div class="column is-half-tablet">
+                                    <div class="field">
+                                        <label class="label">Type</label>
+                                        <div class="control">
+                                            <span class="select is-fullwidth">
+                                                <select name="type" required>
+                                                    <option value="announcement">Announcement</option>
+                                                    <option value="alert">Alert</option>
+                                                    <option value="info">Information</option>
+                                                    <option value="reminder">Reminder</option>
+                                                </select>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column is-full">
+                                    <div class="field">
+                                        <label class="label">Message</label>
+                                        <div class="control">
+                                            <textarea class="textarea" name="message" rows="3" placeholder="Notification message" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column is-half-tablet">
+                                    <div class="field">
+                                        <label class="label">Priority</label>
+                                        <div class="control">
+                                            <span class="select is-fullwidth">
+                                                <select name="priority">
+                                                    <option value="normal">Normal</option>
+                                                    <option value="high">High</option>
+                                                    <option value="critical">Critical</option>
+                                                </select>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column is-half-tablet">
+                                    <div class="field">
+                                        <label class="label">Audience</label>
+                                        <div class="control">
+                                            <span class="select is-fullwidth">
+                                                <select name="target_audience">
+                                                    <option value="all">All Users</option>
+                                                    <option value="employees">Employees Only</option>
+                                                    <option value="admins">Admins Only</option>
+                                                </select>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column is-full">
+                                    <div class="field">
+                                        <div class="control">
+                                            <button type="submit" class="button is-primary">Send Notification</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        </form>
                     </div>
-                <?php endif; ?>
+                    
+                    <!-- Notifications List -->
+                    <div style="margin-top: 2rem;">
+                        <h4 class="title is-5">Recent Notifications</h4>
+                        <?php if (empty($notifications)): ?>
+                            <p class="has-text-grey-light">No notifications yet. Create your first notification above!</p>
+                        <?php else: ?>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <?php foreach ($notifications as $notification): ?>
+                                    <div class="box <?php echo !$notification['is_read'] ? 'has-border-left' : ''; ?>" style="<?php echo !$notification['is_read'] ? 'border-left: 3px solid #3273dc; opacity: 1;' : 'opacity: 0.7;'; ?>">
+                                        <div class="level" style="margin-bottom: 0.5rem;">
+                                            <div class="level-left">
+                                                <div class="level-item">
+                                                    <h5 class="title is-6"><?php echo htmlspecialchars($notification['title']); ?></h5>
+                                                </div>
+                                            </div>
+                                            <div class="level-right">
+                                                <div class="level-item">
+                                                    <span class="tag is-light is-small">
+                                                        <?php echo ucfirst($notification['type']); ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="block"><?php echo htmlspecialchars($notification['message']); ?></p>
+                                        <div class="is-flex is-justify-content-space-between is-align-items-center">
+                                            <small class="has-text-grey-light">From: <?php echo htmlspecialchars($notification['from_user_name'] ?? 'System'); ?> • <?php echo date('M j, Y g:i A', strtotime($notification['created_at'])); ?></small>
+                                            <?php if (!$notification['is_read']): ?>
+                                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/notifications/mark-read/'); ?>" style="display: inline;">
+                                                    <input type="hidden" name="notification_id" value="<?php echo htmlspecialchars($notification['id']); ?>">
+                                                    <button type="submit" class="button is-small is-light">Mark Read</button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
-        </article>
-    </section>
+        </div>
+    </div>
 </main>
 
-<script>
-function markAsRead(notificationId) {
-    fetch('<?php echo \App\Core\UrlHelper::workspace("/notifications/mark-read/"); ?>', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'notification_id=' + encodeURIComponent(notificationId)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
-    })
-    .catch(error => {
-        console.error('Error marking notification as read:', error);
-    });
-}
-</script>

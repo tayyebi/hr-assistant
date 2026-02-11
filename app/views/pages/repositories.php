@@ -1,211 +1,243 @@
-<header>
-    <div>
-        <h2>Repositories</h2>
-        <p>Manage Git repository access levels and view activity.</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Repositories</h2>
+            <p class="subtitle">Manage Git repository access levels and view activity.</p>
+        </div>
     </div>
-</header>
+</div>
 
 <?php if (!empty($message)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
+    <div class="notification is-success">
+        <a href="#" class="delete"></a>
+        <?php echo htmlspecialchars($message); ?>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($gitInstances)): ?>
-    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
-        <?php \App\Core\Icon::render('git-branch', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php \App\Core\Icon::render('git-branch', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <h3>No Git Providers Configured</h3>
         <p>Add a Git provider (GitLab, GitHub, Gitea) in Settings to manage repositories.</p>
-        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" class="button is-primary">
             Go to Settings
         </a>
-    </section>
+    </div>
 <?php else: ?>
-    <section data-grid="3-1">
+    <div class="columns is-multiline">
         <!-- Provider Instances List -->
-        <article>
-            <header>
-                <h3>Git Providers</h3>
-            </header>
-            
-            <div data-table>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>Instance Name</th>
-                            <th>Linked Employees</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($gitInstances as $instance): ?>
-                            <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'style="background: var(--bg-tertiary);"' : ''; ?>>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('git-branch', 16, 16); ?>
-                                        <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
-                                    </div>
-                                </td>
-                                <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
-                                <td>
-                                    <?php 
-                                    $linkedCount = count($gitAccounts[$instance['id']]['employees'] ?? []);
-                                    if ($linkedCount > 0): ?>
-                                        <mark data-status="active"><?php echo $linkedCount; ?> linked</mark>
-                                    <?php else: ?>
-                                        <span style="color: var(--text-muted);">None</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/repositories'), ['instance' => $instance['id']]); ?>" 
-                                       data-button data-variant="ghost" data-size="sm">
-                                        View Details
-                                    </a>
-                                </td>
+        <div class="column is-three-quarters-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Git Providers</p>
+                </header>
+                <div class="table-container card-content">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Instance Name</th>
+                                <th>Linked Employees</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($gitInstances as $instance): ?>
+                                <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'class="is-selected"' : ''; ?>>
+                                    <td>
+                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                            <span class="icon is-small">
+                                                <?php \App\Core\Icon::render('git-branch', 16, 16); ?>
+                                            </span>
+                                            <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
+                                        </div>
+                                    </td>
+                                    <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
+                                    <td>
+                                        <?php 
+                                        $linkedCount = count($gitAccounts[$instance['id']]['employees'] ?? []);
+                                        if ($linkedCount > 0): ?>
+                                            <span class="tag is-success"><?php echo $linkedCount; ?> linked</span>
+                                        <?php else: ?>
+                                            <span class="has-text-grey-light">None</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/repositories'), ['instance' => $instance['id']]); ?>" 
+                                           class="button is-small is-ghost">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </article>
+        </div>
 
         <!-- Linked Employees Overview -->
-        <article>
-            <header>
-                <h3>Linked Employees</h3>
-            </header>
-            
-            <?php 
-            $allLinkedEmployees = [];
-            foreach ($gitAccounts as $instanceId => $data) {
-                foreach ($data['employees'] as $empData) {
-                    $allLinkedEmployees[$empData['employee']['id']] = $empData;
-                }
-            }
-            ?>
-            
-            <?php if (empty($allLinkedEmployees)): ?>
-                <p style="color: var(--text-muted); padding: var(--spacing-md);">No employees linked to Git accounts.</p>
-            <?php else: ?>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <?php foreach (array_slice($allLinkedEmployees, 0, 10) as $empData): ?>
-                        <li style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--border-color);">
-                            <figure data-avatar style="width: 32px; height: 32px; font-size: 0.75rem;">
-                                <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
-                            </figure>
-                            <div style="flex: 1;">
-                                <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($empData['employee']['full_name']); ?></strong>
-                                <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">@<?php echo htmlspecialchars($empData['username']); ?></p>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
-        </article>
-    </section>
-
-    <?php if ($selectedInstance): ?>
-        <section style="margin-top: var(--spacing-xl);">
-            <header style="margin-bottom: var(--spacing-lg);">
-                <h3>
-                    <?php \App\Core\Icon::render('git-branch', 24, 24, 'vertical-align: middle; margin-right: var(--spacing-sm);'); ?>
-                    <?php echo htmlspecialchars($selectedInstance['name']); ?>
-                </h3>
-                <p style="color: var(--text-muted);">
-                    <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
-                </p>
-            </header>
-
-            <section data-grid="2">
-                <!-- Repositories -->
-                <article>
-                    <header>
-                        <h4>Repositories</h4>
-                        <mark><?php echo count($repositories); ?> found</mark>
-                    </header>
+        <div class="column is-one-quarter-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Linked Employees</p>
+                </header>
+                <div class="card-content">
+                    <?php 
+                    $allLinkedEmployees = [];
+                    foreach ($gitAccounts as $instanceId => $data) {
+                        foreach ($data['employees'] as $empData) {
+                            $allLinkedEmployees[$empData['employee']['id']] = $empData;
+                        }
+                    }
+                    ?>
                     
-                    <?php if (empty($repositories)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No repositories found or unable to connect to the provider.
-                        </p>
+                    <?php if (empty($allLinkedEmployees)): ?>
+                        <p class="has-text-grey-light">No employees linked to Git accounts.</p>
                     <?php else: ?>
-                        <div data-table style="max-height: 400px; overflow-y: auto;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Repository</th>
-                                        <th>Visibility</th>
-                                        <th>Last Activity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($repositories as $repo): ?>
-                                        <tr>
-                                            <td>
-                                                <strong><?php echo htmlspecialchars($repo['name'] ?? $repo['path'] ?? 'Unknown'); ?></strong>
-                                                <?php if (!empty($repo['description'])): ?>
-                                                    <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">
-                                                        <?php echo htmlspecialchars(substr($repo['description'], 0, 60)); ?>
-                                                    </p>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <mark data-status="<?php echo ($repo['visibility'] ?? 'private') === 'public' ? 'active' : 'pending'; ?>">
-                                                    <?php echo htmlspecialchars($repo['visibility'] ?? 'private'); ?>
-                                                </mark>
-                                            </td>
-                                            <td style="font-size: 0.75rem; color: var(--text-muted);">
-                                                <?php echo htmlspecialchars($repo['last_activity'] ?? 'N/A'); ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </article>
-
-                <!-- Recent Activity / Commits -->
-                <article>
-                    <header>
-                        <h4>Recent Activity</h4>
-                    </header>
-                    
-                    <?php if (empty($recentActivity)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No recent activity available.
-                        </p>
-                    <?php else: ?>
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            <?php foreach ($recentActivity as $activity): ?>
-                                <div style="padding: var(--spacing-sm); border-bottom: 1px solid var(--border-color);">
-                                    <div style="display: flex; align-items: flex-start; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('git-commit', 14, 14, 'margin-top: 3px;'); ?>
-                                        <div>
-                                            <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($activity['author'] ?? 'Unknown'); ?></strong>
-                                            <p style="margin: 0; font-size: 0.8rem;">
-                                                <?php echo htmlspecialchars($activity['message'] ?? ''); ?>
-                                            </p>
-                                            <small style="color: var(--text-muted);">
-                                                <?php echo htmlspecialchars($activity['date'] ?? ''); ?> • 
-                                                <?php echo htmlspecialchars($activity['repo'] ?? ''); ?>
-                                            </small>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <?php foreach (array_slice($allLinkedEmployees, 0, 10) as $empData): ?>
+                                <li style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb;">
+                                    <div class="image is-32x32">
+                                        <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%; font-size: 0.75rem;">
+                                            <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
                                         </div>
                                     </div>
-                                </div>
+                                    <div style="flex: 1;">
+                                        <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($empData['employee']['full_name']); ?></strong>
+                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-grey-light);">@<?php echo htmlspecialchars($empData['username']); ?></p>
+                                    </div>
+                                </li>
                             <?php endforeach; ?>
-                        </div>
+                        </ul>
                     <?php endif; ?>
-                </article>
-            </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($selectedInstance): ?>
+        <section style="margin-top: 2rem;">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h3 class="title is-4">
+                                <span class="icon is-small" style="vertical-align: middle;">
+                                    <?php \App\Core\Icon::render('git-branch', 24, 24); ?>
+                                </span>
+                                <?php echo htmlspecialchars($selectedInstance['name']); ?>
+                            </h3>
+                            <p class="subtitle">
+                                <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns is-multiline">
+                <!-- Repositories -->
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Repositories</p>
+                            <div class="card-header-icon">
+                                <span class="tag"><?php echo count($repositories); ?> found</span>
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <?php if (empty($repositories)): ?>
+                                <p class="has-text-grey-light">
+                                    No repositories found or unable to connect to the provider.
+                                </p>
+                            <?php else: ?>
+                                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table is-striped is-fullwidth">
+                                        <thead>
+                                            <tr>
+                                                <th>Repository</th>
+                                                <th>Visibility</th>
+                                                <th>Last Activity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($repositories as $repo): ?>
+                                                <tr>
+                                                    <td>
+                                                        <strong><?php echo htmlspecialchars($repo['name'] ?? $repo['path'] ?? 'Unknown'); ?></strong>
+                                                        <?php if (!empty($repo['description'])): ?>
+                                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-grey-light);">
+                                                                <?php echo htmlspecialchars(substr($repo['description'], 0, 60)); ?>
+                                                            </p>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <span class="tag <?php echo ($repo['visibility'] ?? 'private') === 'public' ? 'is-warning' : 'is-info'; ?>">
+                                                            <?php echo htmlspecialchars($repo['visibility'] ?? 'private'); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td style="font-size: 0.75rem; color: var(--text-grey-light);">
+                                                        <?php echo htmlspecialchars($repo['last_activity'] ?? 'N/A'); ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity / Commits -->
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Recent Activity</p>
+                        </header>
+                        <div class="card-content">
+                            <?php if (empty($recentActivity)): ?>
+                                <p class="has-text-grey-light">
+                                    No recent activity available.
+                                </p>
+                            <?php else: ?>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    <?php foreach ($recentActivity as $activity): ?>
+                                        <div style="padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb;">
+                                            <div class="is-flex is-align-items-flex-start" style="gap: 0.5rem;">
+                                                <span class="icon is-small" style="margin-top: 3px;">
+                                                    <?php \App\Core\Icon::render('git-commit', 14, 14); ?>
+                                                </span>
+                                                <div>
+                                                    <strong style="font-size: 0.875rem;"><?php echo htmlspecialchars($activity['author'] ?? 'Unknown'); ?></strong>
+                                                    <p style="margin: 0; font-size: 0.8rem;">
+                                                        <?php echo htmlspecialchars($activity['message'] ?? ''); ?>
+                                                    </p>
+                                                    <small class="has-text-grey-light">
+                                                        <?php echo htmlspecialchars($activity['date'] ?? ''); ?> • 
+                                                        <?php echo htmlspecialchars($activity['repo'] ?? ''); ?>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Access Management -->
-            <article style="margin-top: var(--spacing-lg);">
-                <header>
-                    <h4>Access Management</h4>
+            <div class="card" style="margin-top: 2rem;">
+                <header class="card-header">
+                    <p class="card-header-title">Access Management</p>
                 </header>
-                
-                <div data-table>
-                    <table>
+                <div class="table-container card-content">
+                    <table class="table is-striped is-fullwidth">
                         <thead>
                             <tr>
                                 <th>Employee</th>
@@ -219,7 +251,7 @@
                             $instanceEmployees = $gitAccounts[$selectedInstance['id']]['employees'] ?? [];
                             if (empty($instanceEmployees)): ?>
                                 <tr>
-                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: var(--spacing-lg);">
+                                    <td colspan="4" class="has-text-centered has-text-grey-light">
                                         No employees linked to this provider instance.
                                     </td>
                                 </tr>
@@ -227,10 +259,12 @@
                                 <?php foreach ($instanceEmployees as $empData): ?>
                                     <tr>
                                         <td>
-                                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                                <figure data-avatar style="width: 28px; height: 28px; font-size: 0.7rem;">
-                                                    <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
-                                                </figure>
+                                            <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                                <div class="image is-28x28">
+                                                    <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%;">
+                                                        <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
+                                                    </div>
+                                                </div>
                                                 <?php echo htmlspecialchars($empData['employee']['full_name']); ?>
                                             </div>
                                         </td>
@@ -238,12 +272,14 @@
                                             <code>@<?php echo htmlspecialchars($empData['username']); ?></code>
                                         </td>
                                         <td>
-                                            <mark data-status="active">Developer</mark>
+                                            <span class="tag is-success">Developer</span>
                                         </td>
                                         <td>
-                                            <button data-variant="ghost" data-size="sm" onclick="alert('Access management coming soon')">
-                                                <?php \App\Core\Icon::render('edit', 14, 14); ?>
-                                                Edit Access
+                                            <button class="button is-small is-ghost">
+                                                <span class="icon is-small">
+                                                    <?php \App\Core\Icon::render('edit', 14, 14); ?>
+                                                </span>
+                                                <span>Edit Access</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -252,7 +288,7 @@
                         </tbody>
                     </table>
                 </div>
-            </article>
+            </div>
         </section>
     <?php endif; ?>
 <?php endif; ?>

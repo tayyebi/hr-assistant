@@ -27,7 +27,7 @@ HR Department All in One Tool!
 # Clone and run
 git clone https://github.com/tayyebi/hr-assistant.git
 cd hr-assistant
-docker compose up
+docker compose -f docker-compose.yml up -d
 
 # Open http://localhost:8080
 # Default login: admin@tenant.local / admin123
@@ -49,11 +49,6 @@ php test_no_composer.php
 # Start development server
 php -S localhost:8080 -t public/
 ```
-```
-
-Default credentials:
-- **System Admin**: sysadmin@corp.com / password
-- **Tenant Admin**: admin@defaultcorp.com / password
 
 ## Architecture
 

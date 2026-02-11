@@ -1,59 +1,66 @@
-<header>
-    <div>
-        <h2>Calendars</h2>
-        <p>Manage calendar provider instances and view events.</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Calendars</h2>
+            <p class="subtitle">Manage calendar provider instances and view events.</p>
+        </div>
     </div>
-</header>
+</div>
 
 <?php if (empty($providerInstances)): ?>
-    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
-        <?php \App\Core\Icon::render('clock', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php \App\Core\Icon::render('clock', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <h3>No Calendar Providers Configured</h3>
         <p>Add a calendar provider (Google, Outlook, CalDAV) in Settings to manage calendars.</p>
-        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" class="button is-primary">
             Go to Settings
         </a>
-    </section>
+    </div>
 <?php else: ?>
-    <section data-grid="1">
-        <article>
-            <header>
-                <h3>Calendar Providers</h3>
-            </header>
-            
-            <div data-table>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>Instance Name</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($providerInstances as $instance): ?>
+    <div class="columns">
+        <div class="column is-12">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Calendar Providers</p>
+                </header>
+                <div class="table-container card-content">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
                             <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('clock', 16, 16); ?>
-                                        <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
-                                    </div>
-                                </td>
-                                <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
-                                <td>
-                                    <mark data-status="active">Active</mark>
-                                </td>
-                                <td>
-                                    <a href="#" data-button data-variant="ghost" data-size="sm">
-                                        View Events
-                                    </a>
-                                </td>
+                                <th>Provider</th>
+                                <th>Instance Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($providerInstances as $instance): ?>
+                                <tr>
+                                    <td>
+                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                            <span class="icon is-small">
+                                                <?php \App\Core\Icon::render('clock', 16, 16); ?>
+                                            </span>
+                                            <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
+                                        </div>
+                                    </td>
+                                    <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
+                                    <td>
+                                        <span class="tag is-success">Active</span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="button is-small is-ghost">
+                                            View Events
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </article>
-    </section>
+        </div>
+    </div>
 <?php endif; ?>

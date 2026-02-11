@@ -1,155 +1,107 @@
-<header>
-    <div>
-        <h2>Employees</h2>
-        <p>Manage your organization's workforce.</p>
+<div class="section">
+    <div class="level mb-5 is-mobile">
+        <div class="level-left">
+            <div>
+                <h2 class="title is-3 mb-1">Employees</h2>
+                <p class="subtitle is-6">Manage your organization's workforce.</p>
+            </div>
+        </div>
+        <div class="level-right">
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/employees/create'); ?>" class="button is-primary">
+                <span class="icon is-small">
+                    <?php Icon::render('plus', 18, 18); ?>
+                </span>
+                <span>Add Employee</span>
+            </a>
+        </div>
     </div>
-    <button onclick="document.querySelector('dialog').showModal()">
-        <?php Icon::render('plus', 18, 18); ?>
-        Add Employee
-    </button>
-</header>
 
-<?php if (!empty($message)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
-<?php endif; ?>
+    <?php if (!empty($message)): ?>
+        <div class="notification is-success is-light mb-5">
+            <a href="#" class="delete"></a>
+            <?php echo htmlspecialchars($message); ?>
+        </div>
+    <?php endif; ?>
 
-<!-- Search -->
-<form method="GET" action="<?php echo \App\Core\UrlHelper::workspace('/employees/'); ?>" style="margin-bottom: var(--spacing-lg);">
-    <search>
-        <?php Icon::render('search', 20, 20); ?>
-        <input type="search" name="search" placeholder="Search by name..." value="<?php echo htmlspecialchars($search); ?>">
-    </search>
-</form>
+    <!-- Search -->
+    <form method="GET" action="<?php echo \App\Core\UrlHelper::workspace('/employees/'); ?>" class="mb-5">
+        <div class="field">
+            <div class="control has-icons-left">
+                <input class="input" type="search" name="search" placeholder="Search by name..." value="<?php echo htmlspecialchars($search); ?>">
+                <span class="icon is-left">
+                    <?php Icon::render('search', 20, 20); ?>
+                </span>
+            </div>
+        </div>
+    </form>
 
-<!-- Employee Table -->
-<div data-table>
-    <table>
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Role</th>
-                <th>Accounts</th>
-                <th>Hired Date</th>
-                <th style="text-align: right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($employees)): ?>
+    <!-- Employee Table -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted);">
-                        No employees found matching your search.
-                    </td>
+                    <th>Employee</th>
+                    <th>Role</th>
+                    <th>Accounts</th>
+                    <th>Hired Date</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($employees as $emp): ?>
+            </thead>
+            <tbody>
+                <?php if (empty($employees)): ?>
                     <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                                <figure data-avatar>
-                                    <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
-                                </figure>
-                                <div>
-                                    <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
-                                </div>
-                            </div>
-                        </td>
-                        <td><?php echo htmlspecialchars($emp['position']); ?></td>
-                        <td>
-                            <?php 
-                            $accountCount = is_array($emp['accounts']) ? count($emp['accounts']) : 0;
-                            if ($accountCount > 0): ?>
-                                <mark data-status="active"><?php echo $accountCount; ?> linked</mark>
-                            <?php else: ?>
-                                <span style="color: var(--text-muted); font-style: italic; font-size: 0.75rem;">No accounts</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo htmlspecialchars($emp['hired_date']); ?></td>
-                        <td style="text-align: right;">
-                            <button data-variant="ghost" data-size="icon" 
-                                    data-employee-id="<?php echo htmlspecialchars($emp['id']); ?>"
-                                    data-full-name="<?php echo htmlspecialchars($emp['full_name']); ?>"
-                                    data-position="<?php echo htmlspecialchars($emp['position']); ?>"
-                                    data-birthday="<?php echo htmlspecialchars($emp['birthday'] ?? ''); ?>"
-                                    data-hired="<?php echo htmlspecialchars($emp['hired_date'] ?? ''); ?>"
-                                    onclick="editEmployee(this)">
-                                <?php Icon::render('edit', 16, 16); ?>
-                            </button>
-                            <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/delete/'); ?>" style="display: inline;">
-                                <input type="hidden" name="id" value="<?php echo htmlspecialchars($emp['id']); ?>">
-                                <button type="submit" data-variant="ghost" data-size="icon" onclick="return confirm('Are you sure you want to remove this employee?')">
-                                    <?php Icon::render('trash', 16, 16, 'color: var(--color-danger);'); ?>
-                                </button>
-                            </form>
+                        <td colspan="5" class="has-text-centered has-text-grey-light p-5">
+                            No employees found matching your search.
                         </td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                <?php else: ?>
+                    <?php foreach ($employees as $emp): ?>
+                        <tr>
+                            <td>
+                                <div class="level is-mobile" style="margin: 0;">
+                                    <div class="level-left">
+                                        <div class="level-item">
+                                            <div class="avatar">
+                                                <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
+                                            </div>
+                                        </div>
+                                        <div class="level-item">
+                                            <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><?php echo htmlspecialchars($emp['position']); ?></td>
+                            <td>
+                                <?php 
+                                $accountCount = is_array($emp['accounts']) ? count($emp['accounts']) : 0;
+                                if ($accountCount > 0): ?>
+                                    <span class="tag is-success is-light"><?php echo $accountCount; ?> linked</span>
+                                <?php else: ?>
+                                    <span class="has-text-grey-light is-size-7">No accounts</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($emp['hired_date']); ?></td>
+                            <td style="text-align: right;">
+                                <a href="<?php echo \App\Core\UrlHelper::workspace('/employees/edit/' . htmlspecialchars($emp['id'])); ?>" class="button is-ghost is-small">
+                                    <span class="icon is-small">
+                                        <?php Icon::render('edit', 16, 16); ?>
+                                    </span>
+                                </a>
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/delete/'); ?>" style="display: inline;">
+                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($emp['id']); ?>">
+                                    <button type="submit" class="button is-ghost is-small">
+                                        <span class="icon is-small has-text-danger">
+                                            <?php Icon::render('trash', 16, 16); ?>
+                                        </span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<!-- Add/Edit Employee Modal -->
-<dialog>
-    <article>
-        <header>
-            <h3>Employee Profile</h3>
-            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <?php Icon::render('close', 24, 24); ?>
-            </button>
-        </header>
-
-        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/employees/'); ?>" data-employee-form>
-            <input type="hidden" name="id">
-            
-            <section data-grid="2">
-                <div>
-                    <label>Full Name</label>
-                    <input type="text" name="full_name" required>
-                </div>
-                <div>
-                    <label>Position</label>
-                    <input type="text" name="position" required>
-                </div>
-                <div>
-                    <label>Birthday</label>
-                    <input type="date" name="birthday" required>
-                </div>
-                <div>
-                    <label>Hired Date</label>
-                    <input type="date" name="hired_date" required value="<?php echo date('Y-m-d'); ?>">
-                </div>
-            </section>
-
-            <footer>
-                <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                <button type="submit">Save</button>
-            </footer>
-        </form>
-    </article>
-</dialog>
-
-<script>
-function editEmployee(button) {
-    const form = document.querySelector('[data-employee-form]');
-    const dialog = document.querySelector('dialog');
-    
-    form.action = '/employees/update';
-    form.querySelector('[name="id"]').value = button.dataset.employeeId;
-    form.querySelector('[name="full_name"]').value = button.dataset.fullName;
-    form.querySelector('[name="position"]').value = button.dataset.position;
-    form.querySelector('[name="birthday"]').value = button.dataset.birthday;
-    form.querySelector('[name="hired_date"]').value = button.dataset.hired;
-    
-    dialog.showModal();
-}
-
-// Reset form when dialog closes
-document.querySelector('dialog').addEventListener('close', function() {
-    const form = document.querySelector('[data-employee-form]');
-    form.action = '/employees';
-    form.reset();
-    form.querySelector('[name="hired_date"]').value = '<?php echo date('Y-m-d'); ?>';
-});
-</script>
-
 

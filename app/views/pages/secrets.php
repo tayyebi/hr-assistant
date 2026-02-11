@@ -1,246 +1,288 @@
-<header>
-    <div>
-        <h2>Secrets Management</h2>
-        <p>Manage password manager access (Passbolt, Bitwarden, 1Password, etc.).</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Secrets Management</h2>
+            <p class="subtitle">Manage password manager access (Passbolt, Bitwarden, 1Password, etc.).</p>
+        </div>
     </div>
-</header>
+</div>
 
 <?php if (!empty($message)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
+    <div class="notification is-success">
+        <a href="#" class="delete"></a>
+        <?php echo htmlspecialchars($message); ?>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($secretsInstances)): ?>
-    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
-        <?php \App\Core\Icon::render('key', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php \App\Core\Icon::render('key', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <h3>No Secrets Providers Configured</h3>
         <p>Add a secrets provider (Passbolt, Bitwarden, 1Password, HashiCorp Vault) in Settings to manage password access.</p>
-        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" class="button is-primary">
             Go to Settings
         </a>
-    </section>
+    </div>
 <?php else: ?>
-    <section data-grid="3-1">
+    <div class="columns is-multiline">
         <!-- Provider Instances List -->
-        <article>
-            <header>
-                <h3>Secrets Providers</h3>
-            </header>
-            
-            <div data-table>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>Instance Name</th>
-                            <th>Linked Employees</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($secretsInstances as $instance): ?>
-                            <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'style="background: var(--bg-tertiary);"' : ''; ?>>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <?php \App\Core\Icon::render('key', 16, 16); ?>
-                                        <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
-                                    </div>
-                                </td>
-                                <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
-                                <td>
-                                    <?php 
-                                    $linkedCount = count($secretsAccounts[$instance['id']]['employees'] ?? []);
-                                    if ($linkedCount > 0): ?>
-                                        <mark data-status="active"><?php echo $linkedCount; ?> linked</mark>
-                                    <?php else: ?>
-                                        <span style="color: var(--text-muted);">None</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/secrets'), ['instance' => $instance['id']]); ?>" 
-                                       data-button data-variant="ghost" data-size="sm">
-                                        View Details
-                                    </a>
-                                </td>
+        <div class="column is-three-quarters-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Secrets Providers</p>
+                </header>
+                <div class="table-container card-content">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Instance Name</th>
+                                <th>Linked Employees</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($secretsInstances as $instance): ?>
+                                <tr <?php echo ($selectedInstance && $selectedInstance['id'] === $instance['id']) ? 'class="is-selected"' : ''; ?>>
+                                    <td>
+                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                            <span class="icon is-small">
+                                                <?php \App\Core\Icon::render('key', 16, 16); ?>
+                                            </span>
+                                            <?php echo htmlspecialchars(\App\Core\ProviderType::getName($instance['provider'])); ?>
+                                        </div>
+                                    </td>
+                                    <td><strong><?php echo htmlspecialchars($instance['name']); ?></strong></td>
+                                    <td>
+                                        <?php 
+                                        $linkedCount = count($secretsAccounts[$instance['id']]['employees'] ?? []);
+                                        if ($linkedCount > 0): ?>
+                                            <span class="tag is-success"><?php echo $linkedCount; ?> linked</span>
+                                        <?php else: ?>
+                                            <span class="has-text-grey-light">None</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/secrets'), ['instance' => $instance['id']]); ?>" 
+                                           class="button is-small is-ghost">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </article>
+        </div>
 
         <!-- Quick Stats -->
-        <article>
-            <header>
-                <h3>Overview</h3>
-            </header>
-            
-            <section data-grid="1" style="gap: var(--spacing-md);">
-                <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <h4 style="margin: 0; font-size: 0.875rem; color: var(--text-muted);">Total Providers</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: 700;"><?php echo count($secretsInstances); ?></p>
+        <div class="column is-one-quarter-desktop is-full-tablet">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Overview</p>
+                </header>
+                <div class="card-content">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="box has-background-grey-light">
+                            <p class="heading is-6">Total Providers</p>
+                            <p class="title is-4"><?php echo count($secretsInstances); ?></p>
+                        </div>
+                        <div class="box has-background-grey-light">
+                            <p class="heading is-6">Linked Employees</p>
+                            <p class="title is-4">
+                                <?php 
+                                $totalLinked = 0;
+                                foreach ($secretsAccounts as $data) {
+                                    $totalLinked += count($data['employees']);
+                                }
+                                echo $totalLinked;
+                                ?>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <h4 style="margin: 0; font-size: 0.875rem; color: var(--text-muted);">Linked Employees</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: 700;">
-                        <?php 
-                        $totalLinked = 0;
-                        foreach ($secretsAccounts as $data) {
-                            $totalLinked += count($data['employees']);
-                        }
-                        echo $totalLinked;
-                        ?>
-                    </p>
-                </div>
-            </section>
-        </article>
-    </section>
+            </div>
+        </div>
+    </div>
 
     <?php if ($selectedInstance): ?>
-        <section style="margin-top: var(--spacing-xl);">
-            <header style="margin-bottom: var(--spacing-lg);">
-                <h3>
-                    <?php \App\Core\Icon::render('key', 24, 24, 'vertical-align: middle; margin-right: var(--spacing-sm);'); ?>
-                    <?php echo htmlspecialchars($selectedInstance['name']); ?>
-                </h3>
-                <p style="color: var(--text-muted);">
-                    <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
-                </p>
-            </header>
-
-            <section data-grid="2">
-                <!-- Linked Employees -->
-                <article>
-                    <header>
-                        <h4>Linked Employees</h4>
-                        <button onclick="document.getElementById('link-employee-dialog').showModal()" data-size="sm">
-                            <?php \App\Core\Icon::render('plus', 14, 14); ?>
-                            Link Employee
-                        </button>
-                    </header>
-                    
-                    <?php $instanceEmployees = $secretsAccounts[$selectedInstance['id']]['employees'] ?? []; ?>
-                    
-                    <?php if (empty($instanceEmployees)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No employees linked to this secrets provider.
-                        </p>
-                    <?php else: ?>
-                        <div data-table>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th>
-                                        <th>Username</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($instanceEmployees as $empData): ?>
-                                        <tr>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                                    <figure data-avatar style="width: 28px; height: 28px; font-size: 0.7rem;">
-                                                        <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
-                                                    </figure>
-                                                    <?php echo htmlspecialchars($empData['employee']['full_name']); ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <code><?php echo htmlspecialchars($empData['username']); ?></code>
-                                            </td>
-                                            <td>
-                                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/secrets/unassign'); ?>" style="display: inline;">
-                                                    <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
-                                                    <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($empData['employee']['id']); ?>">
-                                                    <button type="submit" data-variant="ghost" data-size="sm" onclick="return confirm('Remove this employee from the secrets provider?')">
-                                                        <?php \App\Core\Icon::render('trash', 14, 14, 'color: var(--color-danger);'); ?>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+        <section style="margin-top: 2rem;">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h3 class="title is-4">
+                                <span class="icon is-small" style="vertical-align: middle;">
+                                    <?php \App\Core\Icon::render('key', 24, 24); ?>
+                                </span>
+                                <?php echo htmlspecialchars($selectedInstance['name']); ?>
+                            </h3>
+                            <p class="subtitle">
+                                <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?> instance
+                            </p>
                         </div>
-                    <?php endif; ?>
-                </article>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns is-multiline">
+                <!-- Linked Employees -->
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Linked Employees</p>
+                            <div class="card-header-icon">
+                                <button class="button is-small is-primary">
+                                    <span class="icon is-small">
+                                        <?php \App\Core\Icon::render('plus', 14, 14); ?>
+                                    </span>
+                                    <span>Link Employee</span>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <?php $instanceEmployees = $secretsAccounts[$selectedInstance['id']]['employees'] ?? []; ?>
+                            
+                            <?php if (empty($instanceEmployees)): ?>
+                                <p class="has-text-grey-light">
+                                    No employees linked to this secrets provider.
+                                </p>
+                            <?php else: ?>
+                                <div class="table-container">
+                                    <table class="table is-striped is-fullwidth">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Username</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($instanceEmployees as $empData): ?>
+                                                <tr>
+                                                    <td>
+                                                        <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+                                                            <div class="image is-28x28">
+                                                                <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" style="width: 100%; height: 100%; border-radius: 50%;">
+                                                                    <?php echo strtoupper(substr($empData['employee']['full_name'], 0, 1)); ?>
+                                                                </div>
+                                                            </div>
+                                                            <?php echo htmlspecialchars($empData['employee']['full_name']); ?>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <code><?php echo htmlspecialchars($empData['username']); ?></code>
+                                                    </td>
+                                                    <td>
+                                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/secrets/unassign'); ?>" style="display: inline;">
+                                                            <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
+                                                            <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($empData['employee']['id']); ?>">
+                                                            <button type="submit" class="button is-small is-danger is-ghost">
+                                                                <span class="icon is-small">
+                                                                    <?php \App\Core\Icon::render('trash', 14, 14); ?>
+                                                                </span>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Groups / Vaults -->
-                <article>
-                    <header>
-                        <h4>Groups / Vaults</h4>
-                    </header>
-                    
-                    <?php if (empty($groups)): ?>
-                        <p style="color: var(--text-muted); padding: var(--spacing-md);">
-                            No groups/vaults available or unable to connect to the provider.
-                        </p>
-                    <?php else: ?>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <?php foreach ($groups as $group): ?>
-                                <li style="padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: var(--spacing-sm);">
-                                    <?php \App\Core\Icon::render('folder', 16, 16); ?>
-                                    <span><?php echo htmlspecialchars($group['name'] ?? 'Unknown'); ?></span>
-                                    <?php if (isset($group['members_count'])): ?>
-                                        <mark style="margin-left: auto;"><?php echo $group['members_count']; ?> members</mark>
-                                    <?php endif; ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endif; ?>
-                </article>
-            </section>
+                <div class="column is-half-desktop">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Groups / Vaults</p>
+                        </header>
+                        <div class="card-content">
+                            <?php if (empty($groups)): ?>
+                                <p class="has-text-grey-light">
+                                    No groups/vaults available or unable to connect to the provider.
+                                </p>
+                            <?php else: ?>
+                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                    <?php foreach ($groups as $group): ?>
+                                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #dbdbdb; display: flex; align-items: center; gap: 0.5rem;">
+                                            <span class="icon is-small">
+                                                <?php \App\Core\Icon::render('folder', 16, 16); ?>
+                                            </span>
+                                            <span><?php echo htmlspecialchars($group['name'] ?? 'Unknown'); ?></span>
+                                            <?php if (isset($group['members_count'])): ?>
+                                                <span class="tag is-light" style="margin-left: auto;"><?php echo $group['members_count']; ?> members</span>
+                                            <?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Link Employee Dialog -->
-        <dialog id="link-employee-dialog">
-            <article>
-                <header>
-                    <h3>Link Employee to <?php echo htmlspecialchars($selectedInstance['name']); ?></h3>
-                    <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                        <?php \App\Core\Icon::render('close', 24, 24); ?>
-                    </button>
+        <div class="modal" id="link-employee-dialog">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Link Employee to <?php echo htmlspecialchars($selectedInstance['name']); ?></p>
+                    <button class="delete" aria-label="close"></button>
                 </header>
 
                 <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/secrets/assign'); ?>">
-                    <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
-                    
-                    <section>
-                        <div style="margin-bottom: var(--spacing-md);">
-                            <label>Employee</label>
-                            <select name="employee_id" required>
-                                <option value="">Select employee...</option>
-                                <?php foreach ($employees as $emp): ?>
-                                    <?php 
-                                    // Skip already linked employees
-                                    $alreadyLinked = false;
-                                    foreach ($instanceEmployees as $linked) {
-                                        if ($linked['employee']['id'] === $emp['id']) {
-                                            $alreadyLinked = true;
-                                            break;
-                                        }
-                                    }
-                                    if ($alreadyLinked) continue;
-                                    ?>
-                                    <option value="<?php echo htmlspecialchars($emp['id']); ?>">
-                                        <?php echo htmlspecialchars($emp['full_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                    <section class="modal-card-body">
+                        <input type="hidden" name="instance_id" value="<?php echo htmlspecialchars($selectedInstance['id']); ?>">
+                        
+                        <div class="field">
+                            <label class="label">Employee</label>
+                            <div class="control">
+                                <span class="select is-fullwidth">
+                                    <select name="employee_id" required>
+                                        <option value="">Select employee...</option>
+                                        <?php foreach ($employees as $emp): ?>
+                                            <?php 
+                                            // Skip already linked employees
+                                            $alreadyLinked = false;
+                                            foreach ($instanceEmployees as $linked) {
+                                                if ($linked['employee']['id'] === $emp['id']) {
+                                                    $alreadyLinked = true;
+                                                    break;
+                                                }
+                                            }
+                                            if ($alreadyLinked) continue;
+                                            ?>
+                                            <option value="<?php echo htmlspecialchars($emp['id']); ?>">
+                                                <?php echo htmlspecialchars($emp['full_name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </span>
+                            </div>
                         </div>
                         
-                        <div>
-                            <label>Username / Email in <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?></label>
-                            <input type="text" name="username" placeholder="e.g. john.doe or john@company.com" required>
+                        <div class="field">
+                            <label class="label">Username / Email in <?php echo htmlspecialchars(\App\Core\ProviderType::getName($selectedInstance['provider'])); ?></label>
+                            <div class="control">
+                                <input class="input" type="text" name="username" placeholder="e.g. john.doe or john@company.com" required>
+                            </div>
                         </div>
                     </section>
 
-                    <footer>
-                        <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                        <button type="submit">Link Employee</button>
+                    <footer class="modal-card-foot">
+                        <button type="button" class="button">Cancel</button>
+                        <button type="submit" class="button is-primary">Link Employee</button>
                     </footer>
                 </form>
-            </article>
-        </dialog>
+            </div>
+        </div>
     <?php endif; ?>
 <?php endif; ?>

@@ -8,196 +8,242 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body data-page="admin">
-    <header>
-        <div>
-            <h1 style="color: var(--color-primary); margin: 0;">HR Assistant</h1>
-            <p style="font-size: 0.875rem; margin: 0;">System Administration</p>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <div class="navbar-item">
+                <h1 class="title is-5">HR Assistant</h1>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-            <span style="font-size: 0.875rem; color: var(--text-secondary);"><?php echo htmlspecialchars($user['email']); ?></span>
-            <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>" style="display: flex; align-items: center; gap: var(--spacing-sm); color: var(--color-danger);">
-                <img src="/icons/logout.svg" alt="" width="16" height="16" style="filter: invert(33%) sepia(93%) saturate(2467%) hue-rotate(341deg) brightness(91%) contrast(91%);">
-                Logout
-            </a>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="is-flex is-align-items-center" style="gap: 1rem;">
+                    <small><?php echo htmlspecialchars($user['email']); ?></small>
+                    <a href="<?php echo \App\Core\UrlHelper::url('/logout'); ?>" class="is-flex is-align-items-center" style="gap: 0.5rem; color: inherit;">
+                        <span class="icon is-small">
+                            <?php \App\Core\Icon::render('logout', 16, 16); ?>
+                        </span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <main>
-        <h2>Tenant Management</h2>
+    <main class="section">
+        <h2 class="title">Tenant Management</h2>
 
         <?php if (!empty($message)): ?>
-            <output data-type="<?php echo htmlspecialchars($messageType ?? 'success'); ?>"><?php echo htmlspecialchars($message); ?></output>
+            <div class="notification <?php echo ($messageType ?? 'success') === 'error' ? 'is-danger' : 'is-success'; ?>">
+                <a href="#" class="delete"></a>
+                <?php echo htmlspecialchars($message); ?>
+            </div>
         <?php endif; ?>
 
-        <section data-grid="2-1">
+        <div class="columns is-multiline">
             <!-- Tenant List -->
-            <article>
-                <h3>All Tenants (<?php echo count($tenants); ?>)</h3>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <?php foreach ($tenants as $tenant): 
-                        $isActive = ($tenant['status'] ?? 'active') === 'active';
-                        $statusColor = $isActive ? 'var(--color-success)' : 'var(--text-muted)';
-                    ?>
-                        <li style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius); margin-bottom: var(--spacing-sm); <?php echo !$isActive ? 'opacity: 0.6;' : ''; ?>">
-                            <img src="/icons/home.svg" alt="" width="20" height="20" style="filter: <?php echo $isActive ? 'invert(37%) sepia(93%) saturate(1352%) hue-rotate(200deg) brightness(97%) contrast(101%)' : 'invert(50%)'; ?>;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                    <strong><?php echo htmlspecialchars($tenant['name']); ?></strong>
-                                    <span style="font-size: 0.7rem; padding: 0.15rem 0.4rem; background: <?php echo $statusColor; ?>; color: white; border-radius: 3px; text-transform: uppercase;">
-                                        <?php echo htmlspecialchars($tenant['status'] ?? 'active'); ?>
-                                    </span>
-                                </div>
-                                <p style="margin: 0; font-size: 0.75rem; font-family: monospace; color: var(--text-muted);">
-                                    <?php echo htmlspecialchars($tenant['id']); ?>
-                                </p>
+            <div class="column is-two-thirds-tablet is-full-mobile">
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">All Tenants (<?php echo count($tenants); ?>)</p>
+                    </header>
+                    <div class="card-content">
+                        <?php if (!empty($tenants)): ?>
+                            <div class="content">
+                                <?php foreach ($tenants as $tenant): 
+                                    $isActive = ($tenant['status'] ?? 'active') === 'active';
+                                ?>
+                                    <div class="box" style="<?php echo !$isActive ? 'opacity: 0.6;' : ''; ?>">
+                                        <div class="is-flex is-justify-content-space-between is-align-items-center">
+                                            <div style="flex: 1;">
+                                                <div class="is-flex is-align-items-center" style="gap: 0.75rem; margin-bottom: 0.5rem;">
+                                                    <strong><?php echo htmlspecialchars($tenant['name']); ?></strong>
+                                                    <span class="tag <?php echo $isActive ? 'is-success' : 'is-grey'; ?>">
+                                                        <?php echo htmlspecialchars($tenant['status'] ?? 'active'); ?>
+                                                    </span>
+                                                </div>
+                                                <p class="has-text-grey-light is-size-7" style="font-family: monospace; margin: 0;">
+                                                    <?php echo htmlspecialchars($tenant['id']); ?>
+                                                </p>
+                                            </div>
+                                            <div class="is-flex" style="gap: 0.5rem;">
+                                                <?php if ($isActive): ?>
+                                                    <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard', $tenant['id']); ?>" 
+                                                       class="button is-small is-info is-light"
+                                                       title="Open Workspace">
+                                                        <span class="icon is-small">
+                                                            <?php \App\Core\Icon::render('external-link', 14, 14); ?>
+                                                        </span>
+                                                        <span>Open</span>
+                                                    </a>
+                                                <?php endif; ?>
+                                                <button type="button" 
+                                                        class="button is-small is-info"
+                                                       
+                                                        title="Edit Tenant">
+                                                    <span class="icon is-small">
+                                                        <?php \App\Core\Icon::render('edit', 14, 14); ?>
+                                                    </span>
+                                                </button>
+                                                <?php if ($isActive): ?>
+                                                    <form method="POST" action="/admin/tenants/deactivate" style="margin: 0; display: inline;">
+                                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
+                                                        <button type="submit" 
+                                                                class="button is-small is-warning"
+                                                                title="Deactivate Tenant"
+                                                               >
+                                                            <span class="icon is-small">
+                                                                <?php \App\Core\Icon::render('pause', 14, 14); ?>
+                                                            </span>
+                                                        </button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <form method="POST" action="/admin/tenants/activate" style="margin: 0; display: inline;">
+                                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
+                                                        <button type="submit" 
+                                                                class="button is-small is-success"
+                                                                title="Activate Tenant">
+                                                            <span class="icon is-small">
+                                                                <?php \App\Core\Icon::render('play', 14, 14); ?>
+                                                            </span>
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
+                                                <button type="button" 
+                                                        class="button is-small is-danger"
+                                                       
+                                                        title="Delete Tenant">
+                                                    <span class="icon is-small">
+                                                        <?php \App\Core\Icon::render('trash', 14, 14); ?>
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                            <div style="display: flex; gap: var(--spacing-sm);">
-                                <?php if ($isActive): ?>
-                                    <a href="<?php echo \App\Core\UrlHelper::workspace('/dashboard', $tenant['id']); ?>" 
-                                       title="Open Workspace"
-                                       style="padding: 0.4rem 0.6rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem;">
-                                        <img src="/icons/external-link.svg" alt="" width="14" height="14" style="filter: invert(100%);">
-                                        Open
-                                    </a>
-                                <?php endif; ?>
-                                <button type="button" 
-                                        onclick="openEditModal('<?php echo htmlspecialchars($tenant['id']); ?>', '<?php echo htmlspecialchars($tenant['name']); ?>')"
-                                        title="Edit Tenant"
-                                        style="padding: 0.4rem 0.6rem; background: var(--color-info); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                                    <img src="/icons/edit.svg" alt="" width="14" height="14" style="filter: invert(100%);">
-                                </button>
-                                <?php if ($isActive): ?>
-                                    <form method="POST" action="/admin/tenants/deactivate" style="margin: 0;">
-                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
-                                        <button type="submit" 
-                                                title="Deactivate Tenant"
-                                                onclick="return confirm('Deactivate this tenant? Users will not be able to access it.')"
-                                                style="padding: 0.4rem; background: var(--color-warning); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                            <img src="/icons/pause.svg" alt="" width="14" height="14" style="filter: invert(100%);">
-                                        </button>
-                                    </form>
-                                <?php else: ?>
-                                    <form method="POST" action="/admin/tenants/activate" style="margin: 0;">
-                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($tenant['id']); ?>">
-                                        <button type="submit" 
-                                                title="Activate Tenant"
-                                                style="padding: 0.4rem; background: var(--color-success); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                            <img src="/icons/play.svg" alt="" width="14" height="14" style="filter: invert(100%);">
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-                                <button type="button" 
-                                        onclick="openDeleteModal('<?php echo htmlspecialchars($tenant['id']); ?>', '<?php echo htmlspecialchars($tenant['name']); ?>')"
-                                        title="Delete Tenant"
-                                        style="padding: 0.4rem; background: var(--color-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                    <img src="/icons/trash.svg" alt="" width="14" height="14" style="filter: invert(100%);">
-                                </button>
+                        <?php else: ?>
+                            <div class="has-text-centered has-text-grey">
+                                <p>No tenants created yet.</p>
                             </div>
-                        </li>
-                    <?php endforeach; ?>
-                    <?php if (empty($tenants)): ?>
-                        <li style="text-align: center; padding: var(--spacing-lg); color: var(--text-muted);">
-                            No tenants created yet.
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </article>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
 
             <!-- Create Tenant Form -->
-            <article>
-                <h3>Add New Tenant</h3>
-                <form method="POST" action="/admin/tenants">
-                    <div>
-                        <label>Business Name</label>
-                        <input type="text" name="name" required placeholder="e.g. Innovate Inc.">
+            <div class="column is-one-third-tablet is-full-mobile">
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Add New Tenant</p>
+                    </header>
+                    <div class="card-content">
+                        <form method="POST" action="/admin/tenants">
+                            <div class="field">
+                                <label class="label">Business Name</label>
+                                <div class="control">
+                                    <input class="input" type="text" name="name" required placeholder="e.g. Innovate Inc.">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button type="submit" class="button is-primary is-fullwidth">
+                                        <span class="icon is-small">
+                                            <?php \App\Core\Icon::render('plus', 18, 18); ?>
+                                        </span>
+                                        <span>Create Tenant</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <button type="submit">
-                        <img src="/icons/plus.svg" alt="" width="18" height="18">
-                        Create Tenant
-                    </button>
-                </form>
-            </article>
-        </section>
+                </div>
+            </div>
+        </div>
 
         <!-- Edit Modal -->
-        <dialog id="editModal" style="border: 1px solid var(--border-color); border-radius: var(--radius); padding: 0; max-width: 500px;">
-            <form method="POST" action="/admin/tenants/edit" style="padding: var(--spacing-lg);">
-                <h3 style="margin-top: 0;">Edit Tenant</h3>
-                <input type="hidden" name="id" id="editTenantId">
-                <div style="margin-bottom: var(--spacing-md);">
-                    <label>Business Name</label>
-                    <input type="text" name="name" id="editTenantName" required placeholder="e.g. Innovate Inc.">
-                </div>
-                <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
-                    <button type="button" onclick="document.getElementById('editModal').close()" 
-                            style="background: var(--bg-secondary); color: var(--text-primary);">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background: var(--color-info);">
-                        <img src="/icons/save.svg" alt="" width="18" height="18">
-                        Update Tenant
-                    </button>
-                </div>
-            </form>
-        </dialog>
+        <div class="modal" id="editModal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Edit Tenant</p>
+                    <a href="#" class="delete"></a>
+                </header>
+                <form method="POST" action="/admin/tenants/edit">
+                    <section class="modal-card-body">
+                        <input type="hidden" name="id" id="editTenantId">
+                        <div class="field">
+                            <label class="label">Business Name</label>
+                            <div class="control">
+                                <input class="input" type="text" name="name" id="editTenantName" required placeholder="e.g. Innovate Inc.">
+                            </div>
+                        </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <div class="buttons">
+                            <button type="button" class="button is-light">
+                                Cancel
+                            </button>
+                            <button type="submit" class="button is-info">
+                                <span class="icon is-small">
+                                    <?php \App\Core\Icon::render('save', 18, 18); ?>
+                                </span>
+                                <span>Update Tenant</span>
+                            </button>
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </div>
 
         <!-- Delete Modal -->
-        <dialog id="deleteModal" style="border: 1px solid var(--border-color); border-radius: var(--radius); padding: 0; max-width: 500px;">
-            <form method="POST" action="/admin/tenants/delete" style="padding: var(--spacing-lg);">
-                <h3 style="margin-top: 0; color: var(--color-danger);">⚠️ Delete Tenant</h3>
-                <input type="hidden" name="id" id="deleteTenantId">
-                <p style="margin-bottom: var(--spacing-md);">
-                    You are about to permanently delete <strong id="deleteTenantName"></strong> and all associated data:
-                </p>
-                <ul style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">
-                    <li>All employees</li>
-                    <li>All teams</li>
-                    <li>All messages</li>
-                    <li>All jobs</li>
-                    <li>All assets</li>
-                    <li>All configuration</li>
-                </ul>
-                <p style="margin-bottom: var(--spacing-md); color: var(--color-danger); font-weight: bold;">
-                    This action cannot be undone!
-                </p>
-                <div style="margin-bottom: var(--spacing-md);">
-                    <label>Type <strong>DELETE</strong> to confirm</label>
-                    <input type="text" name="confirm" required placeholder="DELETE" autocomplete="off">
-                </div>
-                <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
-                    <button type="button" onclick="document.getElementById('deleteModal').close()" 
-                            style="background: var(--bg-secondary); color: var(--text-primary);">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background: var(--color-danger);">
-                        <img src="/icons/trash.svg" alt="" width="18" height="18">
-                        Delete Forever
-                    </button>
-                </div>
-            </form>
-        </dialog>
+        <div class="modal" id="deleteModal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head has-background-danger">
+                    <p class="modal-card-title has-text-white">⚠️ Delete Tenant</p>
+                    <a href="#" class="delete"></a>
+                </header>
+                <form method="POST" action="/admin/tenants/delete">
+                    <section class="modal-card-body">
+                        <input type="hidden" name="id" id="deleteTenantId">
+                        <p class="mb-4">
+                            You are about to permanently delete <strong id="deleteTenantName"></strong> and all associated data:
+                        </p>
+                        <ul class="mb-4 ml-4">
+                            <li>All employees</li>
+                            <li>All teams</li>
+                            <li>All messages</li>
+                            <li>All jobs</li>
+                            <li>All assets</li>
+                            <li>All configuration</li>
+                        </ul>
+                        <p class="has-text-danger mb-4">
+                            <strong>This action cannot be undone!</strong>
+                        </p>
+                        <div class="field">
+                            <label class="label">Type <strong>DELETE</strong> to confirm</label>
+                            <div class="control">
+                                <input class="input is-danger" type="text" name="confirm" required placeholder="DELETE" autocomplete="off">
+                            </div>
+                        </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <div class="buttons">
+                            <button type="button" class="button is-light">
+                                Cancel
+                            </button>
+                            <button type="submit" class="button is-danger">
+                                <span class="icon is-small">
+                                    <?php \App\Core\Icon::render('trash', 18, 18); ?>
+                                </span>
+                                <span>Delete Forever</span>
+                            </button>
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </div>
     </main>
 
-    <script>
-        function openEditModal(id, name) {
-            document.getElementById('editTenantId').value = id;
-            document.getElementById('editTenantName').value = name;
-            document.getElementById('editModal').showModal();
-        }
-
-        function openDeleteModal(id, name) {
-            document.getElementById('deleteTenantId').value = id;
-            document.getElementById('deleteTenantName').textContent = name;
-            document.getElementById('deleteModal').showModal();
-        }
-
-        // Close modals on ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.getElementById('editModal').close();
-                document.getElementById('deleteModal').close();
-            }
-        });
-    </script>
 </body>
 </html>

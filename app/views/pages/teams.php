@@ -1,214 +1,261 @@
-<header>
-    <div>
-        <h2>Team Management</h2>
-        <p>Organize people and assign functional aliases.</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Team Management</h2>
+            <p class="subtitle">Organize people and assign functional aliases.</p>
+        </div>
+        <div class="level-right">
+            <div class="level-item">
+                <button class="button is-primary">
+                    <span class="icon is-small">
+                        <?php Icon::render('plus', 18, 18); ?>
+                    </span>
+                    <span>Create Team</span>
+                </button>
+            </div>
+        </div>
     </div>
-    <button onclick="document.querySelector('dialog[data-create-team]').showModal()">
-        <?php Icon::render('plus', 18, 18); ?>
-        Create Team
-    </button>
-</header>
+</div>
 
 <?php if (!empty($message)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($message); ?></output>
+    <div class="notification is-success">
+        <a href="#" class="delete"></a>
+        <?php echo htmlspecialchars($message); ?>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($teams)): ?>
-    <section data-empty>
-        <?php Icon::render('teams', 64, 64, 'stroke-width: 1;'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php Icon::render('teams', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <p>No teams yet. Create your first team to get started.</p>
-    </section>
+    </div>
 <?php else: ?>
-    <section data-grid="2">
+    <div class="columns is-multiline">
         <?php foreach ($teams as $team): ?>
-            <article>
-                <header>
-                    <div>
-                        <h3><?php echo htmlspecialchars($team['name']); ?></h3>
-                        <p style="margin: 0; font-size: 0.875rem;"><?php echo htmlspecialchars($team['description']); ?></p>
-                    </div>
-                    <div style="display: flex; gap: var(--spacing-xs);">
-                        <button data-variant="ghost" data-size="icon" onclick="openEditModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars(addslashes($team['name'])); ?>', '<?php echo htmlspecialchars(addslashes($team['description'])); ?>')" title="Edit Team">
-                            <?php Icon::render('edit', 18, 18); ?>
-                        </button>
-                        <button data-variant="ghost" data-size="icon" onclick="openAliasModal('<?php echo htmlspecialchars($team['id']); ?>', '<?php echo htmlspecialchars($team['name']); ?>')" title="Manage Aliases">
-                            <?php Icon::render('mail', 18, 18); ?>
-                        </button>
-                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/delete'); ?>" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this team? This action cannot be undone.');">
-                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
-                            <button type="submit" data-variant="ghost" data-size="icon" title="Delete Team">
-                                <?php Icon::render('trash', 18, 18); ?>
-                            </button>
-                        </form>
-                    </div>
-                </header>
-
-                <?php if (!empty($team['email_aliases'])): ?>
-                    <div style="background-color: var(--color-primary-light); padding: var(--spacing-md); border-radius: var(--radius-md); margin: var(--spacing-md) 0;">
-                        <p style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--color-primary); margin-bottom: var(--spacing-sm);">Active Email Aliases</p>
-                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs);">
-                            <?php foreach ($team['email_aliases'] as $alias): ?>
-                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/remove-alias'); ?>" style="display: inline;">
+            <div class="column is-half-tablet is-one-third-desktop">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <div>
+                                <h3 class="title is-5"><?php echo htmlspecialchars($team['name']); ?></h3>
+                                <p class="subtitle is-6"><?php echo htmlspecialchars($team['description']); ?></p>
+                            </div>
+                        </div>
+                        <div class="card-header-icon is-hidden-mobile">
+                            <div class="buttons are-small">
+                                <button class="button is-ghost" title="Edit Team">
+                                    <span class="icon is-small">
+                                        <?php Icon::render('edit', 18, 18); ?>
+                                    </span>
+                                </button>
+                                <button class="button is-ghost" title="Manage Aliases">
+                                    <span class="icon is-small">
+                                        <?php Icon::render('mail', 18, 18); ?>
+                                    </span>
+                                </button>
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/delete'); ?>" class="display-inline">
                                     <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
-                                    <input type="hidden" name="alias" value="<?php echo htmlspecialchars($alias); ?>">
-                                    <mark>
-                                        <?php echo htmlspecialchars($alias); ?>
-                                        <button type="submit" data-variant="ghost" data-size="sm" style="padding: 0; margin-left: var(--spacing-xs);" onclick="return confirm('Remove this alias?')">×</button>
-                                    </mark>
+                                    <button type="submit" class="button is-ghost is-danger" title="Delete Team">
+                                        <span class="icon is-small">
+                                            <?php Icon::render('trash', 18, 18); ?>
+                                        </span>
+                                    </button>
                                 </form>
-                            <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
-                <?php endif; ?>
+                    
+                    <div class="card-content">
+                        <?php if (!empty($team['email_aliases'])): ?>
+                            <div class="box has-background-info-light">
+                                <p class="heading is-size-7">Active Email Aliases</p>
+                                <div class="tags">
+                                    <?php foreach ($team['email_aliases'] as $alias): ?>
+                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/remove-alias'); ?>" class="display-inline">
+                                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
+                                            <input type="hidden" name="alias" value="<?php echo htmlspecialchars($alias); ?>">
+                                            <span class="tag is-info">
+                                                <?php echo htmlspecialchars($alias); ?>
+                                                <button type="submit" class="button-reset is-hidden-mobile">×</button>
+                                            </span>
+                                        </form>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
 
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                        <h4 style="margin: 0;">Members (<?php echo count($team['member_ids']); ?>)</h4>
-                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/add-member'); ?>" style="display: flex; gap: var(--spacing-xs);">
-                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
-                            <select name="employee_id" onchange="this.form.submit()" style="font-size: 0.75rem; padding: var(--spacing-xs);">
-                                <option value="">+ Add Member</option>
-                                <?php foreach ($employees as $emp): ?>
-                                    <?php if (!in_array($emp['id'], $team['member_ids'])): ?>
-                                        <option value="<?php echo htmlspecialchars($emp['id']); ?>">
-                                            <?php echo htmlspecialchars($emp['full_name']); ?>
-                                        </option>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </select>
-                        </form>
+                        <div class="block">
+                            <div class="level">
+                                <div class="level-left">
+                                    <div class="level-item">
+                                        <h4 class="title is-6">Members (<?php echo count($team['member_ids']); ?>)</h4>
+                                    </div>
+                                </div>
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/add-member'); ?>">
+                                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
+                                            <div class="field has-addons">
+                                                <p class="control is-expanded">
+                                                    <span class="select is-fullwidth">
+                                                        <select name="employee_id">
+                                                            <option value="">+ Add Member</option>
+                                                            <?php foreach ($employees as $emp): ?>
+                                                                <?php if (!in_array($emp['id'], $team['member_ids'])): ?>
+                                                                    <option value="<?php echo htmlspecialchars($emp['id']); ?>">
+                                                                        <?php echo htmlspecialchars($emp['full_name']); ?>
+                                                                    </option>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </span>
+                                                </p>
+                                                <p class="control">
+                                                    <button type="submit" class="button is-info">Add</button>
+                                                </p>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="block">
+                                <?php if (empty($team['member_ids'])): ?>
+                                    <p class="has-text-grey-light is-italic">No members yet.</p>
+                                <?php else: ?>
+                                    <ul>
+                                        <?php foreach ($team['member_ids'] as $memberId): ?>
+                                            <?php 
+                                                $member = array_values(array_filter($employees, fn($e) => $e['id'] === $memberId))[0] ?? null;
+                                                if (!$member) continue;
+                                            ?>
+                                            <li class="level">
+                                                <div class="level-left">
+                                                    <div class="level-item">
+                                                        <div class="is-flex is-align-items-center" class="gap-075">
+                                                            <div class="image is-36x36">
+                                                                <div class="is-flex is-align-items-center is-justify-content-center has-background-info has-text-white" class="w-100-h-100-rounded">
+                                                                    <?php echo strtoupper(substr($member['full_name'], 0, 1)); ?>
+                                                                </div>
+                                                            </div>
+                                                            <span><?php echo htmlspecialchars($member['full_name']); ?></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="level-right">
+                                                    <div class="level-item">
+                                                        <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/remove-member'); ?>" class="display-inline">
+                                                            <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
+                                                            <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($memberId); ?>">
+                                                            <button type="submit" class="button is-ghost is-danger is-small">
+                                                                <span class="icon is-small">
+                                                                    <?php Icon::render('close', 14, 14); ?>
+                                                                </span>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
 
-                    <ul>
-                        <?php if (empty($team['member_ids'])): ?>
-                            <li style="color: var(--text-muted); font-style: italic; font-size: 0.875rem;">No members yet.</li>
-                        <?php else: ?>
-                            <?php foreach ($team['member_ids'] as $memberId): ?>
-                                <?php 
-                                    $member = array_values(array_filter($employees, fn($e) => $e['id'] === $memberId))[0] ?? null;
-                                    if (!$member) continue;
-                                ?>
-                                <li style="justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <figure data-avatar="sm">
-                                            <?php echo strtoupper(substr($member['full_name'], 0, 1)); ?>
-                                        </figure>
-                                        <span style="font-size: 0.875rem;"><?php echo htmlspecialchars($member['full_name']); ?></span>
-                                    </div>
-                                    <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/remove-member'); ?>" style="display: inline;">
-                                        <input type="hidden" name="team_id" value="<?php echo htmlspecialchars($team['id']); ?>">
-                                        <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($memberId); ?>">
-                                        <button type="submit" data-variant="ghost" data-size="icon" style="padding: 0;">
-                                            <?php Icon::render('close', 14, 14); ?>
-                                        </button>
-                                    </form>
-                                </li>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </ul>
+                    <div class="card-footer">
+                        <p class="card-footer-item has-text-grey-light has-text-centered">Sentiment analysis unavailable.</p>
+                    </div>
                 </div>
-
-                <footer style="background-color: var(--bg-tertiary); padding: var(--spacing-md); margin: var(--spacing-lg) calc(var(--spacing-lg) * -1) calc(var(--spacing-lg) * -1); border-radius: 0 0 var(--radius-xl) var(--radius-xl);">
-                    <p style="text-align: center; color: var(--text-muted); font-size: 0.875rem; margin: 0;">Sentiment analysis unavailable.</p>
-                </footer>
-            </article>
+            </div>
         <?php endforeach; ?>
-    </section>
+    </div>
 <?php endif; ?>
 
 <!-- Create Team Modal -->
-<dialog data-create-team>
-    <article>
-        <header>
-            <h3>Create New Team</h3>
-            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <?php Icon::render('close', 24, 24); ?>
-            </button>
+<div class="modal" data-create-team>
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Create New Team</p>
+            <button class="delete" aria-label="close"></button>
         </header>
-
         <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams'); ?>">
-            <div>
-                <label>Team Name</label>
-                <input type="text" name="name" required placeholder="e.g. Marketing Team">
-            </div>
-
-            <footer>
-                <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                <button type="submit">Create Team</button>
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">Team Name</label>
+                    <div class="control">
+                        <input class="input" type="text" name="name" required placeholder="e.g. Marketing Team">
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button type="button" class="button">Cancel</button>
+                <button type="submit" class="button is-primary">Create Team</button>
             </footer>
         </form>
-    </article>
-</dialog>
+    </div>
+</div>
 
 <!-- Add Alias Modal -->
-<dialog data-add-alias>
-    <article>
-        <header>
-            <h3>Add Email Alias</h3>
-            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <?php Icon::render('close', 24, 24); ?>
-            </button>
+<div class="modal" data-add-alias>
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Add Email Alias</p>
+            <button class="delete" aria-label="close"></button>
         </header>
-
         <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/add-alias'); ?>">
-            <input type="hidden" name="team_id">
-            <p style="font-size: 0.875rem;">This will create an alias in your configured Mail service.</p>
-            
-            <div>
-                <label>Email Alias</label>
-                <input type="email" name="alias" required placeholder="e.g. support@example.com">
-            </div>
-
-            <footer>
-                <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                <button type="submit">Create Alias</button>
+            <section class="modal-card-body">
+                <input type="hidden" name="team_id">
+                <p class="is-size-7">This will create an alias in your configured Mail service.</p>
+                
+                <div class="field" class="mt-1">
+                    <label class="label">Email Alias</label>
+                    <div class="control">
+                        <input class="input" type="email" name="alias" required placeholder="e.g. support@example.com">
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button type="button" class="button">Cancel</button>
+                <button type="submit" class="button is-primary">Create Alias</button>
             </footer>
         </form>
-    </article>
-</dialog>
+    </div>
+</div>
 
 <!-- Edit Team Modal -->
-<dialog data-edit-team>
-    <article>
-        <header>
-            <h3>Edit Team</h3>
-            <button type="button" data-variant="ghost" data-size="icon" onclick="this.closest('dialog').close()">
-                <?php Icon::render('close', 24, 24); ?>
-            </button>
+<div class="modal" data-edit-team>
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Edit Team</p>
+            <button class="delete" aria-label="close"></button>
         </header>
-
         <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/teams/update'); ?>">
-            <input type="hidden" name="team_id">
-            <div>
-                <label>Team Name</label>
-                <input type="text" name="name" required placeholder="e.g. Marketing Team">
-            </div>
-            <div>
-                <label>Description</label>
-                <input type="text" name="description" placeholder="Team description">
-            </div>
-
-            <footer>
-                <button type="button" data-variant="secondary" onclick="this.closest('dialog').close()">Cancel</button>
-                <button type="submit">Save Changes</button>
+            <section class="modal-card-body">
+                <input type="hidden" name="team_id">
+                <div class="field">
+                    <label class="label">Team Name</label>
+                    <div class="control">
+                        <input class="input" type="text" name="name" required placeholder="e.g. Marketing Team">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Description</label>
+                    <div class="control">
+                        <input class="input" type="text" name="description" placeholder="Team description">
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button type="button" class="button">Cancel</button>
+                <button type="submit" class="button is-primary">Save Changes</button>
             </footer>
         </form>
-    </article>
-</dialog>
+    </div>
+</div>
 
-<script>
-function openAliasModal(teamId, teamName) {
-    const dialog = document.querySelector('dialog[data-add-alias]');
-    dialog.querySelector('[name="team_id"]').value = teamId;
-    dialog.querySelector('h3').textContent = 'Add Email Alias for ' + teamName;
-    dialog.showModal();
-}
-
-function openEditModal(teamId, teamName, teamDescription) {
-    const dialog = document.querySelector('dialog[data-edit-team]');
-    dialog.querySelector('[name="team_id"]').value = teamId;
-    dialog.querySelector('[name="name"]').value = teamName;
-    dialog.querySelector('[name="description"]').value = teamDescription;
-    dialog.showModal();
-}
-</script>

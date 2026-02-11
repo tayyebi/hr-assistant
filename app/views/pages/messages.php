@@ -1,233 +1,284 @@
-<header>
-    <div>
-        <h2>Conversations</h2>
-        <p>Direct messages with employees.</p>
+<div class="section">
+    <div class="level">
+        <div>
+            <h2 class="title">Conversations</h2>
+            <p class="subtitle">Direct messages with employees.</p>
+        </div>
     </div>
-</header>
+</div>
 
 <?php if (!empty($flashMessage)): ?>
-    <output data-type="success"><?php echo htmlspecialchars($flashMessage); ?></output>
+    <div class="notification is-success">
+        <a href="#" class="delete"></a>
+        <?php echo htmlspecialchars($flashMessage); ?>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($messagingInstances)): ?>
-    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
-        <?php \App\Core\Icon::render('message-circle', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+    <div class="section has-text-centered">
+        <div class="block">
+            <?php \App\Core\Icon::render('message-circle', 64, 64, 'stroke-width: 1;'); ?>
+        </div>
         <h3>No Messaging Providers Configured</h3>
         <p>Add a messaging provider (Email or Messenger like Telegram, Slack) in Settings to send direct messages to employees.</p>
-        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" class="button is-primary">
             Go to Settings
         </a>
-    </section>
+    </div>
 <?php else: ?>
 
-<section data-chat>
+<div class="columns is-gapless h-calc-100vh-minus-300">
     <!-- Sidebar -->
-    <aside>
-        <div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
-            <menu role="tablist" style="margin: 0; border: none;">
-                <li>
-                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'chats']); ?>" <?php echo $view === 'chats' ? 'data-active="true"' : ''; ?>>
-                        <?php Icon::render('messages', 14, 14); ?>
-                        Chats
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'inbox']); ?>" <?php echo $view === 'inbox' ? 'data-active="true"' : ''; ?>>
-                        <?php Icon::render('inbox', 14, 14); ?>
-                        Inbox (<?php echo count($unassigned); ?>)
-                    </a>
-                </li>
-            </menu>
+    <div class="column is-3-tablet is-one-quarter-desktop border-right-light display-flex flex-col">
+        <div class="mb-0 rounded-0">
+            <div class="tabs is-toggle">
+                <ul class="mb-0">
+                    <li <?php echo $view === 'chats' ? 'class="is-active"' : ''; ?>>
+                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'chats']); ?>">
+                            <span class="icon is-small">
+                                <?php Icon::render('messages', 14, 14); ?>
+                            </span>
+                            <span>Chats</span>
+                        </a>
+                    </li>
+                    <li <?php echo $view === 'inbox' ? 'class="is-active"' : ''; ?>>
+                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['view' => 'inbox']); ?>">
+                            <span class="icon is-small">
+                                <?php Icon::render('inbox', 14, 14); ?>
+                            </span>
+                            <span>Inbox (<?php echo count($unassigned); ?>)</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <?php if ($view === 'chats'): ?>
-            <div style="overflow-y: auto;">
+        <div class="flex-1 overflow-y-auto">
+            <?php if ($view === 'chats'): ?>
                 <?php foreach ($employees as $emp): ?>
-                    <div style="border-bottom: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md);">
-                            <figure data-avatar>
-                                <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
-                            </figure>
-                            <div style="flex: 1;">
-                                <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($emp['full_name']); ?></strong>
-                                <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);"><?php echo htmlspecialchars($emp['position']); ?></p>
+                    <div class="border-bottom-light">
+                        <div class="m-0 rounded-0 p-1">
+                            <div class="gap-1 mb-1">
+                                <div class="image is-48x48">
+                                    <div class="w-100-h-100-rounded">
+                                        <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
+                                    <p class="has-text-grey-light is-size-7"><?php echo htmlspecialchars($emp['position']); ?></p>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Channel list for this employee -->
-                        <div style="padding-left: calc(var(--spacing-md) + 40px + var(--spacing-md)); padding-bottom: var(--spacing-md);">
-                            <?php if (!empty($emp['available_channels'])): ?>
-                                <!-- All Channels option -->
-                                <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $emp['id'], 'channel' => 'all']); ?>" 
-                                   style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) var(--spacing-sm); text-decoration: none; color: inherit; border-radius: var(--radius-sm); margin-bottom: var(--spacing-xs); <?php echo ($selectedEmployee && $selectedEmployee['id'] === $emp['id'] && $selectedChannel === 'all') ? 'background-color: var(--color-primary-light);' : ''; ?>">
-                                    <?php \App\Core\Icon::render('list', 12, 12); ?>
-                                    <span style="font-size: 0.8rem;">All Channels</span>
-                                </a>
-                                
-                                <!-- Individual channels -->
-                                <?php foreach ($emp['available_channels'] as $channel): ?>
-                                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $emp['id'], 'channel' => $channel]); ?>" 
-                                       style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) var(--spacing-sm); text-decoration: none; color: inherit; border-radius: var(--radius-sm); margin-bottom: var(--spacing-xs); <?php echo ($selectedEmployee && $selectedEmployee['id'] === $emp['id'] && $selectedChannel === $channel) ? 'background-color: var(--color-primary-light);' : ''; ?>">
-                                        <?php if ($channel === 'email'): ?>
-                                            <?php \App\Core\Icon::render('mail', 12, 12); ?>
-                                        <?php elseif ($channel === 'telegram'): ?>
-                                            <?php \App\Core\Icon::render('message-circle', 12, 12); ?>
-                                        <?php else: ?>
-                                            <?php \App\Core\Icon::render('hash', 12, 12); ?>
-                                        <?php endif; ?>
-                                        <span style="font-size: 0.8rem;"><?php echo ucfirst($channel); ?></span>
+                            
+                            <!-- Channel list for this employee -->
+                            <div class="pl-2">
+                                <?php if (!empty($emp['available_channels'])): ?>
+                                    <!-- All Channels option -->
+                                    <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $emp['id'], 'channel' => 'all']); ?>" 
+                                       class="gap-05 py-05 no-underline text-inherit <?php echo ($selectedEmployee && $selectedEmployee['id'] === $emp['id'] && $selectedChannel === 'all') ? 'has-text-primary has-text-weight-bold' : ''; ?>">
+                                        <?php \App\Core\Icon::render('list', 12, 12); ?>
+                                        <span class="is-size-7">All Channels</span>
                                     </a>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">No channels available</p>
-                            <?php endif; ?>
+                                    
+                                    <!-- Individual channels -->
+                                    <?php foreach ($emp['available_channels'] as $channel): ?>
+                                        <a href="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $emp['id'], 'channel' => $channel]); ?>" 
+                                           class="gap-05 py-05 no-underline text-inherit <?php echo ($selectedEmployee && $selectedEmployee['id'] === $emp['id'] && $selectedChannel === $channel) ? 'has-text-primary has-text-weight-bold' : ''; ?>">
+                                            <?php if ($channel === 'email'): ?>
+                                                <?php \App\Core\Icon::render('mail', 12, 12); ?>
+                                            <?php elseif ($channel === 'telegram'): ?>
+                                                <?php \App\Core\Icon::render('message-circle', 12, 12); ?>
+                                            <?php else: ?>
+                                                <?php \App\Core\Icon::render('hash', 12, 12); ?>
+                                            <?php endif; ?>
+                                            <span class="is-size-7"><?php echo ucfirst($channel); ?></span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="is-size-7 has-text-grey-light">No channels available</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <div style="padding: var(--spacing-md); overflow-y: auto; background-color: var(--bg-tertiary);">
-                <?php if (empty($unassigned)): ?>
-                    <p style="text-align: center; color: var(--text-muted); padding: var(--spacing-xl);">Inbox is empty.</p>
-                <?php else: ?>
-                    <?php foreach ($unassigned as $msg): ?>
-                        <article style="margin-bottom: var(--spacing-md);">
-                            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm); padding: 0; border: none;">
-                                <strong style="display: flex; align-items: center; gap: var(--spacing-sm); font-size: 0.875rem;">
-                                    <?php if ($msg['channel'] === 'email'): ?>
-                                        <?php Icon::render('mail', 12, 12, 'stroke: var(--color-warning);'); ?>
-                                    <?php else: ?>
-                                        <?php Icon::render('hash', 12, 12, 'stroke: var(--color-primary);'); ?>
-                                    <?php endif; ?>
-                                    <?php echo htmlspecialchars($msg['sender_name']); ?>
-                                </strong>
-                                <small style="color: var(--text-muted);"><?php echo date('H:i', strtotime($msg['timestamp'])); ?></small>
-                            </header>
-                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--spacing-md);">
-                                <?php if (!empty($msg['subject'])): ?>
-                                    <strong><?php echo htmlspecialchars($msg['subject']); ?>:</strong>
-                                <?php endif; ?>
-                                <?php echo htmlspecialchars(substr($msg['text'], 0, 100)); ?>...
-                            </p>
-                            <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/assign/'); ?>" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
-                                <input type="hidden" name="unassigned_id" value="<?php echo htmlspecialchars($msg['id']); ?>">
-                                <select name="employee_id" style="flex: 1; min-width: 120px; font-size: 0.75rem;" required>
-                                    <option value="">Select employee...</option>
-                                    <?php foreach ($employees as $emp): ?>
-                                        <?php if (!empty($emp['available_channels'])): ?>
-                                            <option value="<?php echo htmlspecialchars($emp['id']); ?>">
-                                                <?php echo htmlspecialchars($emp['full_name']); ?>
-                                            </option>
+            <?php else: ?>
+                <div class="p-1">
+                    <?php if (empty($unassigned)): ?>
+                        <p class="has-text-centered has-text-grey-light">Inbox is empty.</p>
+                    <?php else: ?>
+                        <?php foreach ($unassigned as $msg): ?>
+                            <div class="box">
+                                <div class="mb-05">
+                                    <strong class="gap-05 is-size-7">
+                                        <?php if ($msg['channel'] === 'email'): ?>
+                                            <?php Icon::render('mail', 12, 12, 'stroke: #f14668;'); ?>
+                                        <?php else: ?>
+                                            <?php Icon::render('hash', 12, 12, 'stroke: #3273dc;'); ?>
                                         <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </select>
-                                <select name="channel" style="flex: 1; min-width: 100px; font-size: 0.75rem;" required>
-                                    <option value="">Select channel...</option>
-                                    <option value="email">Email</option>
-                                    <option value="telegram">Telegram</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                    <option value="slack">Slack</option>
-                                    <option value="teams">Teams</option>
-                                </select>
-                                <button type="submit" data-size="sm">Assign</button>
-                            </form>
-                        </article>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-    </aside>
+                                        <?php echo htmlspecialchars($msg['sender_name']); ?>
+                                    </strong>
+                                    <small class="has-text-grey-light"><?php echo date('H:i', strtotime($msg['timestamp'])); ?></small>
+                                </div>
+                                <p class="message-text">
+                                    <?php if (!empty($msg['subject'])): ?>
+                                        <strong><?php echo htmlspecialchars($msg['subject']); ?>:</strong>
+                                    <?php endif; ?>
+                                    <?php echo htmlspecialchars(substr($msg['text'], 0, 100)); ?>...
+                                </p>
+                                <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/assign/'); ?>" class="display-flex gap-05 flex-wrap">
+                                    <input type="hidden" name="unassigned_id" value="<?php echo htmlspecialchars($msg['id']); ?>">
+                                    <div class="control is-expanded">
+                                        <span class="select is-fullwidth is-small">
+                                            <select name="employee_id" required>
+                                                <option value="">Select employee...</option>
+                                                <?php foreach ($employees as $emp): ?>
+                                                    <?php if (!empty($emp['available_channels'])): ?>
+                                                        <option value="<?php echo htmlspecialchars($emp['id']); ?>">
+                                                            <?php echo htmlspecialchars($emp['full_name']); ?>
+                                                        </option>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </span>
+                                    </div>
+                                    <div class="control is-expanded">
+                                        <span class="select is-fullwidth is-small">
+                                            <select name="channel" required>
+                                                <option value="">Select channel...</option>
+                                                <option value="email">Email</option>
+                                                <option value="telegram">Telegram</option>
+                                                <option value="whatsapp">WhatsApp</option>
+                                                <option value="slack">Slack</option>
+                                                <option value="teams">Teams</option>
+                                            </select>
+                                        </span>
+                                    </div>
+                                    <button type="submit" class="button is-small is-primary">Assign</button>
+                                </form>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
     <!-- Chat Area -->
-    <article>
+    <div class="display-flex flex-col">
         <?php if ($selectedEmployee): ?>
-            <header>
-                <div>
-                    <h3 style="margin: 0;"><?php echo htmlspecialchars($selectedEmployee['full_name']); ?></h3>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-top: var(--spacing-xs);">
-                        <?php if ($selectedChannel === 'all'): ?>
-                            <mark data-status="processing">All Channels</mark>
-                        <?php else: ?>
-                            <mark data-status="<?php echo in_array($selectedChannel, ['telegram', 'slack']) ? 'processing' : 'pending'; ?>">
-                                <?php echo ucfirst($selectedChannel); ?>
-                            </mark>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                
-                <!-- Channel filter dropdown -->
-                <?php if (!empty($availableChannels) && count($availableChannels) > 1): ?>
-                    <div>
-                        <select onchange="window.location.href = this.value;" style="font-size: 0.8rem; padding: var(--spacing-xs);">
-                            <option value="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $selectedEmployee['id'], 'channel' => 'all']); ?>" <?php echo $selectedChannel === 'all' ? 'selected' : ''; ?>>
-                                All Channels
-                            </option>
-                            <?php foreach ($availableChannels as $channel): ?>
-                                <option value="<?php echo \App\Core\UrlHelper::withQuery(\App\Core\UrlHelper::workspace('/messages'), ['employee' => $selectedEmployee['id'], 'channel' => $channel]); ?>" <?php echo $selectedChannel === $channel ? 'selected' : ''; ?>>
-                                    <?php echo ucfirst($channel); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                <?php endif; ?>
-            </header>
-
-            <main>
-                <?php foreach ($messages as $msg): ?>
-                    <div data-bubble="<?php echo $msg['sender'] === 'hr' ? 'sent' : 'received'; ?>">
-                        <?php if ($selectedChannel === 'all'): ?>
-                            <div style="display: flex; align-items: center; gap: var(--spacing-xs); margin-bottom: var(--spacing-xs);">
-                                <?php if ($msg['channel'] === 'email'): ?>
-                                    <?php \App\Core\Icon::render('mail', 12, 12); ?>
-                                <?php elseif ($msg['channel'] === 'telegram'): ?>
-                                    <?php \App\Core\Icon::render('message-circle', 12, 12); ?>
-                                <?php else: ?>
-                                    <?php \App\Core\Icon::render('hash', 12, 12); ?>
-                                <?php endif; ?>
-                                <small style="color: var(--text-muted); font-size: 0.7rem;"><?php echo ucfirst($msg['channel']); ?></small>
+            <div class="box" class="m-0 rounded-0 border-bottom-light p-1">
+                <div class="level">
+                    <div class="level-left">
+                        <div class="level-item">
+                            <div>
+                                <h3 class="title is-5"><?php echo htmlspecialchars($selectedEmployee['full_name']); ?></h3>
+                                <div class="gap-05 mt-05">
+                                    <?php if ($selectedChannel === 'all'): ?>
+                                        <span class="tag is-warning">All Channels</span>
+                                    <?php else: ?>
+                                        <span class="tag is-info">
+                                            <?php echo ucfirst($selectedChannel); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($msg['subject'])): ?>
-                            <strong style="display: block; margin-bottom: var(--spacing-xs);"><?php echo htmlspecialchars($msg['subject']); ?></strong>
-                        <?php endif; ?>
-                        <p style="margin: 0;"><?php echo htmlspecialchars($msg['text']); ?></p>
-                        <time><?php echo date('M j, Y H:i', strtotime($msg['timestamp'])); ?></time>
+                        </div>
+                    </div>
+                    
+                    <!-- Channel filter dropdown -->
+                    <?php if (!empty($availableChannels) && count($availableChannels) > 1): ?>
+                        <div class="level-right">
+                            <div class="level-item">
+                                <form method="GET" action="<?php echo \App\Core\UrlHelper::workspace('/messages'); ?>" class="display-flex gap-05 items-center">
+                                    <input type="hidden" name="employee" value="<?php echo htmlspecialchars($selectedEmployee['id']); ?>">
+                                    <span class="select is-small">
+                                        <select name="channel">
+                                            <option value="all" <?php echo $selectedChannel === 'all' ? 'selected' : ''; ?>>
+                                                All Channels
+                                            </option>
+                                            <?php foreach ($availableChannels as $channel): ?>
+                                                <option value="<?php echo htmlspecialchars($channel); ?>" <?php echo $selectedChannel === $channel ? 'selected' : ''; ?>>
+                                                    <?php echo ucfirst($channel); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </span>
+                                    <button type="submit" class="button is-small is-light">Filter</button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-1">
+                <?php foreach ($messages as $msg): ?>
+                    <div class="mb-1 display-flex <?php echo $msg['sender'] === 'hr' ? 'justify-end' : 'justify-start'; ?>">
+                        <div class="max-w-70">
+                            <?php if ($selectedChannel === 'all'): ?>
+                                <div class="gap-025 mb-025">
+                                    <?php if ($msg['channel'] === 'email'): ?>
+                                        <?php \App\Core\Icon::render('mail', 12, 12); ?>
+                                    <?php elseif ($msg['channel'] === 'telegram'): ?>
+                                        <?php \App\Core\Icon::render('message-circle', 12, 12); ?>
+                                    <?php else: ?>
+                                        <?php \App\Core\Icon::render('hash', 12, 12); ?>
+                                    <?php endif; ?>
+                                    <small class="is-size-7"><?php echo ucfirst($msg['channel']); ?></small>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="box message-bubble <?php echo $msg['sender'] === 'hr' ? 'sent' : 'received'; ?>">
+                                <?php if (!empty($msg['subject'])): ?>
+                                    <strong class="display-block mb-05"><?php echo htmlspecialchars($msg['subject']); ?></strong>
+                                <?php endif; ?>
+                                <p class="m-0"><?php echo htmlspecialchars($msg['text']); ?></p>
+                            </div>
+                            <small class="has-text-grey-light"><?php echo date('M j, Y H:i', strtotime($msg['timestamp'])); ?></small>
+                        </div>
                     </div>
                 <?php endforeach; ?>
-            </main>
+            </div>
 
-            <footer>
+            <div class="m-0 rounded-0 border-top-light p-1">
                 <?php if ($selectedChannel !== 'all'): ?>
-                    <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/send/'); ?>">
+                    <form method="POST" action="<?php echo \App\Core\UrlHelper::workspace('/messages/send/'); ?>" class="gap-05">
                         <input type="hidden" name="employee_id" value="<?php echo htmlspecialchars($selectedEmployee['id']); ?>">
                         <input type="hidden" name="channel" value="<?php echo htmlspecialchars($selectedChannel); ?>">
                         
                         <?php if ($selectedChannel === 'email'): ?>
-                            <input type="text" name="subject" placeholder="Subject (optional)" style="margin-bottom: var(--spacing-sm);">
+                            <input class="input is-small" type="text" name="subject" placeholder="Subject (optional)">
                         <?php endif; ?>
                         
-                        <div style="display: flex; gap: var(--spacing-sm);">
-                            <textarea name="text" placeholder="Send a <?php echo $selectedChannel; ?> message..." rows="2" style="flex: 1; resize: none;" required></textarea>
-                            <button type="submit" style="align-self: flex-end;">
-                                <?php \App\Core\Icon::render('send', 18, 18); ?>
-                            </button>
+                        <div class="field is-grouped">
+                            <p class="control is-expanded">
+                                <textarea class="textarea is-small" name="text" placeholder="Send a <?php echo $selectedChannel; ?> message..." rows="2" required></textarea>
+                            </p>
+                            <p class="control">
+                                <button type="submit" class="button is-small is-primary">
+                                    <span class="icon is-small">
+                                        <?php \App\Core\Icon::render('send', 18, 18); ?>
+                                    </span>
+                                </button>
+                            </p>
                         </div>
                     </form>
                 <?php else: ?>
-                    <div style="text-align: center; padding: var(--spacing-md); color: var(--text-muted); font-size: 0.9rem;">
-                        Select a specific channel to send messages
+                    <div class="has-text-centered has-text-grey-light">
+                        <small>Select a specific channel to send messages</small>
                     </div>
                 <?php endif; ?>
-            </footer>
+            </div>
         <?php else: ?>
-            <section data-empty style="flex: 1;">
-                <?php Icon::render('messages', 64, 64, 'stroke-width: 1;'); ?>
+            <div class="section has-text-centered">
+                <div class="block">
+                    <?php Icon::render('messages', 64, 64, 'stroke-width: 1;'); ?>
+                </div>
                 <h3>Select a conversation</h3>
                 <p>Choose an employee from the list to start messaging.</p>
-            </section>
+            </div>
         <?php endif; ?>
-    </article>
-</section>
+    </div>
+</div>
 
 <?php endif; ?>

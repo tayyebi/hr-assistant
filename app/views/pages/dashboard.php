@@ -1,101 +1,159 @@
-<header>
-    <div>
-        <h2>HR Command Center</h2>
-        <p>Welcome back. Here's what's happening today.</p>
+<div class="section">
+    <div class="level">
+        <div class="level-item">
+            <div>
+                <h2 class="title is-3">HR Command Center</h2>
+                <p class="subtitle is-6">Welcome back. Here's what's happening today.</p>
+            </div>
+        </div>
     </div>
-</header>
 
-<section data-grid="2-1">
-    <!-- Sentiment Overview Card -->
-    <article>
-        <header>
-            <h3>
-                <?php \App\Core\Icon::render('trending-up', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary);'); ?>
-                Team Sentiment Overview
-            </h3>
-            <mark>Last 24h</mark>
-        </header>
-
-        <?php if (array_sum($sentimentStats) > 0): ?>
-            <section data-stats>
-                <div>
-                    <span data-color="happy"></span>
-                    <span>Happy: <?php echo $sentimentStats['happy']; ?></span>
-                </div>
-                <div>
-                    <span data-color="neutral"></span>
-                    <span>Neutral: <?php echo $sentimentStats['neutral']; ?></span>
-                </div>
-                <div>
-                    <span data-color="sad"></span>
-                    <span>Sad: <?php echo $sentimentStats['sad']; ?></span>
-                </div>
-            </section>
-        <?php else: ?>
-            <section data-empty>
-                <p>No sentiment data available for today.</p>
-            </section>
-        <?php endif; ?>
-    </article>
-
-    <!-- Reminders Card -->
-    <article>
-        <header>
-            <h3>
-                <?php \App\Core\Icon::render('bell', 20, 20, 'display: inline; vertical-align: middle; margin-right: 0.5rem; color: var(--color-warning);'); ?>
-                Reminders
-            </h3>
-        </header>
-
-        <?php if (empty($upcomingBirthdays)): ?>
-            <p>No upcoming events.</p>
-        <?php else: ?>
-            <ul>
-                <?php foreach ($upcomingBirthdays as $emp): ?>
-                    <li>
-                        <figure data-avatar>
-                            <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
-                        </figure>
-                        <div>
-                            <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
-                            <p style="margin: 0; font-size: 0.75rem;">
-                                Birthday: <?php echo htmlspecialchars($emp['birthday']); ?>
-                            </p>
+    <div class="columns is-multiline">
+        <!-- Sentiment Overview Card -->
+        <div class="column is-two-thirds-desktop is-full-mobile">
+            <div class="card">
+                <div class="card-header">
+                    <div class="level is-mobile" style="width: 100%;">
+                        <div class="level-left">
+                            <h3 class="title is-5 mb-0">
+                                <span class="icon-text">
+                                    <span class="icon">
+                                        <?php \App\Core\Icon::render('trending-up', 20, 20); ?>
+                                    </span>
+                                    <span>Team Sentiment Overview</span>
+                                </span>
+                            </h3>
                         </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </article>
-</section>
+                        <div class="level-right">
+                            <span class="tag is-light">Last 24h</span>
+                        </div>
+                    </div>
+                </div>
 
-<!-- Quick Stats -->
-<section data-grid="3" style="margin-top: var(--spacing-lg);">
-    <article>
-        <h4>Total Employees</h4>
-        <p style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: 0;">
-            <?php echo count($employees); ?>
-        </p>
-    </article>
+                <div class="card-content">
+                    <?php if (array_sum($sentimentStats) > 0): ?>
+                        <div>
+                            <div class="level mb-2">
+                                <div class="level-left">
+                                    <span class="icon-text">
+                                        <span class="sentiment-indicator happy"></span>
+                                        <span>Happy</span>
+                                    </span>
+                                </div>
+                                <div class="level-right">
+                                    <span class="tag is-success is-light"><?php echo $sentimentStats['happy']; ?></span>
+                                </div>
+                            </div>
+                            <div class="level mb-2">
+                                <div class="level-left">
+                                    <span class="icon-text">
+                                        <span class="sentiment-indicator neutral"></span>
+                                        <span>Neutral</span>
+                                    </span>
+                                </div>
+                                <div class="level-right">
+                                    <span class="tag is-light"><?php echo $sentimentStats['neutral']; ?></span>
+                                </div>
+                            </div>
+                            <div class="level">
+                                <div class="level-left">
+                                    <span class="icon-text">
+                                        <span class="sentiment-indicator sad"></span>
+                                        <span>Sad</span>
+                                    </span>
+                                </div>
+                                <div class="level-right">
+                                    <span class="tag is-danger is-light"><?php echo $sentimentStats['sad']; ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="has-text-centered p-5">
+                            <p class="has-text-grey-light">No sentiment data available for today.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
-    <article>
-        <h4>Upcoming Birthdays</h4>
-        <p style="font-size: 2rem; font-weight: 700; color: var(--color-warning); margin: 0;">
-            <?php echo count($upcomingBirthdays); ?>
-        </p>
-    </article>
+        <!-- Reminders Card -->
+        <div class="column is-one-third-desktop is-full-mobile">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="title is-5 mb-0">
+                        <span class="icon-text">
+                            <span class="icon">
+                                <?php \App\Core\Icon::render('bell', 20, 20); ?>
+                            </span>
+                            <span>Reminders</span>
+                        </span>
+                    </h3>
+                </div>
 
-    <article>
-        <h4>Linked Accounts</h4>
-        <p style="font-size: 2rem; font-weight: 700; color: var(--color-success); margin: 0;">
-            <?php 
-                $totalAccounts = 0;
-                foreach ($employees as $emp) {
-                    $accounts = is_array($emp['accounts']) ? $emp['accounts'] : [];
-                    $totalAccounts += count(array_filter($accounts));
-                }
-                echo $totalAccounts;
-            ?>
-        </p>
-    </article>
-</section>
+                <div class="card-content" style="max-height: 400px; overflow-y: auto;">
+                    <?php if (empty($upcomingBirthdays)): ?>
+                        <p class="has-text-grey-light has-text-centered">No upcoming events.</p>
+                    <?php else: ?>
+                        <?php foreach ($upcomingBirthdays as $emp): ?>
+                            <div class="level mb-3 is-mobile">
+                                <div class="level-left">
+                                    <div class="level-item">
+                                        <div class="avatar">
+                                            <?php echo strtoupper(substr($emp['full_name'], 0, 1)); ?>
+                                        </div>
+                                    </div>
+                                    <div class="level-item">
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
+                                            <br>
+                                            <small class="has-text-grey">Birthday: <?php echo htmlspecialchars($emp['birthday']); ?></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="columns is-multiline mt-5">
+        <div class="column is-one-third-desktop is-half-tablet is-full-mobile">
+            <div class="card">
+                <div class="card-content has-text-centered">
+                    <p class="heading">Total Employees</p>
+                    <p class="title is-2 has-text-primary"><?php echo count($employees); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="column is-one-third-desktop is-half-tablet is-full-mobile">
+            <div class="card">
+                <div class="card-content has-text-centered">
+                    <p class="heading">Upcoming Birthdays</p>
+                    <p class="title is-2 has-text-warning"><?php echo count($upcomingBirthdays); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="column is-one-third-desktop is-half-tablet is-full-mobile">
+            <div class="card">
+                <div class="card-content has-text-centered">
+                    <p class="heading">Linked Accounts</p>
+                    <p class="title is-2 has-text-success">
+                        <?php 
+                            $totalAccounts = 0;
+                            foreach ($employees as $emp) {
+                                $accounts = is_array($emp['accounts']) ? $emp['accounts'] : [];
+                                $totalAccounts += count(array_filter($accounts));
+                            }
+                            echo $totalAccounts;
+                        ?>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
