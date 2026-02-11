@@ -23,8 +23,7 @@ class EmployeeController
         
         if ($search) {
             $employees = array_filter($employees, function($emp) use ($search) {
-                return stripos($emp['full_name'], $search) !== false 
-                    || stripos($emp['email'], $search) !== false;
+                return stripos($emp['full_name'], $search) !== false;
             });
         }
         
@@ -49,7 +48,6 @@ class EmployeeController
         
         Employee::create($tenantId, [
             'full_name' => $_POST['full_name'] ?? '',
-            'email' => $_POST['email'] ?? '',
             'birthday' => $_POST['birthday'] ?? '',
             'hired_date' => $_POST['hired_date'] ?? date('Y-m-d'),
             'position' => $_POST['position'] ?? ''
@@ -68,7 +66,6 @@ class EmployeeController
         
         Employee::update($tenantId, $id, [
             'full_name' => $_POST['full_name'] ?? '',
-            'email' => $_POST['email'] ?? '',
             'birthday' => $_POST['birthday'] ?? '',
             'hired_date' => $_POST['hired_date'] ?? '',
             'position' => $_POST['position'] ?? ''
@@ -89,37 +86,5 @@ class EmployeeController
         
         $_SESSION['flash_message'] = 'Employee removed successfully.';
         View::redirect(View::workspaceUrl('/employees/'));
-    }
-
-    /**
-     * API endpoint to get assets assigned to an employee
-     */
-    public function getAssets(): void
-    {
-        AuthController::requireTenantAdmin();
-        
-        $tenantId = User::getTenantId();
-        $employeeId = $_GET['employee_id'] ?? '';
-        
-        if (empty($employeeId)) {
-            View::json(['error' => 'Missing employee ID', 'success' => false]);
-            return;
-        }
-        
-        // Verify employee exists in tenant
-        $employee = Employee::find($tenantId, $employeeId);
-        if (!$employee) {
-            View::json(['error' => 'Employee not found', 'success' => false]);
-            return;
-        }
-        
-        $assetManager = new \App\Core\AssetManager($tenantId);
-        $assets = $assetManager->getEmployeeAssets($employeeId);
-        
-        View::json([
-            'success' => true,
-            'employee_id' => $employeeId,
-            'assets' => $assets,
-        ]);
     }
 }

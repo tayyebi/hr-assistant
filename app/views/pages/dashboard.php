@@ -86,12 +86,15 @@
     </article>
 
     <article>
-        <h4>Active Channels</h4>
+        <h4>Linked Accounts</h4>
         <p style="font-size: 2rem; font-weight: 700; color: var(--color-success); margin: 0;">
             <?php 
-                $withTelegram = count(array_filter($employees, fn($e) => !empty($e['telegram_chat_id'])));
-                $withEmail = count(array_filter($employees, fn($e) => !empty($e['email'])));
-                echo $withTelegram + $withEmail;
+                $totalAccounts = 0;
+                foreach ($employees as $emp) {
+                    $accounts = is_array($emp['accounts']) ? $emp['accounts'] : [];
+                    $totalAccounts += count(array_filter($accounts));
+                }
+                echo $totalAccounts;
             ?>
         </p>
     </article>

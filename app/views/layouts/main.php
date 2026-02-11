@@ -43,9 +43,17 @@
                 <?php \App\Core\Icon::render('messages', 20, 20); ?>
                 Direct Messages
             </a>
-            <a href="<?php echo \App\Core\UrlHelper::workspace('/assets'); ?>" <?php echo ($activeTab ?? '') === 'assets' ? 'data-active="true"' : ''; ?>>
-                <?php \App\Core\Icon::render('server', 20, 20); ?>
-                Digital Assets
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/repositories'); ?>" <?php echo ($activeTab ?? '') === 'repositories' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('git-branch', 20, 20); ?>
+                Repositories
+            </a>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/secrets'); ?>" <?php echo ($activeTab ?? '') === 'secrets' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('key', 20, 20); ?>
+                Secrets
+            </a>
+            <a href="<?php echo \App\Core\UrlHelper::workspace('/identity'); ?>" <?php echo ($activeTab ?? '') === 'identity' ? 'data-active="true"' : ''; ?>>
+                <?php \App\Core\Icon::render('lock', 20, 20); ?>
+                Identity
             </a>
             <a href="<?php echo \App\Core\UrlHelper::workspace('/jobs'); ?>" <?php echo ($activeTab ?? '') === 'jobs' ? 'data-active="true"' : ''; ?>>
                 <?php \App\Core\Icon::render('layers', 20, 20); ?>

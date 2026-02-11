@@ -310,13 +310,13 @@ class JobProcessor
 
 /**
  * Message Delivery Service
- * Creates jobs for sending messages via email and telegram
+ * Creates jobs for sending messages via email and messenger providers
  */
 class MessageDeliveryService
 {
     /**
      * Send a direct message to an employee
-     * Creates jobs for both email and telegram if configured
+     * Creates jobs for configured provider accounts
      */
     public static function send(string $tenantId, string $employeeId, string $subject, string $body): array
     {
@@ -327,34 +327,58 @@ class MessageDeliveryService
         }
         
         $jobs = [];
+        $accounts = $employee['accounts'] ?? [];
         
-        // Create email job if employee has email
-        if (!empty($employee['email'])) {
-            $jobs[] = Job::create($tenantId, [
-                'service' => 'email',
-                'action' => 'send',
-                'target_name' => $employee['email'],
-                'metadata' => [
-                    'to' => $employee['email'],
-                    'subject' => $subject,
-                    'body' => $body,
-                    'employee_id' => $employeeId
-                ]
-            ]);
+        if (empty($accounts)) {
+            return $jobs;
         }
         
-        // Create telegram job if employee has telegram
-        if (!empty($employee['telegram_chat_id'])) {
-            $jobs[] = Job::create($tenantId, [
-                'service' => 'telegram',
-                'action' => 'send',
-                'target_name' => "Chat:{$employee['telegram_chat_id']}",
-                'metadata' => [
-                    'chat_id' => $employee['telegram_chat_id'],
-                    'text' => "{$subject}\n\n{$body}",
-                    'employee_id' => $employeeId
-                ]
-            ]);
+        // Get provider instances to determine type
+        $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
+        $providerMap = [];
+        foreach ($providerInstances as $pi) {
+            $providerMap[$pi['id']] = $pi;
+        }
+        
+        // Create jobs for each configured account
+        foreach ($accounts as $providerInstanceId => $identifier) {
+            if (empty($identifier)) continue;
+            
+            $instance = $providerMap[$providerInstanceId] ?? null;
+            if (!$instance) continue;
+            
+            $providerType = \App\Core\ProviderType::getAssetType($instance['provider']);
+            
+            // Email providers
+            if ($providerType === \App\Core\ProviderType::TYPE_EMAIL) {
+                $jobs[] = Job::create($tenantId, [
+                    'service' => 'email',
+                    'action' => 'send',
+                    'target_name' => $identifier,
+                    'metadata' => [
+                        'to' => $identifier,
+                        'subject' => $subject,
+                        'body' => $body,
+                        'employee_id' => $employeeId,
+                        'provider_instance_id' => $providerInstanceId
+                    ]
+                ]);
+            }
+            
+            // Messenger providers (telegram, slack, etc.)
+            if ($providerType === \App\Core\ProviderType::TYPE_MESSENGER) {
+                $jobs[] = Job::create($tenantId, [
+                    'service' => $instance['provider'],
+                    'action' => 'send',
+                    'target_name' => "Chat:{$identifier}",
+                    'metadata' => [
+                        'chat_id' => $identifier,
+                        'text' => "{$subject}\n\n{$body}",
+                        'employee_id' => $employeeId,
+                        'provider_instance_id' => $providerInstanceId
+                    ]
+                ]);
+            }
         }
         
         // Log the message in the conversation

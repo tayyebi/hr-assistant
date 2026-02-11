@@ -47,14 +47,6 @@ $router->addWorkspace('POST', '/messages/send', 'App\\Controllers\\MessageContro
 $router->addWorkspace('POST', '/messages/assign', 'App\\Controllers\\MessageController', 'assign');
 $router->addWorkspace('POST', '/messages/retry', 'App\\Controllers\\MessageController', 'retryDelivery');
 
-// Asset routes
-$router->addWorkspace('GET', '/assets', 'App\\Controllers\\AssetController', 'index');
-$router->addWorkspace('POST', '/assets/provision', 'App\\Controllers\\AssetController', 'provision');
-$router->addWorkspace('POST', '/assets/assign', 'App\\Controllers\\AssetController', 'assignAsset');
-$router->addWorkspace('POST', '/assets/unassignAsset', 'App\\Controllers\\AssetController', 'unassignAsset');
-$router->addWorkspace('GET', '/api/provider-instances', 'App\\Controllers\\AssetController', 'getProviderInstances');
-$router->addWorkspace('GET', '/api/employee-assets', 'App\\Controllers\\AssetController', 'getEmployeeAssets');
-
 // Job routes
 $router->addWorkspace('GET', '/jobs', 'App\\Controllers\\JobController', 'index');
 $router->addWorkspace('POST', '/jobs/retry', 'App\\Controllers\\JobController', 'retry');
@@ -64,6 +56,25 @@ $router->addWorkspace('GET', '/settings', 'App\\Controllers\\SettingsController'
 $router->addWorkspace('POST', '/settings', 'App\\Controllers\\SettingsController', 'save');
 $router->addWorkspace('POST', '/settings/providers', 'App\\Controllers\\SettingsController', 'createProviderInstance');
 $router->addWorkspace('POST', '/settings/providers/delete', 'App\\Controllers\\SettingsController', 'deleteProviderInstance');
+
+// Repository routes
+$router->addWorkspace('GET', '/repositories', 'App\\Controllers\\RepositoryController', 'index');
+$router->addWorkspace('GET', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'getAccess');
+$router->addWorkspace('POST', '/api/repositories/access', 'App\\Controllers\\RepositoryController', 'setAccess');
+$router->addWorkspace('GET', '/api/repositories/commits', 'App\\Controllers\\RepositoryController', 'getCommits');
+
+// Secrets routes
+$router->addWorkspace('GET', '/secrets', 'App\\Controllers\\SecretsController', 'index');
+$router->addWorkspace('POST', '/secrets/assign', 'App\\Controllers\\SecretsController', 'assignEmployee');
+$router->addWorkspace('POST', '/secrets/unassign', 'App\\Controllers\\SecretsController', 'unassignEmployee');
+$router->addWorkspace('GET', '/api/secrets/access', 'App\\Controllers\\SecretsController', 'getUserAccess');
+
+// Identity routes
+$router->addWorkspace('GET', '/identity', 'App\\Controllers\\IdentityController', 'index');
+$router->addWorkspace('POST', '/identity/assign', 'App\\Controllers\\IdentityController', 'assignEmployee');
+$router->addWorkspace('POST', '/identity/unassign', 'App\\Controllers\\IdentityController', 'unassignEmployee');
+$router->addWorkspace('POST', '/identity/sync', 'App\\Controllers\\IdentityController', 'syncUsers');
+$router->addWorkspace('POST', '/api/identity/provision', 'App\\Controllers\\IdentityController', 'provisionUser');
 
 // Other routes
 $router->addWorkspace('GET', '/reports', 'App\\Controllers\\ReportsController', 'index');

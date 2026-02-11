@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\{User, Message, Employee};
-use App\Core\View;
+use App\Models\{User, Message, Employee, ProviderInstance};
+use App\Core\{View, ProviderType};
 
 /**
  * Message Controller
@@ -18,6 +18,13 @@ class MessageController
         $tenantId = User::getTenantId();
         $tenant = \App\Models\Tenant::getCurrentTenant();
         $user = User::getCurrentUser();
+        
+        // Check if any messaging providers are configured (email or messenger)
+        $allInstances = ProviderInstance::getAll($tenantId);
+        $messagingInstances = array_filter($allInstances, function($instance) {
+            $type = ProviderType::getAssetType($instance['provider']);
+            return $type === ProviderType::TYPE_EMAIL || $type === ProviderType::TYPE_MESSENGER;
+        });
         
         // Get employees with their available channels
         $employees = Employee::getAllWithChannels($tenantId);
@@ -72,7 +79,8 @@ class MessageController
             'deliveryJobs' => array_values($deliveryJobs),
             'view' => $view,
             'flashMessage' => $message,
-            'activeTab' => 'messages'
+            'activeTab' => 'messages',
+            'messagingInstances' => array_values($messagingInstances)
         ]);
     }
 
@@ -83,46 +91,65 @@ class MessageController
         $tenantId = User::getTenantId();
         $employeeId = $_POST['employee_id'] ?? '';
         $text = $_POST['text'] ?? '';
-        $channel = $_POST['channel'] ?? 'both'; // email, telegram, or both
+        $channel = $_POST['channel'] ?? 'all'; // email, telegram, slack, or specific provider
         $subject = $_POST['subject'] ?? '';
         
         if ($employeeId && $text) {
             $employee = Employee::find($tenantId, $employeeId);
             
             if ($employee) {
-                // Create jobs for message delivery with retry support
-                $jobsCreated = [];
-                
-                // Send via email if requested and employee has email
-                if (($channel === 'email' || $channel === 'both') && !empty($employee['email'])) {
-                    $jobsCreated[] = \App\Models\Job::create($tenantId, [
-                        'service' => 'email',
-                        'action' => 'send',
-                        'target_name' => $employee['email'],
-                        'metadata' => [
-                            'to' => $employee['email'],
-                            'subject' => $subject ?: 'Message from HR',
-                            'body' => $text,
-                            'employee_id' => $employeeId,
-                            'retry_count' => 0
-                        ]
-                    ]);
+                // Get provider instances and employee accounts
+                $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
+                $providerMap = [];
+                foreach ($providerInstances as $pi) {
+                    $providerMap[$pi['id']] = $pi;
                 }
                 
-                // Send via telegram if requested and employee has chat_id
-                if (($channel === 'telegram' || $channel === 'both') && !empty($employee['telegram_chat_id'])) {
-                    $messageText = $subject ? "{$subject}\n\n{$text}" : $text;
-                    $jobsCreated[] = \App\Models\Job::create($tenantId, [
-                        'service' => 'telegram',
-                        'action' => 'send',
-                        'target_name' => "Chat:{$employee['telegram_chat_id']}",
-                        'metadata' => [
-                            'chat_id' => $employee['telegram_chat_id'],
-                            'text' => $messageText,
-                            'employee_id' => $employeeId,
-                            'retry_count' => 0
-                        ]
-                    ]);
+                $accounts = $employee['accounts'] ?? [];
+                $jobsCreated = [];
+                
+                // Create jobs for message delivery based on employee accounts
+                foreach ($accounts as $providerInstanceId => $identifier) {
+                    if (empty($identifier)) continue;
+                    
+                    $instance = $providerMap[$providerInstanceId] ?? null;
+                    if (!$instance) continue;
+                    
+                    $providerType = \App\Core\ProviderType::getAssetType($instance['provider']);
+                    
+                    // Send via email providers
+                    if ($providerType === \App\Core\ProviderType::TYPE_EMAIL && ($channel === 'all' || $channel === 'email')) {
+                        $jobsCreated[] = \App\Models\Job::create($tenantId, [
+                            'service' => 'email',
+                            'action' => 'send',
+                            'target_name' => $identifier,
+                            'metadata' => [
+                                'to' => $identifier,
+                                'subject' => $subject ?: 'Message from HR',
+                                'body' => $text,
+                                'employee_id' => $employeeId,
+                                'provider_instance_id' => $providerInstanceId,
+                                'retry_count' => 0
+                            ]
+                        ]);
+                    }
+                    
+                    // Send via messenger providers (telegram, slack, etc.)
+                    if ($providerType === \App\Core\ProviderType::TYPE_MESSENGER && ($channel === 'all' || $channel === $instance['provider'])) {
+                        $messageText = $subject ? "{$subject}\n\n{$text}" : $text;
+                        $jobsCreated[] = \App\Models\Job::create($tenantId, [
+                            'service' => $instance['provider'],
+                            'action' => 'send',
+                            'target_name' => "Chat:{$identifier}",
+                            'metadata' => [
+                                'chat_id' => $identifier,
+                                'text' => $messageText,
+                                'employee_id' => $employeeId,
+                                'provider_instance_id' => $providerInstanceId,
+                                'retry_count' => 0
+                            ]
+                        ]);
+                    }
                 }
                 
                 // Store message in conversation history

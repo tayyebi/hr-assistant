@@ -12,6 +12,7 @@ class ProviderType
     const TYPE_GIT = 'git';
     const TYPE_MESSENGER = 'messenger';
     const TYPE_IAM = 'iam';
+    const TYPE_SECRETS = 'secrets';
 
     /**
      * Get all available provider types
@@ -22,7 +23,8 @@ class ProviderType
             \App\Core\EmailProvider::getAll(),
             \App\Core\GitProvider::getAll(),
             \App\Core\MessengerProvider::getAll(),
-            \App\Core\IamProvider::getAll()
+            \App\Core\IamProvider::getAll(),
+            \App\Core\SecretsProvider::getAll()
         );
     }
 
@@ -36,6 +38,7 @@ class ProviderType
             self::TYPE_GIT => \App\Core\GitProvider::getAll(),
             self::TYPE_MESSENGER => \App\Core\MessengerProvider::getAll(),
             self::TYPE_IAM => \App\Core\IamProvider::getAll(),
+            self::TYPE_SECRETS => \App\Core\SecretsProvider::getAll(),
         ];
 
         return $providers[$type] ?? [];
@@ -58,6 +61,9 @@ class ProviderType
         if (in_array($provider, \App\Core\IamProvider::getAll())) {
             return self::TYPE_IAM;
         }
+        if (in_array($provider, \App\Core\SecretsProvider::getAll())) {
+            return self::TYPE_SECRETS;
+        }
 
         return null;
     }
@@ -79,6 +85,9 @@ class ProviderType
         if (in_array($provider, \App\Core\IamProvider::getAll())) {
             return \App\Core\IamProvider::getName($provider);
         }
+        if (in_array($provider, \App\Core\SecretsProvider::getAll())) {
+            return \App\Core\SecretsProvider::getName($provider);
+        }
 
         return ucfirst($provider);
     }
@@ -93,6 +102,7 @@ class ProviderType
             self::TYPE_GIT => 'Git & Code Services',
             self::TYPE_MESSENGER => 'Messaging Services',
             self::TYPE_IAM => 'Identity & Access Management',
+            self::TYPE_SECRETS => 'Secrets & Password Management',
             default => ucfirst($type) . ' Services'
         };
     }

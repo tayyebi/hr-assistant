@@ -9,6 +9,17 @@
     <output data-type="success"><?php echo htmlspecialchars($flashMessage); ?></output>
 <?php endif; ?>
 
+<?php if (empty($messagingInstances)): ?>
+    <section data-empty style="padding: var(--spacing-xl); text-align: center;">
+        <?php \App\Core\Icon::render('message-circle', 64, 64, 'stroke-width: 1; color: var(--text-muted);'); ?>
+        <h3>No Messaging Providers Configured</h3>
+        <p>Add a messaging provider (Email or Messenger like Telegram, Slack) in Settings to send direct messages to employees.</p>
+        <a href="<?php echo \App\Core\UrlHelper::workspace('/settings'); ?>" data-button>
+            Go to Settings
+        </a>
+    </section>
+<?php else: ?>
+
 <section data-chat>
     <!-- Sidebar -->
     <aside>
@@ -137,16 +148,9 @@
                         <?php if ($selectedChannel === 'all'): ?>
                             <mark data-status="processing">All Channels</mark>
                         <?php else: ?>
-                            <mark data-status="<?php echo $selectedChannel === 'telegram' ? 'processing' : 'pending'; ?>">
+                            <mark data-status="<?php echo in_array($selectedChannel, ['telegram', 'slack']) ? 'processing' : 'pending'; ?>">
                                 <?php echo ucfirst($selectedChannel); ?>
                             </mark>
-                            <small style="color: var(--text-muted);">
-                                <?php if ($selectedChannel === 'telegram'): ?>
-                                    @<?php echo $selectedEmployee['telegram_chat_id']; ?>
-                                <?php elseif ($selectedChannel === 'email'): ?>
-                                    <?php echo $selectedEmployee['email']; ?>
-                                <?php endif; ?>
-                            </small>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -225,3 +229,5 @@
         <?php endif; ?>
     </article>
 </section>
+
+<?php endif; ?>

@@ -13,7 +13,7 @@ HR Department All in One Tool!
 - **Employee Management**: Track employees, their roles, and contact information
 - **Team Management**: Organize employees into teams with email aliases
 - **Direct Messaging**: Communication via Telegram and Email with job-based delivery and retry
-- **Digital Assets**: Provision and manage accounts across services (Mailcow, GitLab, Keycloak)
+- **Provider Management**: Integrate with email, git, messenger, IAM, and secrets providers
 - **System Jobs**: Background task queue for service integrations with automatic retry
 - **Third-party Sync**: Diff functionality to find orphan data between HR and external services
 - **Mobile-First Design**: Responsive CSS with auto dark/light mode
@@ -96,7 +96,105 @@ hr-assistant/
 
 The application uses MySQL for data storage. Below is the Entity-Relationship Diagram showing the data model:
 
-![Entity-Relationship Diagram](docs/ERD.svg)
+```mermaid
+erDiagram
+    Tenant ||--o{ User : has
+    Tenant ||--o{ Employee : has
+    Tenant ||--o{ Team : has
+    Tenant ||--o{ Job : has
+    Tenant ||--o{ Message : has
+    Tenant ||--o{ UnassignedMessage : has
+    Tenant ||--o{ ProviderInstance : has
+    
+    Employee }o--|| Team : "belongs to"
+    Message }o--|| Employee : "belongs to"
+    Employee }o--o{ ProviderInstance : "linked via accounts"
+
+    Tenant {
+        string id PK
+        string name
+    }
+
+    User {
+        string id PK
+        string email
+        string password_hash
+        string role
+        string tenant_id FK
+    }
+
+    Employee {
+        string id PK
+        string tenant_id FK
+        string full_name
+        date birthday
+        date hired_date
+        string position
+        string team_id FK
+        json feelings_log
+        json accounts "provider_instance_id to identifier mapping"
+    }
+
+    Team {
+        string id PK
+        string tenant_id FK
+        string name
+        string description
+        json member_ids
+        json email_aliases
+    }
+
+    Job {
+        string id PK
+        string tenant_id FK
+        string service
+        string action
+        string target_name
+        string status
+        string result
+        datetime created_at
+        datetime updated_at
+        json metadata
+    }
+
+    Message {
+        string id PK
+        string tenant_id FK
+        string employee_id FK
+        string sender
+        string channel
+        string text
+        string subject
+        datetime timestamp
+    }
+
+    UnassignedMessage {
+        string id PK
+        string tenant_id FK
+        string channel
+        string source_id
+        string sender_name
+        string text
+        string subject
+        datetime timestamp
+    }
+
+    ProviderInstance {
+        string id PK
+        string tenant_id FK
+        string name
+        string provider "email|git|messenger|iam|secrets"
+        json settings
+        datetime created_at
+    }
+```
+
+**Provider Types:**
+- **Email**: Mailcow, Exchange, IMAP
+- **Git**: GitLab, GitHub, Gitea
+- **Messenger**: Telegram, Slack, Microsoft Teams
+- **IAM**: Keycloak, Okta, Azure AD
+- **Secrets**: Passbolt, Bitwarden, 1Password, HashiCorp Vault
 
 ## Custom Autoloader System
 
@@ -137,22 +235,21 @@ php test_no_composer.php
 
 ## Provider Architecture
 
-HR Assistant supports dynamic provider management for digital assets (email, git, messenger, and IAM services). See [Provider Architecture Documentation](docs/PROVIDER_ARCHITECTURE.md) for detailed information about:
+HR Assistant supports dynamic provider management for integrations (email, git, messenger, IAM, and secrets services). See [Provider Architecture Documentation](docs/PROVIDER_ARCHITECTURE.md) for detailed information about:
 
-- **Supported Providers**: Mailcow, GitLab, Telegram, Keycloak, and more
-- **Asset Types**: Email, Git, Messenger, IAM
+- **Supported Providers**: Mailcow, GitLab, Telegram, Keycloak, Passbolt, and more
+- **Provider Types**: Email, Git, Messenger, IAM, Secrets
 - **Provider Interface**: Extensible interface for adding new providers
 - **Factory Pattern**: Dynamic provider instantiation and management
 
 Quick example:
 ```php
-$config = Config::get($tenantId);
-$provider = ProviderFactory::create($tenantId, ProviderType::EMAIL_MAILCOW, $config);
-$asset = $provider->createAsset(['email' => 'user@example.com']);
-Asset::create($tenantId, [
-    'provider' => 'mailcow',
-    'asset_type' => 'email',
-    'identifier' => $asset['identifier']
+$provider = ProviderFactory::create($tenantId, ProviderType::EMAIL_MAILCOW);
+$users = $provider->listUsers();
+
+// Link employee to provider account
+Employee::update($tenantId, $employeeId, [
+    'accounts' => json_encode([$providerInstanceId => 'user@example.com'])
 ]);
 ```
 

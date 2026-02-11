@@ -51,17 +51,30 @@ class MailcowSyncService implements SyncService
     public function getLocalEntities(string $tenantId): array
     {
         $employees = Employee::getAll($tenantId);
+        $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
         $entities = [];
         
+        // Find email provider instances
+        $emailProviderIds = [];
+        foreach ($providerInstances as $pi) {
+            if (\App\Core\ProviderType::getAssetType($pi['provider']) === \App\Core\ProviderType::TYPE_EMAIL) {
+                $emailProviderIds[] = $pi['id'];
+            }
+        }
+        
         foreach ($employees as $emp) {
-            if (!empty($emp['email'])) {
-                $entities[$emp['email']] = [
-                    'id' => $emp['id'],
-                    'email' => $emp['email'],
-                    'name' => $emp['full_name'],
-                    'active' => true, // All local employees are considered active
-                    'source' => 'local'
-                ];
+            $accounts = $emp['accounts'] ?? [];
+            foreach ($accounts as $providerInstanceId => $identifier) {
+                if (in_array($providerInstanceId, $emailProviderIds) && !empty($identifier)) {
+                    $entities[$identifier] = [
+                        'id' => $emp['id'],
+                        'email' => $identifier,
+                        'name' => $emp['full_name'],
+                        'active' => true,
+                        'source' => 'local',
+                        'provider_instance_id' => $providerInstanceId
+                    ];
+                }
             }
         }
         
@@ -319,17 +332,29 @@ class TelegramSyncService implements SyncService
     public function getLocalEntities(string $tenantId): array
     {
         $employees = Employee::getAll($tenantId);
+        $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
         $entities = [];
         
+        // Find telegram provider instances
+        $telegramProviderIds = [];
+        foreach ($providerInstances as $pi) {
+            if ($pi['provider'] === \App\Core\MessengerProvider::TELEGRAM) {
+                $telegramProviderIds[] = $pi['id'];
+            }
+        }
+        
         foreach ($employees as $emp) {
-            if (!empty($emp['telegram_chat_id'])) {
-                $entities[$emp['telegram_chat_id']] = [
-                    'id' => $emp['id'],
-                    'chat_id' => $emp['telegram_chat_id'],
-                    'name' => $emp['full_name'],
-                    'email' => $emp['email'],
-                    'source' => 'local'
-                ];
+            $accounts = $emp['accounts'] ?? [];
+            foreach ($accounts as $providerInstanceId => $identifier) {
+                if (in_array($providerInstanceId, $telegramProviderIds) && !empty($identifier)) {
+                    $entities[$identifier] = [
+                        'id' => $emp['id'],
+                        'chat_id' => $identifier,
+                        'name' => $emp['full_name'],
+                        'source' => 'local',
+                        'provider_instance_id' => $providerInstanceId
+                    ];
+                }
             }
         }
         

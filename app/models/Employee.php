@@ -14,7 +14,7 @@ class Employee
     const FEELING_HAPPY = 'happy';
 
     private static array $headers = [
-        'id', 'tenant_id', 'full_name', 'email', 'telegram_chat_id', 
+        'id', 'tenant_id', 'full_name', 
         'birthday', 'hired_date', 'position', 'team_id', 'feelings_log', 'accounts'
     ];
 
@@ -47,30 +47,38 @@ class Employee
     }
 
     /**
-     * Get available messaging channels for an employee based on their contact info and tenant settings
+     * Get available messaging channels for an employee based on their provider instance accounts
+     * The accounts JSON field stores provider_instance_id => identifier mappings
      */
     public static function getAvailableChannels(string $tenantId, string $employeeId): array
     {
         $employee = self::find($tenantId, $employeeId);
         if (!$employee) return [];
 
-        $config = Config::get($tenantId);
+        $accounts = $employee['accounts'] ?? [];
+        if (empty($accounts)) return [];
+
         $channels = [];
-
-        // Check email
-        if (!empty($employee['email']) && ($config['messaging_email_enabled'] ?? '0') === '1') {
-            $channels[] = 'email';
+        $providerInstances = ProviderInstance::getAll($tenantId);
+        $providerMap = [];
+        foreach ($providerInstances as $pi) {
+            $providerMap[$pi['id']] = $pi;
         }
 
-        // Check telegram
-        if (!empty($employee['telegram_chat_id']) && ($config['messaging_telegram_enabled'] ?? '0') === '1') {
-            $channels[] = 'telegram';
+        foreach ($accounts as $providerInstanceId => $identifier) {
+            if (empty($identifier)) continue;
+            $instance = $providerMap[$providerInstanceId] ?? null;
+            if (!$instance) continue;
+            
+            $providerType = \App\Core\ProviderType::getAssetType($instance['provider']);
+            if ($providerType === \App\Core\ProviderType::TYPE_EMAIL) {
+                $channels[] = 'email';
+            } elseif ($providerType === \App\Core\ProviderType::TYPE_MESSENGER) {
+                $channels[] = $instance['provider']; // telegram, slack, etc.
+            }
         }
 
-        // Add other channels based on future contact fields
-        // WhatsApp, Slack, Teams would need corresponding contact fields in employee table
-
-        return $channels;
+        return array_unique($channels);
     }
 
     /**
@@ -79,19 +87,29 @@ class Employee
     public static function getAllWithChannels(string $tenantId): array
     {
         $employees = self::getAll($tenantId);
-        $config = Config::get($tenantId);
+        $providerInstances = ProviderInstance::getAll($tenantId);
+        $providerMap = [];
+        foreach ($providerInstances as $pi) {
+            $providerMap[$pi['id']] = $pi;
+        }
 
         foreach ($employees as &$employee) {
             $employee['available_channels'] = [];
+            $accounts = $employee['accounts'] ?? [];
 
-            // Check which channels this employee can receive messages on
-            if (!empty($employee['email']) && ($config['messaging_email_enabled'] ?? '0') === '1') {
-                $employee['available_channels'][] = 'email';
+            foreach ($accounts as $providerInstanceId => $identifier) {
+                if (empty($identifier)) continue;
+                $instance = $providerMap[$providerInstanceId] ?? null;
+                if (!$instance) continue;
+                
+                $providerType = \App\Core\ProviderType::getAssetType($instance['provider']);
+                if ($providerType === \App\Core\ProviderType::TYPE_EMAIL) {
+                    $employee['available_channels'][] = 'email';
+                } elseif ($providerType === \App\Core\ProviderType::TYPE_MESSENGER) {
+                    $employee['available_channels'][] = $instance['provider'];
+                }
             }
-
-            if (!empty($employee['telegram_chat_id']) && ($config['messaging_telegram_enabled'] ?? '0') === '1') {
-                $employee['available_channels'][] = 'telegram';
-            }
+            $employee['available_channels'] = array_unique($employee['available_channels']);
         }
 
         // Filter to only employees with at least one available channel
@@ -106,22 +124,18 @@ class Employee
             'id' => 'emp_' . time(),
             'tenant_id' => $tenantId,
             'full_name' => $data['full_name'] ?? '',
-            'email' => $data['email'] ?? '',
-            'telegram_chat_id' => $data['telegram_chat_id'] ?? '',
             'birthday' => $data['birthday'] ?? '',
             'hired_date' => $data['hired_date'] ?? date('Y-m-d'),
             'position' => $data['position'] ?? '',
             'team_id' => $data['team_id'] ?? '',
             'feelings_log' => json_encode([]),
-            'accounts' => json_encode([])
+            'accounts' => json_encode($data['accounts'] ?? [])
         ];
         try {
-            Database::execute('INSERT INTO employees (id, tenant_id, full_name, email, telegram_chat_id, birthday, hired_date, position, team_id, feelings_log, accounts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            Database::execute('INSERT INTO employees (id, tenant_id, full_name, birthday, hired_date, position, team_id, feelings_log, accounts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
                 $employee['id'],
                 $employee['tenant_id'],
                 $employee['full_name'],
-                $employee['email'],
-                $employee['telegram_chat_id'],
                 $employee['birthday'] ?: null,
                 $employee['hired_date'] ?: null,
                 $employee['position'],

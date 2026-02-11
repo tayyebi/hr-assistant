@@ -37,6 +37,12 @@ class ProviderSettings
             IamProvider::OKTA => self::getOktaFields(),
             IamProvider::AZURE_AD => self::getAzureAdFields(),
 
+            // Secrets Providers
+            SecretsProvider::PASSBOLT => self::getPassboltFields(),
+            SecretsProvider::BITWARDEN => self::getBitwardenFields(),
+            SecretsProvider::ONEPWD => self::getOnePasswordFields(),
+            SecretsProvider::VAULT => self::getVaultFields(),
+
             default => []
         };
     }
@@ -156,6 +162,40 @@ class ProviderSettings
                 'icon' => 'lock',
                 'color' => '#dbeafe',
                 'description' => 'Microsoft Azure Active Directory',
+                'configurable' => true
+            ],
+
+            // Secrets
+            SecretsProvider::PASSBOLT => [
+                'name' => 'Passbolt',
+                'type' => ProviderType::TYPE_SECRETS,
+                'icon' => 'key',
+                'color' => '#fecdd3',
+                'description' => 'Open source team password manager',
+                'configurable' => true
+            ],
+            SecretsProvider::BITWARDEN => [
+                'name' => 'Bitwarden',
+                'type' => ProviderType::TYPE_SECRETS,
+                'icon' => 'key',
+                'color' => '#bfdbfe',
+                'description' => 'Open source password management',
+                'configurable' => true
+            ],
+            SecretsProvider::ONEPWD => [
+                'name' => '1Password',
+                'type' => ProviderType::TYPE_SECRETS,
+                'icon' => 'key',
+                'color' => '#d1d5db',
+                'description' => 'Enterprise password manager',
+                'configurable' => true
+            ],
+            SecretsProvider::VAULT => [
+                'name' => 'HashiCorp Vault',
+                'type' => ProviderType::TYPE_SECRETS,
+                'icon' => 'key',
+                'color' => '#fef3c7',
+                'description' => 'Secrets management platform',
                 'configurable' => true
             ],
         ];
@@ -516,6 +556,130 @@ class ProviderSettings
                 'required' => true,
                 'placeholder' => 'Enter application client secret',
                 'description' => 'Application Client Secret'
+            ]
+        ];
+    }
+
+    // ============================================
+    // SECRETS PROVIDER FIELDS
+    // ============================================
+
+    private static function getPassboltFields(): array
+    {
+        return [
+            'passbolt_url' => [
+                'label' => 'Passbolt URL',
+                'type' => 'text',
+                'required' => true,
+                'placeholder' => 'https://passbolt.company.com',
+                'description' => 'Base URL of your Passbolt instance'
+            ],
+            'passbolt_server_key' => [
+                'label' => 'Server Public Key',
+                'type' => 'textarea',
+                'required' => true,
+                'description' => 'Passbolt server GPG public key'
+            ],
+            'passbolt_user_key' => [
+                'label' => 'User Private Key',
+                'type' => 'textarea',
+                'required' => true,
+                'description' => 'GPG private key for API authentication'
+            ],
+            'passbolt_user_passphrase' => [
+                'label' => 'Key Passphrase',
+                'type' => 'password',
+                'required' => true,
+                'description' => 'Passphrase for the private key'
+            ]
+        ];
+    }
+
+    private static function getBitwardenFields(): array
+    {
+        return [
+            'bitwarden_url' => [
+                'label' => 'Bitwarden URL',
+                'type' => 'text',
+                'required' => false,
+                'placeholder' => 'https://vault.bitwarden.com',
+                'description' => 'Bitwarden server URL (leave empty for cloud)'
+            ],
+            'bitwarden_client_id' => [
+                'label' => 'Client ID',
+                'type' => 'text',
+                'required' => true,
+                'description' => 'API client ID from organization settings'
+            ],
+            'bitwarden_client_secret' => [
+                'label' => 'Client Secret',
+                'type' => 'password',
+                'required' => true,
+                'description' => 'API client secret'
+            ],
+            'bitwarden_org_id' => [
+                'label' => 'Organization ID',
+                'type' => 'text',
+                'required' => true,
+                'description' => 'Bitwarden organization ID'
+            ]
+        ];
+    }
+
+    private static function getOnePasswordFields(): array
+    {
+        return [
+            'onepassword_url' => [
+                'label' => '1Password Connect URL',
+                'type' => 'text',
+                'required' => true,
+                'placeholder' => 'https://connect.1password.com',
+                'description' => '1Password Connect server URL'
+            ],
+            'onepassword_token' => [
+                'label' => 'Connect Token',
+                'type' => 'password',
+                'required' => true,
+                'description' => '1Password Connect access token'
+            ],
+            'onepassword_vault_id' => [
+                'label' => 'Default Vault ID',
+                'type' => 'text',
+                'required' => false,
+                'description' => 'Default vault for operations'
+            ]
+        ];
+    }
+
+    private static function getVaultFields(): array
+    {
+        return [
+            'vault_url' => [
+                'label' => 'Vault URL',
+                'type' => 'text',
+                'required' => true,
+                'placeholder' => 'https://vault.company.com',
+                'description' => 'HashiCorp Vault server URL'
+            ],
+            'vault_token' => [
+                'label' => 'Access Token',
+                'type' => 'password',
+                'required' => true,
+                'description' => 'Vault access token or root token'
+            ],
+            'vault_namespace' => [
+                'label' => 'Namespace',
+                'type' => 'text',
+                'required' => false,
+                'placeholder' => 'admin',
+                'description' => 'Vault namespace (Enterprise only)'
+            ],
+            'vault_mount' => [
+                'label' => 'Secrets Mount',
+                'type' => 'text',
+                'required' => false,
+                'placeholder' => 'secret',
+                'description' => 'KV secrets engine mount path'
             ]
         ];
     }

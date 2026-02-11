@@ -139,8 +139,33 @@ class Message
                 'subject' => $msg['subject']
             ]);
 
-            if ($msg['channel'] === 'telegram' && !empty($msg['source_id'])) {
-                Employee::update($tenantId, $employeeId, ['telegram_chat_id' => $msg['source_id']]);
+            // Link the source_id to a matching provider instance in employee accounts
+            if (!empty($msg['source_id'])) {
+                $accounts = json_decode($employee['accounts'] ?? '{}', true) ?: [];
+                $providerInstances = \App\Models\ProviderInstance::getAll($tenantId);
+                
+                // Find a matching provider instance for this channel
+                foreach ($providerInstances as $pi) {
+                    $providerType = \App\Core\ProviderType::getAssetType($pi['provider']);
+                    
+                    // Match telegram messages to messenger providers
+                    if ($msg['channel'] === 'telegram' && $providerType === \App\Core\ProviderType::TYPE_MESSENGER) {
+                        if (stripos($pi['provider'], 'telegram') !== false) {
+                            $accounts[$pi['id']] = $msg['source_id'];
+                            break;
+                        }
+                    }
+                    
+                    // Match email messages to email providers  
+                    if ($msg['channel'] === 'email' && $providerType === \App\Core\ProviderType::TYPE_EMAIL) {
+                        $accounts[$pi['id']] = $msg['source_id'];
+                        break;
+                    }
+                }
+                
+                if (!empty($accounts)) {
+                    Employee::update($tenantId, $employeeId, ['accounts' => json_encode($accounts)]);
+                }
             }
 
             Database::execute('DELETE FROM unassigned_messages WHERE id = ? AND tenant_id = ?', [$unassignedId, $tenantId]);

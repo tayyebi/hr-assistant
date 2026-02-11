@@ -170,7 +170,7 @@ class HRAutoloader
         }
         
         // Try core classes
-        $coreClasses = ['Router', 'View', 'Database', 'Icon', 'HttpClient', 'AssetManager', 'Provider', 'ProviderFactory'];
+        $coreClasses = ['Router', 'View', 'Database', 'Icon', 'HttpClient', 'Provider', 'ProviderFactory'];
         if (in_array($className, $coreClasses)) {
             $possibleMappings[] = "App\\Core\\{$className}";
             $possibleMappings[] = "HRAssistant\\Core\\{$className}";
