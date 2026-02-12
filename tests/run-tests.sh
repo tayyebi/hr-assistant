@@ -37,6 +37,11 @@ done
 
 # run each test case (each file must be atomic and return 0/1)
 for t in ./cases/*.sh; do
+  # skip files explicitly marked DEPRECATED (keeps repo history but prevents execution)
+  if grep -q "^# DEPRECATED" "$t" 2>/dev/null; then
+    info "skipping deprecated: $t"
+    continue
+  fi
   # run each case from the case's directory so relative includes work
   info "running: $t"
   pushd "$(dirname "$t")" >/dev/null

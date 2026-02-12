@@ -98,32 +98,7 @@ TPL_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT 
 curl -s -b "$COOKIE_JAR" -X POST -d "employee_id=${EMP_ID}&template_id=${TPL_ID}" "http://localhost:8080/w/${TENANT_SLUG}/onboarding/start" >/dev/null 2>&1 || true
 assert_db_row_exists "SELECT id FROM onboarding_processes WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID}" "onboarding-process-db"
 
-# 9) Leave — create leave type and check settings
-curl -s -b "$COOKIE_JAR" -X POST -d "name=Vacation&default_days_per_year=20&requires_approval=1" "http://localhost:8080/w/${TENANT_SLUG}/leave/settings" >/dev/null 2>&1 || true
-assert_http_contains "http://localhost:8080/w/${TENANT_SLUG}/leave/settings/" "Vacation" "leave-type-created"
-assert_db_row_exists "SELECT id FROM leave_types WHERE tenant_id = ${TENANT_ID} AND name = 'Vacation'" "leave-type-db"
-LT_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM leave_types WHERE tenant_id = ${TENANT_ID} AND name = 'Vacation' ORDER BY id DESC LIMIT 1" | tr -d '\r')
-# submitting a leave request without an employee->user_id mapping should NOT create a request
-curl -s -b "$COOKIE_JAR" -X POST -d "start_date=$(date +%F)&end_date=$(date +%F)&days=1&leave_type_id=${LT_ID}&reason=Vacation" "http://localhost:8080/w/${TENANT_SLUG}/leave/request" >/dev/null 2>&1 || true
-assert_db_count "SELECT COUNT(*) FROM leave_requests WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID} AND days = 1" 0 "leave-request-not-created-without-user"
-
-# create a pending leave request directly (avoid depending on session->employee mapping), then approve it
-docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO leave_requests (tenant_id, employee_id, leave_type_id, start_date, end_date, days, status, created_at) VALUES (${TENANT_ID}, ${EMP_ID}, ${LT_ID}, '$(date +%F)', '$(date +%F)', 1, 'pending', NOW())" || true
-assert_db_row_exists "SELECT id FROM leave_requests WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID} AND days = 1" "leave-request-db"
-REQ_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM leave_requests WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID} ORDER BY id DESC LIMIT 1" | tr -d '\r')
-curl -s -b "$COOKIE_JAR" -X POST -d "action=approve&review_note=OK" "http://localhost:8080/w/${TENANT_SLUG}/leave/review/${REQ_ID}" >/dev/null 2>&1 || true
-assert_db_row_exists "SELECT id FROM leave_requests WHERE id = ${REQ_ID} AND status = 'approved'" "leave-request-approved-db"
-assert_db_row_exists "SELECT id FROM leave_balances WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID} AND used_days >= 1" "leave-balance-updated-db" || true
-
-# -- extra: submit & approve leave request
-LT_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM leave_types WHERE tenant_id = ${TENANT_ID} AND name = 'Vacation' ORDER BY id DESC LIMIT 1" | tr -d '\r')
-# ensure employee is linked to admin user so leave.request finds the employee by user_id
-ADMIN_UID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM users WHERE email = 'admin@hcms.local' LIMIT 1" | tr -d '\r')
-docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "UPDATE employees SET user_id = ${ADMIN_UID} WHERE id = ${EMP_ID} AND tenant_id = ${TENANT_ID}" || true
-# verify the employee was linked to the admin user
-assert_db_value "SELECT user_id FROM employees WHERE id = ${EMP_ID} AND tenant_id = ${TENANT_ID}" "${ADMIN_UID}" "employee-linked-to-admin"
-curl -s -b "$COOKIE_JAR" -X POST -d "start_date=$(date +%F)&end_date=$(date +%F)&days=1&leave_type_id=${LT_ID}&reason=Vacation" "http://localhost:8080/w/${TENANT_SLUG}/leave/request" >/dev/null 2>&1 || true
-assert_db_row_exists "SELECT id FROM leave_requests WHERE tenant_id = ${TENANT_ID} AND employee_id = ${EMP_ID} AND days = 1" "leave-request-db"
+# (Leave scenarios were extracted to a single-purpose test: 045_leave_scenarios.sh)
 
 # 10) Payroll — create structure, assign employee, run payroll
 curl -s -b "$COOKIE_JAR" -X POST -d "name=Monthly&base_amount=3000&currency=USD&pay_frequency=monthly" "http://localhost:8080/w/${TENANT_SLUG}/payroll/structures" >/dev/null 2>&1 || true
