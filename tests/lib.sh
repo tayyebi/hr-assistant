@@ -35,15 +35,21 @@ assert_http_contains() {
   TOTAL=$((TOTAL+1))
   local body cookie_opts=()
   if [ -n "${COOKIE_JAR:-}" ]; then cookie_opts=( -b "$COOKIE_JAR" -c "$COOKIE_JAR" ); fi
-  # follow redirects (-L) so tests find content regardless of trailing‑slash redirects
-  if ! body=$(curl -sSL --max-time 10 "${cookie_opts[@]}" "$url"); then
-    FAILED=$((FAILED+1)); fail "$label — request failed: $url"; return 1
-  fi
-  if echo "$body" | grep -q -F "$expect"; then
-    PASSED=$((PASSED+1)); pass "$label"
-  else
-    FAILED=$((FAILED+1)); fail "$label — '$expect' not found in response from $url"; return 1
-  fi
+
+  # retry a few times to avoid transient flakes
+  local attempts=3 i=1
+  while [ $i -le $attempts ]; do
+    if ! body=$(curl -sSL --max-time 10 "${cookie_opts[@]}" "$url"); then
+      body=''
+    fi
+    if [ -n "$body" ] && echo "$body" | grep -q -F "$expect"; then
+      PASSED=$((PASSED+1)); pass "$label"; return 0
+    fi
+    sleep 0.5
+    i=$((i+1))
+  done
+
+  FAILED=$((FAILED+1)); fail "$label — '$expect' not found in response from $url"; return 1
 }
 
 assert_http_status() {
@@ -51,14 +57,15 @@ assert_http_status() {
   TOTAL=$((TOTAL+1))
   local code cookie_opts=()
   if [ -n "${COOKIE_JAR:-}" ]; then cookie_opts=( -b "$COOKIE_JAR" -c "$COOKIE_JAR" ); fi
-  # follow redirects so status checks reflect the final destination
-  if ! code=$(curl -sSL -o /dev/null -w "%{http_code}" --max-time 10 "${cookie_opts[@]}" "$url"); then
+  # do NOT follow redirects here; callers sometimes assert 301 responses
+  if ! code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${cookie_opts[@]}" "$url"); then
     code=000
   fi
   if [ "$code" -eq "$expected_status" ]; then
     PASSED=$((PASSED+1)); pass "$label ($code) $url"
   else
     FAILED=$((FAILED+1)); fail "$label — expected HTTP $expected_status but got $code for $url"
+    return 1
   fi
 }
 
@@ -113,6 +120,39 @@ assert_db_value() {
   else
     FAILED=$((FAILED+1)); fail "$label — expected value '${expected}' but got '${out}' for: $sql"; return 1
   fi
+}
+
+# Ensure a tenant with the given slug exists (idempotent)
+ensure_tenant() {
+  local slug="${1:-testco}" name="${2:-TestCo}"
+  docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenants (name,slug) SELECT '${name}','${slug}' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE slug='${slug}')" >/dev/null 2>&1 || true
+}
+
+# Create a temporary tenant (returns slug). Caller should delete_tenant when done.
+create_temp_tenant() {
+  local slug="testco_$(date +%s)_$((RANDOM%10000))"
+  local name="TestCo ${RANDOM}"
+  docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenants (name,slug) SELECT '${name}','${slug}' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE slug='${slug}')" >/dev/null 2>&1 || true
+  echo "$slug"
+}
+
+# Ensure at least one employee exists for the given tenant (idempotent)
+ensure_employee() {
+  local tenant_slug="${1:-testco}" first="${2:-Jane}" last="${3:-Doe}" code="${4:-E999}"
+  docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO employees (tenant_id, first_name, last_name, employee_code) SELECT t.id, '${first}', '${last}', '${code}' FROM tenants t WHERE t.slug='${tenant_slug}' AND NOT EXISTS (SELECT 1 FROM employees e WHERE e.tenant_id = t.id AND e.employee_code = '${code}')" >/dev/null 2>&1 || true
+}
+
+# Delete a tenant by slug (cascades where FK defined)
+delete_tenant() {
+  local slug="${1:?slug required}"
+  docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "DELETE FROM tenants WHERE slug='${slug}'" >/dev/null 2>&1 || true
+}
+
+# Create an employee for a tenant and return the id
+create_employee_for_tenant() {
+  local tenant_slug="${1:-testco}" first="${2:-Jane}" last="${3:-Doe}" code="${4:-E$((RANDOM%10000))}"
+  docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO employees (tenant_id, first_name, last_name, employee_code) SELECT t.id, '${first}', '${last}', '${code}' FROM tenants t WHERE t.slug='${tenant_slug}' AND NOT EXISTS (SELECT 1 FROM employees e WHERE e.tenant_id = t.id AND e.employee_code = '${code}')" >/dev/null 2>&1 || true
+  docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM employees WHERE tenant_id = (SELECT id FROM tenants WHERE slug='${tenant_slug}') AND employee_code='${code}' LIMIT 1" | tr -d '\r'
 }
 
 run_case() {

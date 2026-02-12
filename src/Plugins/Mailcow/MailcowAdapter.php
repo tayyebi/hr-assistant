@@ -60,10 +60,13 @@ final class MailcowAdapter
     private function get(string $path): array
     {
         $ch = curl_init($this->baseUrl . $path);
+        // fail fast when external Mailcow is unreachable (keeps UI/tests responsive)
         curl_setopt_array($ch, [
-            CURLOPT_HTTPHEADER     => ['X-API-Key: ' . $this->apiKey, 'Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_HTTPHEADER        => ['X-API-Key: ' . $this->apiKey, 'Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER    => true,
+            CURLOPT_CONNECTTIMEOUT    => 1,
+            CURLOPT_TIMEOUT           => 1,
+            CURLOPT_FAILONERROR       => false,
         ]);
         $r = curl_exec($ch);
         curl_close($ch);
@@ -74,11 +77,13 @@ final class MailcowAdapter
     {
         $ch = curl_init($this->baseUrl . $path);
         curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($data),
-            CURLOPT_HTTPHEADER     => ['X-API-Key: ' . $this->apiKey, 'Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_POST              => true,
+            CURLOPT_POSTFIELDS        => json_encode($data),
+            CURLOPT_HTTPHEADER        => ['X-API-Key: ' . $this->apiKey, 'Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER    => true,
+            CURLOPT_CONNECTTIMEOUT    => 1,
+            CURLOPT_TIMEOUT           => 1,
+            CURLOPT_FAILONERROR       => false,
         ]);
         $r = curl_exec($ch);
         curl_close($ch);

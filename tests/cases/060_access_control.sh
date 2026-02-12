@@ -7,6 +7,10 @@ set -euo pipefail
 cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
 export COOKIE_JAR="$cookie"
 
+# create a temp tenant for atomic access-control checks
+TENANT_SLUG=$(create_temp_tenant)
+trap 'delete_tenant "$TENANT_SLUG" >/dev/null 2>&1 || true' EXIT
+
 # create a new user via DB with known password
 PW_HASH=$(docker exec app php -r "echo password_hash('secret', PASSWORD_BCRYPT);")
 USER_EMAIL="limited.user+${RANDOM}@example.com"
@@ -14,21 +18,27 @@ docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO users (
 USER_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM users WHERE email='${USER_EMAIL}' LIMIT 1" | tr -d '\r')
 [ -n "$USER_ID" ] || { fail "user-created"; exit 1; }
 
-# give user a tenant role = team_member
-TENANT_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM tenants WHERE slug='testco' LIMIT 1" | tr -d '\r')
+# create tenant + attach role
+TENANT_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "INSERT INTO tenants (name,slug) SELECT 'AC ${RANDOM}','${TENANT_SLUG}' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE slug='${TENANT_SLUG}'); SELECT id FROM tenants WHERE slug='${TENANT_SLUG}' LIMIT 1" | tr -d '\r')
 docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenant_users (tenant_id, user_id, role) VALUES (${TENANT_ID}, ${USER_ID}, 'team_member')" || true
 
 # login as that user
 COOKIE=/tmp/limited_cookies.txt
 curl -s -c "$COOKIE" -d "email=${USER_EMAIL}&password=secret" http://localhost:8080/login >/dev/null 2>&1 || true
+export COOKIE_JAR="$COOKIE"
 
-# attempt admin-only page — should be 403
-assert_http_status "http://localhost:8080/w/testco/gitlab/settings" 403 "team-member-gitlab-settings-forbidden"
+# attempt admin-only page — should be 403 (use trailing slash to avoid global redirect)
+assert_http_status "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/" 403 "team-member-gitlab-settings-forbidden"
 
 # hr_specialist can access the same page — change role
 docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "UPDATE tenant_users SET role = 'hr_specialist' WHERE tenant_id = ${TENANT_ID} AND user_id = ${USER_ID}"
 # login again
 curl -s -c "$COOKIE" -d "email=${USER_EMAIL}&password=secret" http://localhost:8080/login >/dev/null 2>&1 || true
-assert_http_status "http://localhost:8080/w/testco/gitlab/settings/" 200 "hr-specialist-gitlab-settings-allowed"
+export COOKIE_JAR="$COOKIE"
+assert_http_status "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/" 200 "hr-specialist-gitlab-settings-allowed"
 
-pass "access-control-verified"
+# cleanup tenant
+delete_tenant "$TENANT_SLUG" || true
+trap - EXIT
+
+pass "access-control-verified-for-${TENANT_SLUG}"

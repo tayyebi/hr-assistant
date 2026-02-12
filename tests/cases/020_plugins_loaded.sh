@@ -4,10 +4,14 @@
 set -euo pipefail
 . ../lib.sh
 
+# create a temp tenant for this case (atomic)
+TENANT_SLUG=$(create_temp_tenant)
+trap 'delete_tenant "$TENANT_SLUG" >/dev/null 2>&1 || true' EXIT
+
 PLUGINS=(gitlab mailcow jira confluence keycloak passbolt nextcloud onboarding leave payroll calendar announcements telegram email)
 
 for p in "${PLUGINS[@]}"; do
-  base="/w/testco/$p"
+  base="/w/${TENANT_SLUG}/$p"
   # request without trailing slash should redirect to trailing slash
   assert_http_status "http://localhost:8080${base}" 301 "plugin-${p}-redirect"
   url="http://localhost:8080${base}/"
@@ -32,3 +36,9 @@ for p in "${PLUGINS[@]}"; do
   esac
   assert_http_contains "$url" "$expect" "plugin-$p-content"
 done
+
+# remove the temp tenant explicitly (trap will also clean up)
+delete_tenant "$TENANT_SLUG" || true
+trap - EXIT
+
+pass "plugins-loaded-for-${TENANT_SLUG}"

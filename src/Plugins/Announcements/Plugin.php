@@ -28,7 +28,7 @@ final class Plugin implements PluginInterface
             $tid = $router->tenant()->id();
             $userId = $router->auth()->userId();
             $announcements = $db->fetchAll(
-                'SELECT a.*, u.username AS author, (SELECT COUNT(*) FROM announcement_reads ar WHERE ar.announcement_id = a.id) AS read_count, (SELECT 1 FROM announcement_reads ar2 WHERE ar2.announcement_id = a.id AND ar2.user_id = ?) AS is_read FROM announcements a LEFT JOIN users u ON u.id = a.created_by WHERE a.tenant_id = ? AND (a.published_at IS NULL OR a.published_at <= NOW()) AND (a.expires_at IS NULL OR a.expires_at >= NOW()) ORDER BY a.is_pinned DESC, a.created_at DESC',
+                'SELECT a.*, u.display_name AS author, (SELECT COUNT(*) FROM announcement_reads ar WHERE ar.announcement_id = a.id) AS read_count, (SELECT 1 FROM announcement_reads ar2 WHERE ar2.announcement_id = a.id AND ar2.user_id = ?) AS is_read FROM announcements a LEFT JOIN users u ON u.id = a.created_by WHERE a.tenant_id = ? AND (a.published_at IS NULL OR a.published_at <= NOW()) AND (a.expires_at IS NULL OR a.expires_at >= NOW()) ORDER BY a.is_pinned DESC, a.created_at DESC',
                 [$userId, $tid],
             );
             $isHR = $router->auth()->hasRole('workspace_admin') || $router->auth()->hasRole('hr_specialist');
@@ -43,7 +43,7 @@ final class Plugin implements PluginInterface
             $router->auth()->requireLogin($router->response());
             $tid = $router->tenant()->id();
             $ann = $db->fetchOne(
-                'SELECT a.*, u.username AS author FROM announcements a LEFT JOIN users u ON u.id = a.created_by WHERE a.id = ? AND a.tenant_id = ?',
+                'SELECT a.*, u.display_name AS author FROM announcements a LEFT JOIN users u ON u.id = a.created_by WHERE a.id = ? AND a.tenant_id = ?',
                 [(int)$p['id'], $tid],
             );
             if (!$ann) { $router->response()->status(404)->html('<h1>Not found</h1>'); return; }

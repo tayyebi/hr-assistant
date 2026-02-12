@@ -1,0 +1,6 @@
+{
+    "name": "Messenger",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": { "label": "Messenger", "icon": "message-circle", "route": "/messenger" }
+}
