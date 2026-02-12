@@ -101,44 +101,22 @@ src/
 The project includes a small shell-based E2E harness under `tests/`.
 Tests run inside Docker using the **same build, same schema, and same code** as the main app — only the DB volume is ephemeral.
 
-### Running Tests
+### Profiles
+
+| Profile | Services | Command |
+|---------|----------|---------|
+| _(default)_ | `app` + `db` | `docker compose up -d --build` |
+| `test` | `app` + `db` + `tests-runner` | `docker compose --profile test up --build` |
+
+### Commands
 
 ```bash
-# Start the app + test runner (builds from Dockerfile, runs migrations, executes tests)
-docker compose up --build
+# Development
+docker compose up -d --build
 
-# Run only the test runner against an already-running stack
-docker compose up tests-runner
+# Run tests
+docker compose --profile test up --build --abort-on-container-exit
 
-# Tear down and wipe all test data (removes ephemeral DB volume)
+# Clean up (wipe ephemeral DB volume)
 docker compose down -v
 ```
-
-### Full Cycle (one-liner)
-
-```bash
-docker compose down -v && docker compose up --build --abort-on-container-exit
-```
-
-`--abort-on-container-exit` stops all services once the `tests-runner` finishes.
-
-### Notes
-
-- Tests are atomic — each case creates/deletes its own tenant.
-- The DB uses a named volume (`test-db-data`) defined in `docker-compose.override.yml`; `docker compose down -v` removes it.
-- Test cases live in `tests/cases/` and run in lexical order.
-
-### Useful Helpers (`tests/lib.sh`)
-
-- `login_as <email> <password>` — performs POST /login and exports `COOKIE_JAR`.
-- `auth_curl [curl-args...]` — `curl -s` with automatic cookie-jar injection.
-- `create_temp_tenant` — creates an isolated tenant and returns the slug.
-- `ensure_employee <slug> <first> <last> <code>` — idempotently inserts an employee.
-- `create_injected_session <user_id>` — creates a server-side PHP session file and returns a cookie-jar path.
-- `inject_session <user_id>` — one-line wrapper that creates a session and exports `COOKIE_JAR`.
-- `assert_http_contains <url> <text> <label>` — checks the response body contains text.
-- `assert_db_row_exists <sql> <label>` — asserts a DB query returns at least one row.
-- `assert_db_count <sql> <n> <label>` — asserts exact row count.
-- `assert_db_count_at_least <sql> <n> <label>` — asserts minimum row count.
-
-Write tests that prefer `assert_db_*` helpers for deterministic checks and avoid relying on external services.

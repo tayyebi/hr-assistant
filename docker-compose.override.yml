@@ -4,6 +4,7 @@ services:
       - test-db-data:/var/lib/mysql
 
   tests-runner:
+    profiles: ["test"]
     container_name: tests-runner
     image: php:8.3-cli
     volumes:
