@@ -3,10 +3,16 @@
 ## Project Overview
 Humap Capitals Management System (HCMS)
 
+## Coding behaivour:
+
+- **Update the related documents**: Update `README.md` and `TODO.md` when things chaned.
+
 ## Design principles
 
 - **Zero JavaScript**: Pure server-side rendering with CSS-based interactivity - no client-side JavaScript code
 - **Pure PHP Implementation**: Zero external dependencies - no Composer or third-party packages require
+- **Mobile-first Stylesheets**: Design for mobile, use media queries for larger screens.
+-- **No dependencies**: No third-parties.
 
 ## Test Driven Development
 
