@@ -1,0 +1,10 @@
+{
+    "name": "Passbolt",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Passbolt",
+        "icon": "lock",
+        "route": "/passbolt"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Email",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Email",
+        "icon": "mail",
+        "route": "/email"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Telegram",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Telegram",
+        "icon": "send",
+        "route": "/telegram"
+    }
+}

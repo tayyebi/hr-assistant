@@ -2,16 +2,22 @@
 # THE FILENAME. AND SIMPLY USE up COMMAND.
 
 services:
-  app:
+  app-test:
+    container_name: app-test
+    image: php:8.3-cli
     environment:
       - DB_HOST=mockdb
       - DB_NAME=app_test
       - DB_USER=test
       - DB_PASS=test
+    volumes:
+      - .:/app:cached
+    working_dir: /app
     depends_on:
-      - mockdb
-      
-  mockdb:
+      - mockdb-test
+
+  mockdb-test:
+    container_name: mockdb-test
     image: mariadb:10.5
     environment:
       MYSQL_ROOT_PASSWORD: test
@@ -20,14 +26,14 @@ services:
       MYSQL_PASSWORD: test
     ports:
       - "3307:3306"
-      
-  ansible:
-    build:
-      context: ./ansible
-    image: app-ansible:latest
+
+  # Lightweight test runner service — runs the shell-based atomic tests.
+  tests-runner:
+    container_name: tests-runner
+    image: php:8.3-cli
     volumes:
-      - .:/workspace
-    working_dir: /workspace
+      - .:/tests:cached
+    working_dir: /tests
     depends_on:
       - app
-    entrypoint: ["/workspace/ansible/startup.sh"]
+    entrypoint: ["/tests/run-tests.sh"]

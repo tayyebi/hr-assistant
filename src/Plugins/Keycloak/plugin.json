@@ -1,0 +1,10 @@
+{
+    "name": "Keycloak",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Keycloak",
+        "icon": "key",
+        "route": "/keycloak"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Confluence",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Confluence",
+        "icon": "book",
+        "route": "/confluence"
+    }
+}

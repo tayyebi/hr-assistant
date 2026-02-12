@@ -1,0 +1,10 @@
+{
+    "name": "Onboarding",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Onboarding",
+        "icon": "user-plus",
+        "route": "/onboarding"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Calendar",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Calendar",
+        "icon": "calendar",
+        "route": "/calendar"
+    }
+}

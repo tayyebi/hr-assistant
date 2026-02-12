@@ -1,0 +1,10 @@
+{
+    "name": "Leave",
+    "version": "1.0.0",
+    "requires": ["Core"],
+    "sidebar": {
+        "label": "Leave",
+        "icon": "calendar-minus",
+        "route": "/leave"
+    }
+}
