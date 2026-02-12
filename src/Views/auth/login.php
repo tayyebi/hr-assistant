@@ -11,4 +11,5 @@
         <input type="password" name="password" class="field-input" required>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
+    <p class="text-muted login-note" style="margin-top:12px; text-align:center; font-size:13px;">Default admin: <code>admin@hcms.local</code> / <code>admin</code></p>
 </div>

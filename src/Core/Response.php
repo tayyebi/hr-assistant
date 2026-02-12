@@ -46,8 +46,11 @@ final class Response
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 
-    public function redirect(string $url, int $status = 302): void
+    public function redirect(string $url, ?int $status = null): void
     {
+        if ($status === null) {
+            $status = $this->statusCode ?? 302;
+        }
         $this->status($status);
         $this->header('Location', $url);
         $this->sendHeaders();

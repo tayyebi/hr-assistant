@@ -6,7 +6,14 @@
 </p>
 
 <?php
-$daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+$phpFirstOfMonth = sprintf('%04d-%02d-01', $year, $month);
+// prefer cal_days_in_month when available; otherwise fall back to date('t') so views render
+// even when the PHP calendar extension is not installed in the container.
+if (function_exists('cal_days_in_month')) {
+    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+} else {
+    $daysInMonth = (int)date('t', strtotime($phpFirstOfMonth));
+}
 $firstDow = (int)date('w', mktime(0, 0, 0, $month, 1, $year));
 $eventsByDay = [];
 foreach ($events as $ev) {

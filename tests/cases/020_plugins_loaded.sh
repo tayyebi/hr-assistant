@@ -7,7 +7,10 @@ set -euo pipefail
 PLUGINS=(gitlab mailcow jira confluence keycloak passbolt nextcloud onboarding leave payroll calendar announcements telegram email)
 
 for p in "${PLUGINS[@]}"; do
-  url="http://localhost:8080/w/testco/$p"
+  base="/w/testco/$p"
+  # request without trailing slash should redirect to trailing slash
+  assert_http_status "http://localhost:8080${base}" 301 "plugin-${p}-redirect"
+  url="http://localhost:8080${base}/"
   assert_http_status "$url" 200 "plugin-$p-status"
   # check that the plugin title appears in the page body
   case "$p" in

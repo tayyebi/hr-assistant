@@ -8,7 +8,7 @@
 </div>
 <h2 class="section-title">Workspaces</h2>
 <table class="table">
-<thead><tr><th>Name</th><th>Slug</th><th>Domain</th><th>Active</th></tr></thead>
+<thead><tr><th>Name</th><th>Slug</th><th>Domain</th><th>Active</th><th></th></tr></thead>
 <tbody>
 <?php foreach (($tenants ?? []) as $t): ?>
 <tr>
@@ -16,6 +16,7 @@
     <td><code><?= htmlspecialchars($t['slug']) ?></code></td>
     <td><?= htmlspecialchars($t['domain'] ?? '—') ?></td>
     <td><?= $t['is_active'] ? 'Yes' : 'No' ?></td>
+    <td><a class="btn" href="/w/<?= htmlspecialchars($t['slug']) ?>/dashboard">Open</a></td>
 </tr>
 <?php endforeach; ?>
 </tbody>

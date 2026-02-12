@@ -161,13 +161,14 @@ final class Router
             if (!$this->auth->requireRole($this->response, 'workspace_admin', 'hr_specialist')) {
                 return;
             }
+            $hireDate = trim((string)($this->request->post['hire_date'] ?? ''));
             $data = [
                 'first_name' => trim((string)($this->request->post['first_name'] ?? '')),
                 'last_name'  => trim((string)($this->request->post['last_name'] ?? '')),
                 'employee_code' => trim((string)($this->request->post['employee_code'] ?? '')),
                 'position'   => trim((string)($this->request->post['position'] ?? '')),
                 'department' => trim((string)($this->request->post['department'] ?? '')),
-                'hire_date'  => trim((string)($this->request->post['hire_date'] ?? '')),
+                'hire_date'  => $hireDate !== '' ? $hireDate : null,
             ];
             $id = $this->db->tenantInsert('employees', $data);
             AuditLog::record('employee.created', 'employee', (int)$id, null, json_encode($data));
@@ -234,6 +235,19 @@ final class Router
                 'logs' => $logs,
             ]));
         });
+
+        $this->get('/admin/audit/{id}', function (array $p): void {
+            if (!$this->auth->isSystemAdmin()) {
+                $this->response->status(403)->html('<h1>403</h1>');
+                return;
+            }
+            $id = (int)($p['id'] ?? 0);
+            $log = $this->db->fetchOne('SELECT al.*, u.display_name, u.email FROM audit_logs al LEFT JOIN users u ON u.id = al.user_id WHERE al.id = ?', [$id]);
+            if (!$log) { $this->response->status(404)->html('<h1>Not found</h1>'); return; }
+            $this->response->html($this->view->render('admin/audit_detail', [
+                'title' => 'Audit Detail', 'layout' => 'admin', 'log' => $log,
+            ]));
+        });
     }
 
     public function dispatch(): void
@@ -241,12 +255,29 @@ final class Router
         $method = $this->request->method;
         $path = $this->request->uriPath;
 
+        // Global trailing-slash policy: redirect GET requests for non-file paths
+        // do not apply trailing-slash redirect to healthcheck or auth endpoints
+        $noSlashRedirectExceptions = ['/healthz', '/login', '/logout'];
+        if ($method === 'GET' && $path !== '/' && substr($path, -1) !== '/' && strpos($path, '.') === false && !in_array($path, $noSlashRedirectExceptions, true)) {
+            $qs = $this->request->server['QUERY_STRING'] ?? '';
+            $loc = $path . '/';
+            if ($qs !== '') { $loc .= '?' . $qs; }
+            $this->response->status(301)->redirect($loc);
+            return;
+        }
+
         $prefix = $this->tenant->pathPrefix();
         if ($prefix !== '' && str_starts_with($path, $prefix)) {
             $path = substr($path, strlen($prefix));
             if ($path === '' || $path === false) {
                 $path = '/';
             }
+        }
+
+        // normalize trailing slash for matching (routes are registered without trailing slash)
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+            if ($path === '') { $path = '/'; }
         }
 
         $routes = $this->routes[$method] ?? [];

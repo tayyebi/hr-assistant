@@ -32,8 +32,8 @@ services:
     container_name: tests-runner
     image: php:8.3-cli
     volumes:
-      - .:/tests:cached
+      - ./tests:/tests:cached
     working_dir: /tests
     depends_on:
       - app
-    entrypoint: ["/tests/run-tests.sh"]
+    entrypoint: ["bash","-lc","for i in {1..30}; do if [ -x /tests/run-tests.sh ]; then exec /tests/run-tests.sh; fi; sleep 1; done; echo '/tests/run-tests.sh not found or not executable'; exit 2"]

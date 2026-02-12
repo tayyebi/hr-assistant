@@ -6,10 +6,13 @@ set -euo pipefail
 
 SETTINGS_PATHS=(/w/testco/gitlab/settings /w/testco/jira/settings /w/testco/confluence/settings /w/testco/mailcow/settings /w/testco/nextcloud/settings /w/testco/keycloak/settings /w/testco/passbolt/settings /w/testco/calendar/settings)
 for p in "${SETTINGS_PATHS[@]}"; do
-  # calendar/settings redirects to /calendar
+  base="http://localhost:8080${p}"
+  # non-trailing should redirect to trailing
+  assert_http_status "$base" 301 "settings-${p##*/}-redirect"
+  # trailing must return 200 (except calendar which intentionally redirects to /calendar/)
   if [ "${p##*/}" = "calendar" ]; then
-    assert_http_status "http://localhost:8080${p}" 302 "settings-${p##*/}"
+    assert_http_status "${base}" 301 "settings-${p##*/}-redirect"
   else
-    assert_http_status "http://localhost:8080${p}" 200 "settings-${p##*/}"
+    assert_http_status "${base}/" 200 "settings-${p##*/}"
   fi
 done

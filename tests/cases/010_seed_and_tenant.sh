@@ -8,10 +8,12 @@ set -euo pipefail
 docker exec app php /app/scripts/seed.php >/dev/null 2>&1 || true
 
 # confirm admin exists by logging in
-cookie=/tmp/tests_cookies.txt
+cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
 curl -s -c "$cookie" -d "email=admin@hcms.local&password=admin" http://localhost:8080/login >/dev/null 2>&1 || true
-assert_http_status "http://localhost:8080/dashboard" 200 "admin-dashboard"
+export COOKIE_JAR="$cookie"
+assert_http_status "http://localhost:8080/dashboard/" 200 "admin-dashboard"
 
 # create tenant via DB and ensure route resolves
-docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenants (name,slug) VALUES ('TestCo','testco')" || true
-assert_http_status "http://localhost:8080/w/testco/dashboard" 200 "tenant-route"
+docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "INSERT INTO tenants (name,slug) VALUES ('TestCo','testco')" || true
+assert_db_row_exists "SELECT id FROM tenants WHERE slug = 'testco'" "tenant-db-created"
+assert_http_status "http://localhost:8080/w/testco/dashboard/" 200 "tenant-route"
