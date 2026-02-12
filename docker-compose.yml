@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: hr-assistant
+    container_name: app
     working_dir: /app
     ports:
       - "8080:8080"
@@ -11,7 +11,7 @@ services:
       - TZ=UTC
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_NAME=hr_assistant
+      - DB_NAME=app
       - DB_USER=root
       - DB_PASS=example
     depends_on:
@@ -20,7 +20,7 @@ services:
     image: mariadb:10.5
     environment:
       MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: hr_assistant
+      MYSQL_DATABASE: app
     ports:
       - "3306:3306"
 
