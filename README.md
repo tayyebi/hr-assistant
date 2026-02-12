@@ -95,3 +95,17 @@ src/
   Views/                 # PHP templates
     layouts/             # Layout files (minimal, app, admin)
 ```
+
+## Testing (E2E)
+
+The project includes a small shell-based E2E harness under `tests/`.
+
+- Run the full suite: `./tests/run-tests.sh`
+- Tests are atomic — each case creates/deletes its own tenant.
+
+Useful test helpers (in `tests/lib.sh`):
+- `login_as <email> <password>` — performs POST /login and exports `COOKIE_JAR`.
+- `create_injected_session <user_id>` — creates a server-side PHP session file and returns a cookie-jar path.
+- `inject_session <user_id>` — one-line wrapper that creates a session and exports `COOKIE_JAR`.
+
+Write tests that prefer `assert_db_*` helpers for deterministic checks and avoid relying on external services.

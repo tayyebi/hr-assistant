@@ -155,6 +155,52 @@ create_employee_for_tenant() {
   docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM employees WHERE tenant_id = (SELECT id FROM tenants WHERE slug='${tenant_slug}') AND employee_code='${code}' LIMIT 1" | tr -d '\r'
 }
 
+# Create a PHP session file for the given user id inside the `app` container and
+# return the path to a local cookie-jar file that will send the corresponding
+# `PHPSESSID`. Example usage:
+#   COOKIE_JAR=$(create_injected_session 42)
+#   curl -b "$COOKIE_JAR" -c "$COOKIE_JAR" http://localhost:8080/w/testco/
+create_injected_session() {
+  local uid="${1:?user id required}" sid cookiefile
+  sid=$(openssl rand -hex 16)
+  # write the session file inside the app container
+  docker compose exec app bash -lc "printf 'user_id|i:${uid};' > /tmp/sess_${sid}"
+  cookiefile="/tmp/test_session_${sid}.cookies.txt"
+  printf "# Netscape HTTP Cookie File\nlocalhost\tFALSE\t/\tFALSE\t0\tPHPSESSID\t%s\n" "$sid" > "$cookiefile"
+  echo "$cookiefile"
+}
+
+# One-line wrapper: create an injected session for <user_id> and export COOKIE_JAR
+# Usage: inject_session <user_id>
+inject_session() {
+  local uid="${1:?user id required}" jar
+  jar=$(create_injected_session "$uid")
+  export COOKIE_JAR="$jar"
+  echo "$COOKIE_JAR"
+}
+
+# Perform a POST /login with given credentials and export COOKIE_JAR.
+# Usage: login_as <email> <password>
+login_as() {
+  local email="${1:?email required}" password="${2:-admin}" cookie
+  cookie="/tmp/tests_cookies_$(date +%s%N).txt"
+  # do not fail the caller if login fails here — tests assert after login
+  curl -s -c "$cookie" -d "email=${email}&password=${password}" http://localhost:8080/login >/dev/null 2>&1 || true
+  export COOKIE_JAR="$cookie"
+  echo "$COOKIE_JAR"
+}
+
+# Perform a curl request while automatically adding the test `COOKIE_JAR` (if set).
+# Keeps calls concise: `auth_curl -X POST -d "a=b" "http://..."`
+# The helper mirrors `curl -s` behaviour and returns curl's exit code.
+auth_curl() {
+  local cookie_opts=()
+  if [ -n "${COOKIE_JAR:-}" ]; then
+    cookie_opts=( -b "$COOKIE_JAR" -c "$COOKIE_JAR" )
+  fi
+  curl -s "${cookie_opts[@]}" "$@"
+}
+
 run_case() {
   local file="$1"
   info "running: $file"

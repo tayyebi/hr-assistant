@@ -4,8 +4,7 @@
 set -euo pipefail
 . ../lib.sh
 
-cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
-export COOKIE_JAR="$cookie"
+login_as admin@hcms.local admin >/dev/null
 
 TENANT_SLUG=$(create_temp_tenant)
 trap 'delete_tenant "$TENANT_SLUG" >/dev/null 2>&1 || true' EXIT
@@ -18,7 +17,7 @@ EMP_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT 
 # ensure an email account exists
 ACC_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM email_accounts WHERE tenant_id = ${TENANT_ID} ORDER BY id DESC LIMIT 1" | tr -d '\r')
 if [ -z "$ACC_ID" ]; then
-  curl -s -b "$COOKIE_JAR" -X POST -d "label=Support&imap_host=imap.example.com&imap_port=993&smtp_host=smtp.example.com&smtp_port=587&username=support&password=secret&from_name=Support&from_address=support@example.com" "http://localhost:8080/w/${TENANT_SLUG}/email/settings" >/dev/null 2>&1 || true
+  auth_curl -X POST -d "label=Support&imap_host=imap.example.com&imap_port=993&smtp_host=smtp.example.com&smtp_port=587&username=support&password=secret&from_name=Support&from_address=support@example.com" "http://localhost:8080/w/${TENANT_SLUG}/email/settings" >/dev/null 2>&1 || true
   ACC_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT id FROM email_accounts WHERE tenant_id = ${TENANT_ID} ORDER BY id DESC LIMIT 1" | tr -d '\r')
 fi
 
@@ -28,7 +27,7 @@ assert_db_count_at_least "SELECT COUNT(*) FROM emails WHERE tenant_id = ${TENANT
 
 # simulate inbound telegram messages and assign to employee
 curl -s -X POST -H "Content-Type: application/json" -d '{"message":{"chat":{"id":"tg-3001"},"text":"Hello Sam","from":{"username":"samuser","first_name":"Sam"}}}' "http://localhost:8080/w/${TENANT_SLUG}/telegram/webhook" >/dev/null 2>&1 || true
-curl -s -b "$COOKIE_JAR" -X POST -d "employee_id=${EMP_ID}" "http://localhost:8080/w/${TENANT_SLUG}/telegram/chat/tg-3001/assign" >/dev/null 2>&1 || true
+auth_curl -X POST -d "employee_id=${EMP_ID}" "http://localhost:8080/w/${TENANT_SLUG}/telegram/chat/tg-3001/assign" >/dev/null 2>&1 || true
 assert_db_row_exists "SELECT id FROM telegram_chats WHERE tenant_id = ${TENANT_ID} AND chat_id = 'tg-3001' AND employee_id = ${EMP_ID}" "telegram-assigned-for-messenger"
 
 # 1) Contact list page shows employee with Telegram + Email badges

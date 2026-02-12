@@ -5,8 +5,7 @@ set -euo pipefail
 . ../lib.sh
 
 # ensure we're authenticated as system admin
-cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
-export COOKIE_JAR="$cookie"
+login_as admin@hcms.local admin >/dev/null
 
 # use an isolated tenant for this case (use ensure_tenant to guarantee DB insert)
 TENANT_SLUG="testco_$(date +%s)_$((RANDOM%10000))"
@@ -19,7 +18,7 @@ assert_db_row_exists "SELECT id FROM tenants WHERE slug = '${TENANT_SLUG}'" "ten
 
 # create an announcement (this writes an audit log)
 TITLE="Audit Test Announcement $RANDOM"
-curl -s -b "$COOKIE_JAR" -X POST -d "title=${TITLE}&content=testing" "http://localhost:8080/w/${TENANT_SLUG}/announcements" >/dev/null 2>&1 || true
+auth_curl -X POST -d "title=${TITLE}&content=testing" "http://localhost:8080/w/${TENANT_SLUG}/announcements" >/dev/null 2>&1 || true
 
 # DB: announcement exists
 assert_db_row_exists "SELECT id FROM announcements WHERE title = '${TITLE}' AND tenant_id = (SELECT id FROM tenants WHERE slug='${TENANT_SLUG}')" "announcement-db-created"

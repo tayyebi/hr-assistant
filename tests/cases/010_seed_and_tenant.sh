@@ -7,10 +7,8 @@ set -euo pipefail
 # run seed inside app container
 docker exec app php /app/scripts/seed.php >/dev/null 2>&1 || true
 
-# confirm admin exists by logging in
-cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
-curl -s -c "$cookie" -d "email=admin@hcms.local&password=admin" http://localhost:8080/login >/dev/null 2>&1 || true
-export COOKIE_JAR="$cookie"
+# confirm admin exists by logging in (use helper for consistency)
+login_as admin@hcms.local admin >/dev/null
 assert_http_status "http://localhost:8080/dashboard/" 200 "admin-dashboard"
 
 # create tenant via DB and ensure route resolves

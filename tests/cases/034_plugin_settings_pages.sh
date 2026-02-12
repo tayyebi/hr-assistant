@@ -3,6 +3,7 @@
 
 set -euo pipefail
 . ../lib.sh
+login_as admin@hcms.local admin >/dev/null
 
 # create temp tenant for atomic test
 TENANT_SLUG=$(create_temp_tenant)

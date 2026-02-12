@@ -4,8 +4,7 @@
 set -euo pipefail
 . ../lib.sh
 
-cookie="${COOKIE_JAR:-/tmp/tests_cookies.txt}"
-export COOKIE_JAR="$cookie"
+login_as admin@hcms.local admin >/dev/null
 
 # create a temp tenant for atomic access-control checks
 TENANT_SLUG=$(create_temp_tenant)
@@ -28,25 +27,13 @@ TENANT_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "INSE
 docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenant_users (tenant_id, user_id, role) VALUES (${TENANT_ID}, ${USER_ID}, 'team_member')" || true
 
 # create a PHP session for the limited user (inject server-side session to avoid flaky web login)
-SID=$(openssl rand -hex 16)
-# write session file inside app container
-docker compose exec app bash -lc "printf 'user_id|i:${USER_ID};' > /tmp/sess_${SID}"
-# create a cookie jar that sends PHPSESSID
-printf "# Netscape HTTP Cookie File\nlocalhost\tFALSE\t/\tFALSE\t0\tPHPSESSID\t%s\n" "$SID" > /tmp/limited_cookies.txt
-COOKIE=/tmp/limited_cookies.txt
-export COOKIE_JAR="$COOKIE"
+inject_session "$USER_ID"
 
 # double-check session injection worked by asserting /login redirects (user considered logged in)
 assert_http_status "http://localhost:8080/login" 302 "team-member-session-injected-login-verified"
 
 # attempt admin-only page — team_member MUST be forbidden (HTTP 403)
-code=$(curl -s -o /dev/null -w "%{http_code}" -b "$COOKIE" "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/")
-TOTAL=$((TOTAL+1))
-if [ "$code" -eq 403 ]; then
-  PASSED=$((PASSED+1)); pass "team-member-gitlab-settings-forbidden ($code)"
-else
-  FAILED=$((FAILED+1)); fail "team-member-gitlab-settings-forbidden — expected HTTP 403 but got $code"; exit 1
-fi
+assert_http_status "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/" 403 "team-member-gitlab-settings-forbidden"
 
 # hr_specialist can access the same page — change role
 docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "UPDATE tenant_users SET role = 'hr_specialist' WHERE tenant_id = ${TENANT_ID} AND user_id = ${USER_ID}"
@@ -58,30 +45,14 @@ HR_ID=$(docker exec hr-assistant-db-1 mysql -N -uroot -pexample app -e "SELECT i
 docker exec hr-assistant-db-1 mysql -uroot -pexample app -e "INSERT INTO tenant_users (tenant_id, user_id, role) VALUES (${TENANT_ID}, ${HR_ID}, 'hr_specialist')" || true
 
 # inject PHP session for hr user and use that cookie jar
-SID2=$(openssl rand -hex 16)
-docker compose exec app bash -lc "printf 'user_id|i:${HR_ID};' > /tmp/sess_${SID2}"
-printf "# Netscape HTTP Cookie File\nlocalhost\tFALSE\t/\tFALSE\t0\tPHPSESSID\t%s\n" "$SID2" > /tmp/hr_cookies.txt
-COOKIE=/tmp/hr_cookies.txt
-export COOKIE_JAR="$COOKIE"
+inject_session "$HR_ID"
 assert_http_status "http://localhost:8080/login" 302 "hr-specialist-session-injected-login-verified"
 
 # hr_specialist MUST be allowed to view plugin list (HTTP 200)
-code=$(curl -s -o /dev/null -w "%{http_code}" -b "$COOKIE" "http://localhost:8080/w/${TENANT_SLUG}/gitlab/")
-TOTAL=$((TOTAL+1))
-if [ "$code" -eq 200 ]; then
-  PASSED=$((PASSED+1)); pass "hr-specialist-gitlab-list-allowed ($code)"
-else
-  FAILED=$((FAILED+1)); fail "hr-specialist-gitlab-list-allowed — expected HTTP 200 but got $code for http://localhost:8080/w/${TENANT_SLUG}/gitlab/"; exit 1
-fi
+assert_http_status "http://localhost:8080/w/${TENANT_SLUG}/gitlab/" 200 "hr-specialist-gitlab-list-allowed"
 
 # hr_specialist must NOT be allowed to access plugin settings (HTTP 403)
-code=$(curl -s -o /dev/null -w "%{http_code}" -b "$COOKIE" "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/")
-TOTAL=$((TOTAL+1))
-if [ "$code" -eq 403 ]; then
-  PASSED=$((PASSED+1)); pass "hr-specialist-gitlab-settings-forbidden ($code)"
-else
-  FAILED=$((FAILED+1)); fail "hr-specialist-gitlab-settings-forbidden — expected HTTP 403 but got $code for http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/"; exit 1
-fi
+assert_http_status "http://localhost:8080/w/${TENANT_SLUG}/gitlab/settings/" 403 "hr-specialist-gitlab-settings-forbidden"
 
 # cleanup tenant
 delete_tenant "$TENANT_SLUG" || true

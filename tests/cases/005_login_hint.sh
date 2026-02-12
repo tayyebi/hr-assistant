@@ -6,7 +6,7 @@ set -euo pipefail
 
 # ensure we are not authenticated so /login renders the form
 if [ -n "${COOKIE_JAR:-}" ]; then
-  curl -s -b "$COOKIE_JAR" http://localhost:8080/logout >/dev/null 2>&1 || true
+  auth_curl http://localhost:8080/logout >/dev/null 2>&1 || true
 fi
 
 assert_http_contains "http://localhost:8080/login" "admin@hcms.local" "login-hint-email"

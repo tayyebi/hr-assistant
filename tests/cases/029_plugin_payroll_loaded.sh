@@ -3,6 +3,7 @@
 
 set -euo pipefail
 . ../lib.sh
+login_as admin@hcms.local admin >/dev/null
 
 TENANT_SLUG=$(create_temp_tenant)
 trap 'delete_tenant "$TENANT_SLUG" >/dev/null 2>&1 || true' EXIT
