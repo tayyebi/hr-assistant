@@ -1,15 +1,52 @@
 <?php $layout = 'minimal'; ?>
-<div class="login-card">
-    <h1 class="login-title">HCMS</h1>
-<?php if (!empty($error)): ?>
-    <p class="flash-error"><?= htmlspecialchars($error) ?></p>
-<?php endif; ?>
-    <form method="post" action="/login">
-        <label class="field-label">Email</label>
-        <input type="email" name="email" class="field-input" required autofocus>
-        <label class="field-label">Password</label>
-        <input type="password" name="password" class="field-input" required>
-        <button type="submit" class="btn btn-primary btn-block">Login</button>
+
+<article class="login-card">
+    <header>
+        <h1 class="login-title">HCMS</h1>
+        <p class="login-subtitle">Human Capital Management System</p>
+    </header>
+
+    <?php if (!empty($error)): ?>
+    <div class="flash-error" role="alert">
+        <strong>Error:</strong> <?= htmlspecialchars($error) ?>
+    </div>
+    <?php endif; ?>
+
+    <form method="post" action="/login" aria-label="Login form">
+        <div class="form-group">
+            <label for="email" class="field-label">Email Address</label>
+            <input 
+                type="email" 
+                id="email"
+                name="email" 
+                class="field-input" 
+                required 
+                autofocus
+                placeholder="admin@hcms.local"
+                aria-required="true"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="password" class="field-label">Password</label>
+            <input 
+                type="password" 
+                id="password"
+                name="password" 
+                class="field-input" 
+                required
+                aria-required="true"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+            Sign In
+        </button>
     </form>
-    <p class="text-muted login-note" style="margin-top:12px; text-align:center; font-size:13px;">Default admin: <code>admin@hcms.local</code> / <code>admin</code></p>
-</div>
+
+    <p class="text-muted text-sm" style="margin-top: 20px; text-align: center;">
+        Default credentials:<br>
+        Email: <code>admin@hcms.local</code><br>
+        Password: <code>admin</code>
+    </p>
+</article>

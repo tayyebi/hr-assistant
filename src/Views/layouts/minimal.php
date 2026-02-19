@@ -6,14 +6,16 @@
 ?><!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?= htmlspecialchars($title ?? 'HCMS') ?></title>
-<link rel="stylesheet" href="/css/app.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="HCMS - Human Capital Management System">
+    <meta name="theme-color" content="#2563eb">
+    <title><?= htmlspecialchars($title ?? 'HCMS') ?></title>
+    <link rel="stylesheet" href="/css/app.css">
 </head>
 <body class="layout-minimal">
-<main class="minimal-wrap">
-<?= $content ?>
-</main>
+    <main class="minimal-wrap">
+        <?= $content ?>
+    </main>
 </body>
 </html>

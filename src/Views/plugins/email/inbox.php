@@ -1,37 +1,127 @@
 <?php $layout = 'app'; ?>
-<div class="page-header">
-    <h1 class="page-title"><?= htmlspecialchars($account['label'] ?? 'Inbox') ?></h1>
-    <a href="<?= $prefix ?>/email" class="btn btn-sm">Back</a>
-</div>
 
-<details class="compose-toggle">
-    <summary class="btn btn-primary btn-sm">Compose</summary>
-    <form method="post" action="<?= $prefix ?>/email/compose" class="form-stack" style="margin-top:8px">
-        <input type="hidden" name="account_id" value="<?= $account['id'] ?? '' ?>">
-        <input type="email" name="to" placeholder="To" class="field-input field-sm" required>
-        <input type="text" name="subject" placeholder="Subject" class="field-input field-sm">
-        <textarea name="body" rows="4" class="field-input" placeholder="Message"></textarea>
-        <button type="submit" class="btn btn-primary btn-sm">Send</button>
-    </form>
-</details>
+<header class="page-header">
+    <h1 class="page-title">
+        <?= htmlspecialchars($account['label'] ?? 'Email Inbox') ?>
+    </h1>
+    <a href="<?= $prefix ?>/email" class="btn btn-sm" title="Back to accounts">
+        ← Back
+    </a>
+</header>
 
-<?php if (empty($emails)): ?>
-<p class="text-muted" style="margin-top:12px">No emails.</p>
-<?php else: ?>
-<table class="table" style="margin-top:12px">
-<thead><tr><th>Dir</th><th>From</th><th>To</th><th>Subject</th><th>Employee</th><th>Date</th><th></th></tr></thead>
-<tbody>
-<?php foreach ($emails as $e): ?>
-<tr class="<?= $e['is_read'] ? '' : 'row-unread' ?>">
-    <td class="text-sm"><?= $e['direction'] === 'inbound' ? '↓' : '↑' ?></td>
-    <td class="text-sm"><?= htmlspecialchars($e['from_address']) ?></td>
-    <td class="text-sm"><?= htmlspecialchars($e['to_address']) ?></td>
-    <td><?= htmlspecialchars($e['subject'] ?? '(No Subject)') ?></td>
-    <td><?= $e['emp_first'] ? htmlspecialchars($e['emp_first'] . ' ' . $e['emp_last']) : '<span class="text-muted">—</span>' ?></td>
-    <td class="text-muted text-sm"><?= $e['created_at'] ?></td>
-    <td><a href="<?= $prefix ?>/email/view/<?= $e['id'] ?>" class="btn btn-sm">View</a></td>
-</tr>
-<?php endforeach; ?>
-</tbody>
-</table>
-<?php endif; ?>
+<section style="margin-bottom: 24px;">
+    <details class="compose-toggle" open>
+        <summary class="btn btn-primary">✎ Compose Email</summary>
+        <form method="post" action="<?= $prefix ?>/email/compose" class="form-stack" style="margin-top: 16px;">
+            <input type="hidden" name="account_id" value="<?= htmlspecialchars((string)($account['id'] ?? '')) ?>">
+            
+            <div class="form-group">
+                <label for="email_to" class="field-label">Recipient *</label>
+                <input 
+                    type="email" 
+                    id="email_to"
+                    name="to" 
+                    placeholder="recipient@example.com" 
+                    class="field-input" 
+                    required
+                    aria-required="true"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="email_subject" class="field-label">Subject</label>
+                <input 
+                    type="text" 
+                    id="email_subject"
+                    name="subject" 
+                    placeholder="Email subject" 
+                    class="field-input"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="email_body" class="field-label">Message</label>
+                <textarea 
+                    id="email_body"
+                    name="body" 
+                    rows="4" 
+                    class="field-input" 
+                    placeholder="Type your message here…"
+                ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" title="Send email">
+                Send Email
+            </button>
+        </form>
+    </details>
+</section>
+
+<section>
+    <h2 class="section-title">Messages</h2>
+    
+    <?php if (empty($emails)): ?>
+    <p class="text-muted">No emails in this account yet.</p>
+    <?php else: ?>
+    <div style="overflow-x: auto;">
+        <table class="table" role="grid">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 40px;">Dir</th>
+                    <th scope="col">From</th>
+                    <th scope="col">To</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($emails as $e): ?>
+                <tr class="<?= !$e['is_read'] ? 'row-unread' : '' ?>">
+                    <td title="<?= $e['direction'] === 'inbound' ? 'Received' : 'Sent' ?>">
+                        <span style="font-size: 16px; color: var(--muted);">
+                            <?= $e['direction'] === 'inbound' ? '↓' : '↑' ?>
+                        </span>
+                    </td>
+                    <td>
+                        <code class="text-sm">
+                            <?= htmlspecialchars($e['from_address']) ?>
+                        </code>
+                    </td>
+                    <td>
+                        <code class="text-sm">
+                            <?= htmlspecialchars($e['to_address']) ?>
+                        </code>
+                    </td>
+                    <td>
+                        <strong>
+                            <?= htmlspecialchars($e['subject'] ?? '(No Subject)') ?>
+                        </strong>
+                    </td>
+                    <td>
+                        <?php if ($e['emp_first']): ?>
+                        <?= htmlspecialchars($e['emp_first'] . ' ' . $e['emp_last']) ?>
+                        <?php else: ?>
+                        <span class="text-muted">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-muted text-sm">
+                        <?= htmlspecialchars($e['created_at']) ?>
+                    </td>
+                    <td>
+                        <a 
+                            href="<?= $prefix ?>/email/view/<?= $e['id'] ?>" 
+                            class="btn btn-sm"
+                            title="View email"
+                        >
+                            View
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</section>
