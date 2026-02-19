@@ -42,7 +42,7 @@ final class Plugin implements PluginInterface
             }
             $leaveTypes = $db->fetchAll('SELECT * FROM leave_types WHERE tenant_id = ? AND is_active = 1', [$tid]);
             $router->response()->html($router->view()->render('plugins/leave/index', [
-                'title' => 'Leave', 'layout' => 'app', 'requests' => $requests,
+                'title' => 'Leave', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'requests' => $requests,
                 'isHR' => $isHR, 'leaveTypes' => $leaveTypes,
             ]));
         });
@@ -106,7 +106,7 @@ final class Plugin implements PluginInterface
                 [$tid, $year],
             );
             $router->response()->html($router->view()->render('plugins/leave/balances', [
-                'title' => 'Leave Balances', 'layout' => 'app', 'balances' => $balances, 'year' => $year,
+                'title' => 'Leave Balances', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'balances' => $balances, 'year' => $year,
             ]));
         });
 
@@ -115,7 +115,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin')) { return; }
             $types = $db->fetchAll('SELECT * FROM leave_types WHERE tenant_id = ? ORDER BY name', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/leave/settings', [
-                'title' => 'Leave Settings', 'layout' => 'app', 'types' => $types,
+                'title' => 'Leave Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'types' => $types,
             ]));
         });
 

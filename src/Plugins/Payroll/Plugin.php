@@ -28,7 +28,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin', 'hr_specialist')) { return; }
             $runs = $db->fetchAll('SELECT * FROM payroll_runs WHERE tenant_id = ? ORDER BY period_start DESC', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/payroll/index', [
-                'title' => 'Payroll', 'layout' => 'app', 'runs' => $runs,
+                'title' => 'Payroll', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'runs' => $runs,
             ]));
         });
 
@@ -43,7 +43,7 @@ final class Plugin implements PluginInterface
                 [(int)$p['id']],
             );
             $router->response()->html($router->view()->render('plugins/payroll/run', [
-                'title' => 'Payroll Run', 'layout' => 'app', 'run' => $run, 'payslips' => $payslips,
+                'title' => 'Payroll Run', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'run' => $run, 'payslips' => $payslips,
             ]));
         });
 
@@ -87,7 +87,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin')) { return; }
             $structures = $db->fetchAll('SELECT * FROM payroll_salary_structures WHERE tenant_id = ? ORDER BY name', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/payroll/structures', [
-                'title' => 'Salary Structures', 'layout' => 'app', 'structures' => $structures,
+                'title' => 'Salary Structures', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'structures' => $structures,
             ]));
         });
 
@@ -110,7 +110,7 @@ final class Plugin implements PluginInterface
             if (!$structure) { $router->response()->status(404)->html('<h1>Not found</h1>'); return; }
             $components = $db->fetchAll('SELECT * FROM payroll_components WHERE structure_id = ? ORDER BY sort_order', [(int)$p['id']]);
             $router->response()->html($router->view()->render('plugins/payroll/structure', [
-                'title' => $structure['name'], 'layout' => 'app', 'structure' => $structure, 'components' => $components,
+                'title' => $structure['name'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'structure' => $structure, 'components' => $components,
             ]));
         });
 
@@ -137,7 +137,7 @@ final class Plugin implements PluginInterface
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $structures = $db->fetchAll('SELECT * FROM payroll_salary_structures WHERE tenant_id = ? AND is_active = 1', [$tid]);
             $router->response()->html($router->view()->render('plugins/payroll/assignments', [
-                'title' => 'Payroll Assignments', 'layout' => 'app',
+                'title' => 'Payroll Assignments', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'assignments' => $assignments, 'employees' => $employees, 'structures' => $structures,
             ]));
         });

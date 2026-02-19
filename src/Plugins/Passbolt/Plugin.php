@@ -28,7 +28,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin', 'hr_specialist')) { return; }
             $instances = $db->fetchAll('SELECT * FROM passbolt_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/passbolt/index', [
-                'title' => 'Passbolt', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Passbolt', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 
@@ -45,7 +45,7 @@ final class Plugin implements PluginInterface
             );
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/passbolt/instance', [
-                'title' => $inst['label'], 'layout' => 'app', 'instance' => $inst,
+                'title' => $inst['label'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instance' => $inst,
                 'pbUsers' => $pbUsers, 'links' => $links, 'employees' => $employees,
             ]));
         });
@@ -82,7 +82,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin')) { return; }
             $instances = $db->fetchAll('SELECT * FROM passbolt_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/passbolt/settings', [
-                'title' => 'Passbolt Settings', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Passbolt Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 

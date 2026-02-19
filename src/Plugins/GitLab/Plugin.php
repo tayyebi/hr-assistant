@@ -42,7 +42,7 @@ final class Plugin implements PluginInterface
             $tid = $router->tenant()->id();
             $instances = $db->fetchAll('SELECT * FROM gitlab_instances WHERE tenant_id = ? ORDER BY label', [$tid]);
             $router->response()->html($router->view()->render('plugins/gitlab/index', [
-                'title' => 'GitLab', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'GitLab', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 
@@ -64,7 +64,7 @@ final class Plugin implements PluginInterface
             );
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/gitlab/instance', [
-                'title' => $inst['label'], 'layout' => 'app',
+                'title' => $inst['label'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'instance' => $inst, 'projects' => $projects, 'groups' => $groups,
                 'grants' => $grants, 'employees' => $employees,
             ]));
@@ -126,7 +126,7 @@ final class Plugin implements PluginInterface
             $tid = $router->tenant()->id();
             $instances = $db->fetchAll('SELECT * FROM gitlab_instances WHERE tenant_id = ? ORDER BY label', [$tid]);
             $router->response()->html($router->view()->render('plugins/gitlab/settings', [
-                'title' => 'GitLab Settings', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'GitLab Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 

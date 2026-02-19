@@ -31,7 +31,7 @@ final class Plugin implements PluginInterface
                 [$tid],
             );
             $router->response()->html($router->view()->render('plugins/onboarding/index', [
-                'title' => 'Onboarding', 'layout' => 'app', 'processes' => $processes,
+                'title' => 'Onboarding', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'processes' => $processes,
             ]));
         });
 
@@ -46,7 +46,7 @@ final class Plugin implements PluginInterface
             if (!$proc) { $router->response()->status(404)->html('<h1>Not found</h1>'); return; }
             $tasks = $db->fetchAll('SELECT * FROM onboarding_tasks WHERE process_id = ? ORDER BY id', [(int)$p['id']]);
             $router->response()->html($router->view()->render('plugins/onboarding/process', [
-                'title' => 'Onboarding – ' . $proc['first_name'], 'layout' => 'app',
+                'title' => 'Onboarding – ' . $proc['first_name'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'process' => $proc, 'tasks' => $tasks,
             ]));
         });
@@ -96,7 +96,7 @@ final class Plugin implements PluginInterface
             $templates = $db->fetchAll('SELECT * FROM onboarding_templates WHERE tenant_id = ? ORDER BY name', [$router->tenant()->id()]);
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/onboarding/templates', [
-                'title' => 'Onboarding Templates', 'layout' => 'app', 'templates' => $templates, 'employees' => $employees,
+                'title' => 'Onboarding Templates', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'templates' => $templates, 'employees' => $employees,
             ]));
         });
 

@@ -29,7 +29,7 @@ final class Plugin implements PluginInterface
             $tid = $router->tenant()->id();
             $instances = $db->fetchAll('SELECT * FROM mailcow_instances WHERE tenant_id = ? ORDER BY label', [$tid]);
             $router->response()->html($router->view()->render('plugins/mailcow/index', [
-                'title' => 'Mailcow', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Mailcow', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 
@@ -47,7 +47,7 @@ final class Plugin implements PluginInterface
             );
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/mailcow/instance', [
-                'title' => $inst['label'], 'layout' => 'app', 'instance' => $inst,
+                'title' => $inst['label'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instance' => $inst,
                 'mailboxes' => $mailboxes, 'domains' => $domains,
                 'localBoxes' => $localBoxes, 'employees' => $employees,
             ]));
@@ -81,7 +81,7 @@ final class Plugin implements PluginInterface
             $tid = $router->tenant()->id();
             $instances = $db->fetchAll('SELECT * FROM mailcow_instances WHERE tenant_id = ? ORDER BY label', [$tid]);
             $router->response()->html($router->view()->render('plugins/mailcow/settings', [
-                'title' => 'Mailcow Settings', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Mailcow Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 

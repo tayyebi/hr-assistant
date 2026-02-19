@@ -39,7 +39,7 @@ final class Plugin implements PluginInterface
             );
             $isHR = $router->auth()->hasRole('workspace_admin') || $router->auth()->hasRole('hr_specialist');
             $router->response()->html($router->view()->render('plugins/calendar/index', [
-                'title' => 'Calendar', 'layout' => 'app',
+                'title' => 'Calendar', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'events' => $events, 'year' => $year, 'month' => $month, 'isHR' => $isHR,
             ]));
         });

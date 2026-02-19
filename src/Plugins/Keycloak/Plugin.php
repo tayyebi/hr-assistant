@@ -28,7 +28,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin', 'hr_specialist')) { return; }
             $instances = $db->fetchAll('SELECT * FROM keycloak_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/keycloak/index', [
-                'title' => 'Keycloak', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Keycloak', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 
@@ -45,7 +45,7 @@ final class Plugin implements PluginInterface
             );
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/keycloak/instance', [
-                'title' => $inst['label'], 'layout' => 'app', 'instance' => $inst,
+                'title' => $inst['label'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instance' => $inst,
                 'kcUsers' => $kcUsers, 'links' => $links, 'employees' => $employees,
             ]));
         });
@@ -82,7 +82,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin')) { return; }
             $instances = $db->fetchAll('SELECT * FROM keycloak_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/keycloak/settings', [
-                'title' => 'Keycloak Settings', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Keycloak Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 

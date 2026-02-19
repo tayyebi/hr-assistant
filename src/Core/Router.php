@@ -60,6 +60,16 @@ final class Router
         return $this->db;
     }
 
+    public function getSidebarItems(): array
+    {
+        foreach ($GLOBALS as $v) {
+            if ($v instanceof PluginManager) {
+                return $v->sidebarItems();
+            }
+        }
+        return [];
+    }
+
     public function registerCoreRoutes(): void
     {
         $this->get('/healthz', function (): void {
@@ -130,18 +140,10 @@ final class Router
             if (!$this->auth->requireLogin($this->response)) {
                 return;
             }
-            $pluginManager = null;
-            foreach ($GLOBALS as $k => $v) {
-                if ($v instanceof PluginManager) {
-                    $pluginManager = $v;
-                    break;
-                }
-            }
-            $sidebarItems = $pluginManager ? $pluginManager->sidebarItems() : [];
             $this->response->html($this->view->render('workspace/dashboard', [
                 'title' => 'Dashboard',
                 'layout' => 'app',
-                'sidebarItems' => $sidebarItems,
+                'sidebarItems' => $this->getSidebarItems(),
             ]));
         });
 
@@ -154,6 +156,7 @@ final class Router
                 'title' => 'Employees',
                 'layout' => 'app',
                 'employees' => $employees,
+                'sidebarItems' => $this->getSidebarItems(),
             ]));
         });
 
@@ -187,6 +190,7 @@ final class Router
                 'title' => 'Settings',
                 'layout' => 'app',
                 'settings' => $settings,
+                'sidebarItems' => $this->getSidebarItems(),
             ]));
         });
 

@@ -57,7 +57,7 @@ final class Plugin implements PluginInterface
             );
             $router->response()->html($router->view()->render('plugins/telegram/index', [
                 'title'  => 'Telegram',
-                'layout' => 'app',
+                'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'chats'  => $chats,
             ]));
         });
@@ -79,7 +79,7 @@ final class Plugin implements PluginInterface
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/telegram/chat', [
                 'title'     => 'Telegram Chat',
-                'layout'    => 'app',
+                'layout'    => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'messages'  => $messages,
                 'chat'      => $chat,
                 'employees' => $employees,
@@ -139,7 +139,7 @@ final class Plugin implements PluginInterface
             );
             $router->response()->html($router->view()->render('plugins/telegram/settings', [
                 'title'    => 'Telegram Settings',
-                'layout'   => 'app',
+                'layout'   => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'botToken' => $token ? $token['value'] : '',
             ]));
         });

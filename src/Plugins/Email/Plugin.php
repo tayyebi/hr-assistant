@@ -60,7 +60,7 @@ final class Plugin implements PluginInterface
             );
             $router->response()->html($router->view()->render('plugins/email/index', [
                 'title'    => 'Email',
-                'layout'   => 'app',
+                'layout'   => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'accounts' => $accounts,
             ]));
         });
@@ -85,7 +85,7 @@ final class Plugin implements PluginInterface
             );
             $router->response()->html($router->view()->render('plugins/email/inbox', [
                 'title'   => 'Inbox — ' . ($account['label'] ?? ''),
-                'layout'  => 'app',
+                'layout'  => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'emails'  => $emails,
                 'account' => $account,
             ]));
@@ -109,7 +109,7 @@ final class Plugin implements PluginInterface
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/email/view', [
                 'title'     => $email['subject'] ?: '(No Subject)',
-                'layout'    => 'app',
+                'layout'    => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'email'     => $email,
                 'employees' => $employees,
             ]));
@@ -173,7 +173,7 @@ final class Plugin implements PluginInterface
             );
             $router->response()->html($router->view()->render('plugins/email/settings', [
                 'title'    => 'Email Settings',
-                'layout'   => 'app',
+                'layout'   => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'accounts' => $accounts,
             ]));
         });

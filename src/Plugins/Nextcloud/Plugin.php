@@ -29,7 +29,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin', 'hr_specialist')) { return; }
             $instances = $db->fetchAll('SELECT * FROM nextcloud_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/nextcloud/index', [
-                'title' => 'Documents', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Documents', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 
@@ -46,7 +46,7 @@ final class Plugin implements PluginInterface
             );
             $employees = $db->tenantFetchAll('employees', 'is_active = 1');
             $router->response()->html($router->view()->render('plugins/nextcloud/instance', [
-                'title' => $inst['label'], 'layout' => 'app', 'instance' => $inst,
+                'title' => $inst['label'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instance' => $inst,
                 'ncUsers' => $ncUsers, 'links' => $links, 'employees' => $employees,
             ]));
         });
@@ -64,7 +64,7 @@ final class Plugin implements PluginInterface
             $files = $adapter->listFolder($link['nc_user_id'], $path);
             $router->response()->html($router->view()->render('plugins/nextcloud/files', [
                 'title' => 'Files – ' . $link['first_name'] . ' ' . $link['last_name'],
-                'layout' => 'app', 'link' => $link, 'files' => $files, 'currentPath' => $path,
+                'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'link' => $link, 'files' => $files, 'currentPath' => $path,
             ]));
         });
 
@@ -100,7 +100,7 @@ final class Plugin implements PluginInterface
             if (!$router->auth()->requireRole($router->response(), 'workspace_admin')) { return; }
             $instances = $db->fetchAll('SELECT * FROM nextcloud_instances WHERE tenant_id = ? ORDER BY label', [$router->tenant()->id()]);
             $router->response()->html($router->view()->render('plugins/nextcloud/settings', [
-                'title' => 'Documents Settings', 'layout' => 'app', 'instances' => $instances,
+                'title' => 'Documents Settings', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'instances' => $instances,
             ]));
         });
 

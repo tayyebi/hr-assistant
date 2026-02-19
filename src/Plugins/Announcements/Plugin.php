@@ -33,7 +33,7 @@ final class Plugin implements PluginInterface
             );
             $isHR = $router->auth()->hasRole('workspace_admin') || $router->auth()->hasRole('hr_specialist');
             $router->response()->html($router->view()->render('plugins/announcements/index', [
-                'title' => 'Announcements', 'layout' => 'app',
+                'title' => 'Announcements', 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'announcements' => $announcements, 'isHR' => $isHR,
             ]));
         });
@@ -50,7 +50,7 @@ final class Plugin implements PluginInterface
             /* mark read */
             $db->query('INSERT IGNORE INTO announcement_reads (announcement_id, user_id) VALUES (?,?)', [(int)$p['id'], $router->auth()->userId()]);
             $router->response()->html($router->view()->render('plugins/announcements/view', [
-                'title' => $ann['title'], 'layout' => 'app', 'announcement' => $ann,
+                'title' => $ann['title'], 'layout' => 'app', 'sidebarItems' => $router->getSidebarItems(), 'announcement' => $ann,
             ]));
         });
 

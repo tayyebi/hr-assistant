@@ -93,7 +93,7 @@ final class Plugin implements PluginInterface
 
             $router->response()->html($router->view()->render('plugins/messenger/index', [
                 'title'     => 'Messenger',
-                'layout'    => 'app',
+                'layout'    => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'employees' => $employees,
                 'meta'      => $meta,
             ]));
@@ -144,7 +144,7 @@ final class Plugin implements PluginInterface
 
             $router->response()->html($router->view()->render('plugins/messenger/chat', [
                 'title'     => 'Messenger',
-                'layout'    => 'app',
+                'layout'    => 'app', 'sidebarItems' => $router->getSidebarItems(),
                 'employee'  => $employee,
                 'messages'  => $messages,
                 'available' => $available,
